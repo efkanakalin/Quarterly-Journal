@@ -32,9 +32,9 @@ export function Sidebar() {
       {/* Logo */}
       <div className="flex items-center px-4 py-4 border-b border-gray-200 dark:border-white/10">
         <img
-          src="/logo.png"
+          src="/logo.svg"
           alt="QT Journal"
-          className="h-9 w-auto object-contain"
+          className="h-24 w-auto object-contain"
           onError={e => {
             const t = e.currentTarget
             t.style.display = 'none'
