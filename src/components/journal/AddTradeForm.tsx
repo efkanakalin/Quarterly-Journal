@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { SYMBOL_COLORS, OUTCOME_COLORS, SESSION_COLORS, SESSION_LABELS } from '@/lib/constants/colors'
 import { CONFIRMATION_TYPES, CONFIRMATION_COLORS } from '@/lib/constants/confirmations'
-import { TIMEFRAMES } from '@/lib/constants/timeframes'
+import { TIMEFRAMES, sortByTimeframe } from '@/lib/constants/timeframes'
 import { SYMBOLS_LIST } from '@/lib/constants/symbols'
 import { deriveSession, deriveSessionQuarter, deriveMicroQuarter90m } from '@/lib/derivations/session'
 import { deriveWeekOfYear, deriveMonthQuarter, deriveYearQuarter, deriveDayOfWeek } from '@/lib/derivations/quarter'
@@ -190,7 +190,7 @@ export function AddTradeForm({ onClose }: Props) {
 
       {/* Konfirmasyonlar */}
       <div className="space-y-2">
-        <label className={LABEL}>{S.journal.confirmation}</label>
+        <label className={LABEL}>{S.journal.confluence}</label>
         <div className="flex items-center gap-2">
           <select value={confTf} onChange={e => setConfTf(e.target.value as Timeframe)} className={INPUT + ' !w-auto'}>
             {TIMEFRAMES.map(tf => <option key={tf} value={tf}>{tf}</option>)}
@@ -204,7 +204,8 @@ export function AddTradeForm({ onClose }: Props) {
         </div>
         {pendingConfs.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {pendingConfs.map((c, idx) => {
+            {sortByTimeframe([...pendingConfs]).map((c, _sortedIdx) => {
+              const idx = pendingConfs.findIndex(p => p.timeframe === c.timeframe && p.confirmation_type === c.confirmation_type)
               const color = CONFIRMATION_COLORS[c.confirmation_type] ?? '#9ca3af'
               return (
                 <span key={idx} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium" style={{ backgroundColor: `${color}22`, color }}>
