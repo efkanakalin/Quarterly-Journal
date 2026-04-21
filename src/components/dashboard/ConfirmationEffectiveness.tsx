@@ -63,11 +63,9 @@ export function ConfirmationEffectiveness({ trades }: Props) {
   })
 
   const handleSort = (key: SortKey) => {
-    if (sortBy === key) setSetAsc(p => !p)
+    if (sortBy === key) setSortAsc(p => !p)
     else { setSortBy(key); setSortAsc(false) }
   }
-
-  function setSetAsc(fn: (p: boolean) => boolean) { setSortAsc(fn) }
 
   const SortIcon = ({ col }: { col: SortKey }) => {
     if (sortBy !== col) return null

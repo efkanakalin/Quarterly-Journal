@@ -78,6 +78,15 @@ export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
           if (error) throw error
           updateTrade(trade.id, { r_multiple: r })
         } else {
+          // Auto r_multiple: loss → -1, breakeven → 0
+          const autoR = trade.outcome === 'loss' ? -1 : 0
+          const { error: rErr } = await supabase
+            .from('trades')
+            .update({ r_multiple: autoR })
+            .eq('id', trade.id)
+          if (rErr) throw rErr
+          updateTrade(trade.id, { r_multiple: autoR })
+
           await supabase.from('trade_mistakes').delete().eq('trade_id', trade.id)
           if (mistakes.length > 0) {
             const { error } = await supabase.from('trade_mistakes').insert(

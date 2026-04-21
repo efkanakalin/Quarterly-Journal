@@ -34,7 +34,11 @@ export function TradeTable() {
 
   const openWizard = (trade: TradeWithRelations, e: React.MouseEvent) => {
     e.stopPropagation()
-    setWizardTrade(trade)
+    if (trade.source === 'csv') {
+      setWizardTrade(trade)
+    } else {
+      setDetailTrade(trade)
+    }
   }
 
   const handleWizardComplete = (tradeId: string) => {
