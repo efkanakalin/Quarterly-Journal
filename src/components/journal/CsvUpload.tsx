@@ -30,7 +30,8 @@ export function CsvUpload() {
       })
     } catch (err) {
       console.error(err)
-      toast.error('CSV parse edilirken hata oluştu.')
+      const msg = err instanceof Error ? err.message : String(err)
+      toast.error('CSV parse hatası', { description: msg })
     } finally {
       setLoading(false)
       if (inputRef.current) inputRef.current.value = ''
