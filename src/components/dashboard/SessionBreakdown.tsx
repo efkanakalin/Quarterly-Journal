@@ -1,12 +1,14 @@
 import { SESSION_COLORS, SESSION_LABELS } from '@/lib/constants/colors'
-import { S } from '@/lib/constants/strings'
+import { useS } from '@/lib/i18n'
 import type { TradeWithRelations, Session } from '@/types'
 
 const SESSIONS: Session[] = ['asia', 'london', 'ny_am', 'ny_pm']
 
 interface Props { trades: TradeWithRelations[] }
 
-export function SessionBreakdown({ trades }: Props) {
+export function SessionBreakdown({
+  trades }: Props) {
+  const S = useS()
   const stats = SESSIONS.map(session => {
     const st = trades.filter(t => t.session === session && t.pnl_usd !== null)
     const wins = st.filter(t => t.outcome === 'win')

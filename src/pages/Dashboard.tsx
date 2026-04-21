@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useDashboardStore } from '@/stores/useDashboardStore'
-import { filterByDateRange, calcStats, calcCumulativePnl, calcWeeklyPnl } from '@/lib/stats'
+import { filterByDateRange, calcStats, calcDrawdown } from '@/lib/stats'
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker'
 import { SummaryCards } from '@/components/dashboard/SummaryCards'
 import { PnlChart } from '@/components/dashboard/PnlChart'
+import { DrawdownChart } from '@/components/dashboard/DrawdownChart'
 import { BestWorstCards } from '@/components/dashboard/BestWorstCards'
 import { SessionBreakdown } from '@/components/dashboard/SessionBreakdown'
 import { SessionHeatmap } from '@/components/dashboard/SessionHeatmap'
@@ -26,10 +27,9 @@ export function Dashboard() {
 
   useEffect(() => { fetchTrades() }, [fetchTrades])
 
-  const filtered   = filterByDateRange(trades, dateRange)
-  const stats      = calcStats(filtered)
-  const cumulative = calcCumulativePnl(filtered)
-  const weekly     = calcWeeklyPnl(filtered)
+  const filtered  = filterByDateRange(trades, dateRange)
+  const stats     = calcStats(filtered)
+  const drawdown  = calcDrawdown(filtered)
 
   if (loading) {
     return (
@@ -51,11 +51,12 @@ export function Dashboard() {
       {/* Row 1 — 5 özet kart */}
       <SummaryCards stats={stats} />
 
-      {/* Row 2 — QT Score + PNL Grafik | Takvim */}
+      {/* Row 2 — QT Score + Grafikler | Takvim */}
       <div className="grid grid-cols-3 gap-4">
         <div className="flex flex-col gap-4">
           <QTScore trades={filtered} />
-          <PnlChart cumulative={cumulative} weekly={weekly} />
+          <PnlChart trades={filtered} />
+          <DrawdownChart data={drawdown} />
         </div>
         <div className="col-span-2">
           <CalendarGrid
@@ -79,10 +80,10 @@ export function Dashboard() {
         <MistakeFrequency trades={filtered} />
       </div>
 
-      {/* Row 5 — Konfirmasyon Etkinliği */}
+      {/* Row 5 — Konfirmasyon */}
       <ConfirmationEffectiveness trades={filtered} />
 
-      {/* Row 6 — En iyi/kötü */}
+      {/* Row 6 — En iyi / kötü */}
       <BestWorstCards trades={filtered} />
 
       <DayTradesModal

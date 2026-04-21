@@ -11,14 +11,11 @@ import { SYMBOLS_LIST } from '@/lib/constants/symbols'
 import { deriveSession, deriveSessionQuarter, deriveMicroQuarter90m } from '@/lib/derivations/session'
 import { deriveWeekOfYear, deriveMonthQuarter, deriveYearQuarter, deriveDayOfWeek } from '@/lib/derivations/quarter'
 import { CURRENCIES } from '@/lib/constants/currencies'
-import { S } from '@/lib/constants/strings'
+import { useS } from '@/lib/i18n'
 import type { Outcome, Session, Timeframe, ConfirmationType, TradeWithRelations } from '@/types'
 
 const SESSIONS = Object.keys(SESSION_LABELS) as Session[]
 const OUTCOMES: Outcome[] = ['win', 'loss', 'breakeven']
-const OUTCOME_LABELS: Record<Outcome, string> = {
-  win: S.outcome.win, loss: S.outcome.loss, breakeven: S.outcome.breakeven,
-}
 
 interface PendingConf {
   timeframe: Timeframe
@@ -31,22 +28,28 @@ const INPUT = 'w-full rounded-lg border border-gray-200 dark:border-white/10 bg-
 const LABEL = 'text-xs font-medium text-gray-600 dark:text-[#9ca3af]'
 
 export function AddTradeForm({ onClose }: Props) {
+  const S = useS()
   const { addTrade } = useTradesStore()
 
-  const [symbol, setSymbol] = useState('')
-  const [outcome, setOutcome] = useState<Outcome | ''>('')
-  const [date, setDate] = useState('')
-  const [session, setSession] = useState<Session | ''>('')
-  const [time, setTime] = useState('')
-  const [pnl, setPnl] = useState('')
-  const [currency, setCurrency] = useState('USD')
+  const [symbol,    setSymbol]    = useState('')
+  const [outcome,   setOutcome]   = useState<Outcome | ''>('')
+  const [date,      setDate]      = useState('')
+  const [session,   setSession]   = useState<Session | ''>('')
+  const [time,      setTime]      = useState('')
+  const [pnl,       setPnl]       = useState('')
+  const [currency,  setCurrency]  = useState('USD')
   const [chartLink, setChartLink] = useState('')
-  const [notes, setNotes] = useState('')
+  const [notes,     setNotes]     = useState('')
 
   const [pendingConfs, setPendingConfs] = useState<PendingConf[]>([])
-  const [confTf, setConfTf] = useState<Timeframe>('15M')
-  const [confType, setConfType] = useState<ConfirmationType>('SSMT')
-  const [saving, setSaving] = useState(false)
+  const [confTf,       setConfTf]       = useState<Timeframe>('15M')
+  const [confType,     setConfType]     = useState<ConfirmationType>('SSMT')
+  const [saving,       setSaving]       = useState(false)
+
+  // Labels reaktif — dil değişince güncellenir
+  const OUTCOME_LABELS: Record<Outcome, string> = {
+    win: S.outcome.win, loss: S.outcome.loss, breakeven: S.outcome.breakeven,
+  }
 
   const addConf = () => {
     if (pendingConfs.some(c => c.timeframe === confTf && c.confirmation_type === confType)) return
@@ -60,7 +63,7 @@ export function AddTradeForm({ onClose }: Props) {
 
   const handleSave = async () => {
     if (!symbol || !outcome || !date) {
-      toast.error('Sembol, Sonuç ve Tarih zorunludur.')
+      toast.error(S.journal.pair + ', ' + S.journal.result + ', ' + S.journal.date)
       return
     }
     setSaving(true)
@@ -68,10 +71,8 @@ export function AddTradeForm({ onClose }: Props) {
       const entryUtc = buildEntryUtc()
       const sym = SYMBOLS_LIST.find(s => s.code === symbol)
       const contractClass = sym?.class ?? 'micro'
-
       const derivedSession = entryUtc && !session ? deriveSession(entryUtc) : (session || null)
       const resolvedSession = derivedSession as Session | null
-
       const pnlNum = pnl ? parseFloat(pnl) : null
 
       const payload = {
@@ -80,24 +81,17 @@ export function AddTradeForm({ onClose }: Props) {
         direction: null, qty: null,
         entry_price: null, exit_price: null,
         entry_time_et: entryUtc?.toISOString() ?? null,
-        exit_time_et: null,
-        pnl_usd: pnlNum,
-        duration_sec: null,
+        exit_time_et: null, pnl_usd: pnlNum, duration_sec: null,
         session: resolvedSession,
-        day_of_week: entryUtc ? deriveDayOfWeek(entryUtc) : null,
-        session_quarter: entryUtc && resolvedSession ? deriveSessionQuarter(entryUtc, resolvedSession) : null,
+        day_of_week:       entryUtc ? deriveDayOfWeek(entryUtc)                               : null,
+        session_quarter:   entryUtc && resolvedSession ? deriveSessionQuarter(entryUtc, resolvedSession)  : null,
         micro_quarter_90m: entryUtc && resolvedSession ? deriveMicroQuarter90m(entryUtc, resolvedSession) : null,
-        week_of_year: entryUtc ? deriveWeekOfYear(entryUtc) : null,
+        week_of_year:  entryUtc ? deriveWeekOfYear(entryUtc)  : null,
         month_quarter: entryUtc ? deriveMonthQuarter(entryUtc) : null,
-        year_quarter: entryUtc ? deriveYearQuarter(entryUtc) : null,
+        year_quarter:  entryUtc ? deriveYearQuarter(entryUtc)  : null,
         outcome: outcome as Outcome,
-        r_multiple: null,
-        chart_link: chartLink || null,
-        notes: notes || null,
-        currency,
-        source: 'manual' as const,
-        is_complete: true,
-        csv_fingerprint: null,
+        r_multiple: null, chart_link: chartLink || null, notes: notes || null,
+        currency, source: 'manual' as const, is_complete: true, csv_fingerprint: null,
       }
 
       const { data: tradeData, error: tradeError } = await supabase.from('trades').insert(payload).select().single()
@@ -114,10 +108,10 @@ export function AddTradeForm({ onClose }: Props) {
       }
 
       addTrade({ ...tradeData, trade_confirmations: savedConfs, trade_mistakes: [] } as TradeWithRelations)
-      toast.success('Manuel işlem eklendi.')
+      toast.success(S.journal.saveButton + ' ✓')
       onClose()
     } catch {
-      toast.error('İşlem eklenemedi.')
+      toast.error('Error saving trade.')
     } finally {
       setSaving(false)
     }
@@ -126,60 +120,53 @@ export function AddTradeForm({ onClose }: Props) {
   return (
     <div className="rounded-xl border border-blue-500/30 bg-white dark:bg-[#1a1a1a] p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide">Yeni Manuel İşlem</span>
+        <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide">
+          {S.journal.addRow}
+        </span>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
           <X className="h-4 w-4" />
         </button>
       </div>
 
-      {/* Row 1: Sembol + Sonuç + Tarih */}
+      {/* Sembol + Sonuç + Tarih */}
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1">
-          <label className={LABEL}>Sembol <span className="text-red-500">*</span></label>
+          <label className={LABEL}>{S.journal.pair} <span className="text-red-500">*</span></label>
           <select value={symbol} onChange={e => setSymbol(e.target.value)} className={INPUT}>
-            <option value="">Seç...</option>
+            <option value="">{S.journal.result === 'Result' ? 'Select...' : 'Seç...'}</option>
             {SYMBOLS_LIST.map(s => (
-              <option key={s.code} value={s.code} style={{ color: SYMBOL_COLORS[s.code] ?? '#111' }}>
-                {s.code}
-              </option>
+              <option key={s.code} value={s.code} style={{ color: SYMBOL_COLORS[s.code] ?? '#111' }}>{s.code}</option>
             ))}
           </select>
         </div>
         <div className="space-y-1">
-          <label className={LABEL}>Sonuç <span className="text-red-500">*</span></label>
-          <select
-            value={outcome}
-            onChange={e => setOutcome(e.target.value as Outcome)}
-            className={INPUT}
-            style={{ color: outcome ? OUTCOME_COLORS[outcome as Outcome] : undefined }}
-          >
-            <option value="">Seç...</option>
-            {OUTCOMES.map(o => (
-              <option key={o} value={o} style={{ color: OUTCOME_COLORS[o] }}>{OUTCOME_LABELS[o]}</option>
-            ))}
+          <label className={LABEL}>{S.journal.result} <span className="text-red-500">*</span></label>
+          <select value={outcome} onChange={e => setOutcome(e.target.value as Outcome)} className={INPUT} style={{ color: outcome ? OUTCOME_COLORS[outcome as Outcome] : undefined }}>
+            <option value="">{S.journal.result === 'Result' ? 'Select...' : 'Seç...'}</option>
+            {OUTCOMES.map(o => <option key={o} value={o} style={{ color: OUTCOME_COLORS[o] }}>{OUTCOME_LABELS[o]}</option>)}
           </select>
         </div>
         <div className="space-y-1">
-          <label className={LABEL}>Tarih <span className="text-red-500">*</span></label>
+          <label className={LABEL}>{S.journal.date} <span className="text-red-500">*</span></label>
           <input type="date" value={date} onChange={e => setDate(e.target.value)} className={INPUT + ' [color-scheme:light] dark:[color-scheme:dark]'} />
         </div>
       </div>
 
-      {/* Row 2: Seans + Saat + PNL */}
+      {/* Seans + Saat + PNL */}
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1">
-          <label className={LABEL}>Seans</label>
+          <label className={LABEL}>{S.journal.session}</label>
           <select value={session} onChange={e => setSession(e.target.value as Session)} className={INPUT} style={{ color: session ? SESSION_COLORS[session] : undefined }}>
-            <option value="">Opsiyonel</option>
+            <option value="">{S.journal.result === 'Result' ? 'Optional' : 'Opsiyonel'}</option>
             {SESSIONS.map(s => <option key={s} value={s} style={{ color: SESSION_COLORS[s] }}>{SESSION_LABELS[s]}</option>)}
           </select>
         </div>
         <div className="space-y-1">
-          <label className={LABEL}>Saat (ET)</label>
+          <label className={LABEL}>{S.journal.time} (ET)</label>
           <input type="time" value={time} onChange={e => setTime(e.target.value)} className={INPUT + ' [color-scheme:light] dark:[color-scheme:dark]'} />
         </div>
         <div className="space-y-1">
-          <label className={LABEL}>Kar/Zarar</label>
+          <label className={LABEL}>{S.dashboard.pnl}</label>
           <div className="flex gap-1">
             <select value={currency} onChange={e => setCurrency(e.target.value)} className={INPUT + ' !w-20'}>
               {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>)}
@@ -189,21 +176,21 @@ export function AddTradeForm({ onClose }: Props) {
         </div>
       </div>
 
-      {/* Row 3: Chart Link + Notlar */}
+      {/* Chart Link + Notlar */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
-          <label className={LABEL}>📎 Chart Linki</label>
+          <label className={LABEL}>📎 Chart Link</label>
           <input type="url" value={chartLink} onChange={e => setChartLink(e.target.value)} placeholder="https://tradingview.com/..." className={INPUT} />
         </div>
         <div className="space-y-1">
-          <label className={LABEL}>Notlar</label>
-          <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder="İsteğe bağlı not..." className={INPUT} />
+          <label className={LABEL}>{S.wizard.notesTitle}</label>
+          <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder={S.wizard.notesPlaceholder} className={INPUT} />
         </div>
       </div>
 
       {/* Konfirmasyonlar */}
       <div className="space-y-2">
-        <label className={LABEL}>Konfirmasyonlar</label>
+        <label className={LABEL}>{S.journal.confirmation}</label>
         <div className="flex items-center gap-2">
           <select value={confTf} onChange={e => setConfTf(e.target.value as Timeframe)} className={INPUT + ' !w-auto'}>
             {TIMEFRAMES.map(tf => <option key={tf} value={tf}>{tf}</option>)}
@@ -222,9 +209,7 @@ export function AddTradeForm({ onClose }: Props) {
               return (
                 <span key={idx} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium" style={{ backgroundColor: `${color}22`, color }}>
                   {c.timeframe} {c.confirmation_type}
-                  <button onClick={() => setPendingConfs(p => p.filter((_, i) => i !== idx))} className="ml-1 hover:opacity-70">
-                    <X className="h-3 w-3" />
-                  </button>
+                  <button onClick={() => setPendingConfs(p => p.filter((_, i) => i !== idx))} className="ml-1 hover:opacity-70"><X className="h-3 w-3" /></button>
                 </span>
               )
             })}
@@ -238,7 +223,7 @@ export function AddTradeForm({ onClose }: Props) {
         </button>
         <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50 transition-colors">
           <Check className="h-4 w-4" />
-          {saving ? 'Kaydediliyor...' : S.journal.saveButton}
+          {saving ? '...' : S.journal.saveButton}
         </button>
       </div>
     </div>

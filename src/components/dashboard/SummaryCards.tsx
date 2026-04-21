@@ -1,6 +1,6 @@
 import { Info } from 'lucide-react'
 import type { TradeStats } from '@/lib/stats'
-import { S } from '@/lib/constants/strings'
+import { useS } from '@/lib/i18n'
 
 interface CardProps {
   label: string
@@ -34,7 +34,9 @@ function StatCard({ label, value, sub, valueColor, info }: CardProps) {
 
 interface Props { stats: TradeStats }
 
-export function SummaryCards({ stats }: Props) {
+export function SummaryCards({
+  stats }: Props) {
+  const S = useS()
   const pnlColor = stats.totalPnl > 0 ? '#10b981' : stats.totalPnl < 0 ? '#ef4444' : '#6b7280'
   const pfColor  = stats.profitFactor >= 1.5 ? '#10b981' : stats.profitFactor >= 1 ? '#f59e0b' : '#ef4444'
 

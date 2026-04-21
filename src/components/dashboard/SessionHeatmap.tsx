@@ -1,5 +1,5 @@
 import { SESSION_LABELS } from '@/lib/constants/colors'
-import { S } from '@/lib/constants/strings'
+import { useS } from '@/lib/i18n'
 import type { TradeWithRelations, Session, SessionQuarter } from '@/types'
 
 const SESSIONS: Session[] = ['asia', 'london', 'ny_am', 'ny_pm']
@@ -16,7 +16,9 @@ function wrColor(wr: number | null): string {
   return 'rgba(239,68,68,0.45)'
 }
 
-export function SessionHeatmap({ trades }: Props) {
+export function SessionHeatmap({
+  trades }: Props) {
+  const S = useS()
   const map: Record<string, Record<string, { win: number; total: number }>> = {}
   for (const s of SESSIONS) {
     map[s] = {}

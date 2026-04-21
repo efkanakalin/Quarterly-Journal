@@ -1,14 +1,16 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 import { CONFIRMATION_COLORS } from '@/lib/constants/confirmations'
-import { S } from '@/lib/constants/strings'
+import { useS } from '@/lib/i18n'
 import type { TradeWithRelations } from '@/types'
 
 type SortKey = 'count' | 'winRate' | 'avgR'
 
 interface Props { trades: TradeWithRelations[] }
 
-export function ConfirmationEffectiveness({ trades }: Props) {
+export function ConfirmationEffectiveness({
+  trades }: Props) {
+  const S = useS()
   const [sortBy, setSortBy] = useState<SortKey>('count')
   const [sortAsc, setSortAsc] = useState(false)
 
