@@ -1,0 +1,47 @@
+import { useEffect } from 'react'
+import { Routes, Route, Navigate } from 'react-router-dom'
+import { supabase } from '@/lib/supabase'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { AuthGuard } from '@/components/shared/AuthGuard'
+import { Layout } from '@/components/shared/Layout'
+import { Login } from '@/pages/Login'
+import { Dashboard } from '@/pages/Dashboard'
+import { Journal } from '@/pages/Journal'
+
+function App() {
+  const setSession = useAuthStore(s => s.setSession)
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session)
+    })
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [setSession])
+
+  return (
+    <Routes>
+      <Route path="/login" element={<Login />} />
+
+      <Route
+        element={
+          <AuthGuard>
+            <Layout />
+          </AuthGuard>
+        }
+      >
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/journal"   element={<Journal />} />
+        <Route path="/"          element={<Navigate to="/dashboard" replace />} />
+      </Route>
+
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  )
+}
+
+export default App
