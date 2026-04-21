@@ -16,6 +16,7 @@ export const DATE_RANGE_LABELS: Record<DateRangeKey, string> = {
   last_90:    'Son 90 Gün',
   all:        'Tümü',
 }
+// Backwards compat — strings.ts canonical source
 
 export function getDateBounds(key: DateRangeKey): { start: Date; end: Date } | null {
   const now = new Date()
