@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
 import { CONFIRMATION_TYPES, CONFIRMATION_COLORS } from '@/lib/constants/confirmations'
-import { TIMEFRAMES } from '@/lib/constants/timeframes'
+import { TIMEFRAMES, sortByTimeframe } from '@/lib/constants/timeframes'
 import { useS } from '@/lib/i18n'
 import type { ConfirmationType, Timeframe, TradeConfirmation } from '@/types'
 
@@ -42,7 +42,7 @@ export function WizardStep1Confirmations({ confirmations, onChange }: Props) {
       </div>
       {confirmations.length > 0 ? (
         <div className="flex flex-wrap gap-2">
-          {confirmations.map(c => {
+          {sortByTimeframe(confirmations).map(c => {
             const color = CONFIRMATION_COLORS[c.confirmation_type] ?? '#9ca3af'
             return (
               <span key={c.id} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium" style={{ backgroundColor: `${color}22`, color }}>
