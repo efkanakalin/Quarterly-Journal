@@ -31,11 +31,11 @@ export function SessionBreakdown({
               <p className="text-xs font-semibold" style={{ color }}>{SESSION_LABELS[s.session]}</p>
               <div className="space-y-1">
                 <p className="text-lg font-bold text-gray-900 dark:text-white">{s.count}</p>
-                <p className="text-xs text-gray-400 dark:text-[#9ca3af]">işlem</p>
+                <p className="text-xs text-gray-400 dark:text-[#9ca3af]">{S.stats.trades}</p>
               </div>
               <div className="space-y-0.5">
-                <p className="text-xs text-gray-400 dark:text-[#9ca3af]">KO: <span className="text-gray-700 dark:text-white font-medium">{s.winRate !== null ? `${s.winRate.toFixed(0)}%` : '—'}</span></p>
-                <p className="text-xs text-gray-400 dark:text-[#9ca3af]">Ort R: <span className="text-gray-700 dark:text-white font-medium">{s.avgR !== null ? s.avgR.toFixed(2) : '—'}</span></p>
+                <p className="text-xs text-gray-400 dark:text-[#9ca3af]">{S.stats.winRateAbbr} <span className="text-gray-700 dark:text-white font-medium">{s.winRate !== null ? `${s.winRate.toFixed(0)}%` : '—'}</span></p>
+                <p className="text-xs text-gray-400 dark:text-[#9ca3af]">{S.stats.avgR} <span className="text-gray-700 dark:text-white font-medium">{s.avgR !== null ? s.avgR.toFixed(2) : '—'}</span></p>
               </div>
             </div>
           )

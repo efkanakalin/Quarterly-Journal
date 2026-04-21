@@ -74,6 +74,18 @@ export const EN = {
     last_90:    'Last 90 Days',
     all:        'All Time',
   },
+  stats: {
+    trades:       'trades',
+    grossPL:      'Gross profit / loss',
+    positiveDays: 'positive day ratio',
+    vsLoss:       (n: number) => `vs $${n} loss`,
+    winRateAbbr:  'WR:',
+    avgR:         'Avg R:',
+    count:        'Count',
+    noTrades:     'No recent trades',
+    addFirst:     'Add your first trade in Journal',
+    noConfluences:'No trades with confluences logged yet.',
+  },
   metricInfo: {
     pnl:          'Total profit and loss for the selected period, including commissions.',
     profitFactor: 'Ratio of gross profit to gross loss. Above 1.5 indicates a sustainable edge.',

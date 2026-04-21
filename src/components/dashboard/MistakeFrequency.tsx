@@ -45,7 +45,7 @@ export function MistakeFrequency({
           <Tooltip
             contentStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
             labelFormatter={(_, p) => p?.[0]?.payload?.label ?? ''}
-            formatter={v => [v, 'Adet']}
+            formatter={v => [v, S.stats.count]}
             labelStyle={{ color: '#9ca3af', fontSize: 11 }}
             itemStyle={{ color: '#ef4444', fontSize: 12 }}
           />
