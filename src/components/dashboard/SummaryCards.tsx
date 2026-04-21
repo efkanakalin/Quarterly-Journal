@@ -49,35 +49,35 @@ export function SummaryCards({
       <StatCard
         label={S.dashboard.pnl}
         value={`${stats.totalPnl >= 0 ? '+' : ''}$${stats.totalPnl.toFixed(2)}`}
-        sub={`${stats.tradeCount} işlem`}
+        sub={`${stats.tradeCount} ${S.stats.trades}`}
         valueColor={pnlColor}
         info={S.metricInfo.pnl}
       />
       <StatCard
         label={S.dashboard.profitFactor}
         value={pfDisplay}
-        sub="Brüt kazanç / kayıp"
+        sub={S.stats.grossPL}
         valueColor={pfColor}
         info={S.metricInfo.profitFactor}
       />
       <StatCard
         label={S.dashboard.winRate}
         value={`${stats.winRate.toFixed(1)}%`}
-        sub={`${stats.winCount}K · ${stats.lossCount}K`}
+        sub={`${stats.winCount}W · ${stats.lossCount}L`}
         valueColor={stats.winRate >= 50 ? '#10b981' : '#ef4444'}
         info={S.metricInfo.winRate}
       />
       <StatCard
         label={S.dashboard.dayWinPct}
         value={`${stats.dayWinRate.toFixed(1)}%`}
-        sub="pozitif gün oranı"
+        sub={S.stats.positiveDays}
         valueColor={stats.dayWinRate >= 50 ? '#10b981' : '#ef4444'}
         info={S.metricInfo.dayWinPct}
       />
       <StatCard
         label={S.dashboard.avgWinLoss}
         value={`$${stats.avgWin.toFixed(0)}`}
-        sub={`vs $${stats.avgLoss.toFixed(0)} kayıp`}
+        sub={S.stats.vsLoss(stats.avgLoss)}
         valueColor="#10b981"
         info={S.metricInfo.avgWinLoss}
       />

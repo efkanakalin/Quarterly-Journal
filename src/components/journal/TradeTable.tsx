@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { format } from 'date-fns'
+import { formatET } from '@/lib/formatET'
 import { Pencil, Trash2, ExternalLink } from 'lucide-react'
 import { toast } from 'sonner'
 import { PairBadge } from './PairBadge'
@@ -94,7 +94,7 @@ export function TradeTable() {
             </thead>
             <tbody className="bg-white dark:bg-[#1a1a1a]">
               {trades.map(trade => {
-                const entryTime = trade.entry_time_et ? new Date(trade.entry_time_et) : null
+                const entryRaw = trade.entry_time_et ?? null
                 return (
                   <tr
                     key={trade.id}
@@ -112,11 +112,11 @@ export function TradeTable() {
                     </td>
                     <td className="px-4 py-4"><OutcomeBadge outcome={trade.outcome} /></td>
                     <td className="px-4 py-4 text-gray-900 dark:text-white text-sm">
-                      {entryTime ? format(entryTime, 'MMM d, yyyy') : '—'}
+                      {entryRaw ? formatET(entryRaw, 'MMM d, yyyy') : '—'}
                     </td>
                     <td className="px-4 py-4"><SessionBadge session={trade.session} /></td>
                     <td className="px-4 py-4 text-gray-900 dark:text-white font-mono text-sm">
-                      {entryTime ? format(entryTime, 'HH:mm') : '—'}
+                      {entryRaw ? formatET(entryRaw, 'HH:mm') : '—'}
                     </td>
                     <td className="px-4 py-4">
                       <ConfirmationChips confirmations={trade.trade_confirmations} />

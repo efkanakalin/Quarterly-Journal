@@ -28,8 +28,8 @@ export function RecentPositions({
 
       {recent.length === 0 ? (
         <div className="px-5 py-8 text-center">
-          <p className="text-sm text-gray-400 dark:text-[#9ca3af]">Henüz işlem yok</p>
-          <p className="text-xs text-gray-300 dark:text-[#6b7280] mt-1">Jurnal'dan ilk işleminizi ekleyin</p>
+          <p className="text-sm text-gray-400 dark:text-[#9ca3af]">{S.stats.noTrades}</p>
+          <p className="text-xs text-gray-300 dark:text-[#6b7280] mt-1">{S.stats.addFirst}</p>
         </div>
       ) : (
         <div>

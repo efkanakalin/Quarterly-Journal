@@ -58,7 +58,7 @@ export function ConfirmationEffectiveness({
     return (
       <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-5">
         <p className="text-xs font-medium text-gray-500 dark:text-[#9ca3af] mb-3">{S.dashboard.confirmationEffect}</p>
-        <p className="text-xs text-gray-400 dark:text-[#9ca3af]">Wizard ile konfirmasyon eklenmiş işlem yok.</p>
+        <p className="text-xs text-gray-400 dark:text-[#9ca3af]">{S.stats.noConfluences}</p>
       </div>
     )
   }

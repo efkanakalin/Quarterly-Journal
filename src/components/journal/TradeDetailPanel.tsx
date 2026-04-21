@@ -1,4 +1,4 @@
-import { format } from 'date-fns'
+import { formatET } from '@/lib/formatET'
 import { ExternalLink } from 'lucide-react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { PairBadge } from './PairBadge'
@@ -26,8 +26,8 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 export function TradeDetailPanel({ trade, open, onClose }: Props) {
   if (!trade) return null
 
-  const entryTime = trade.entry_time_et ? new Date(trade.entry_time_et) : null
-  const exitTime  = trade.exit_time_et  ? new Date(trade.exit_time_et)  : null
+  const entryRaw = trade.entry_time_et ?? null
+  const exitRaw  = trade.exit_time_et  ?? null
 
   const pnlColor = trade.outcome
     ? OUTCOME_COLORS[trade.outcome]
@@ -70,10 +70,10 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
           </Row>
           <Row label="Süre">{durationStr}</Row>
           <Row label="Giriş (ET)">
-            {entryTime ? format(entryTime, 'MMM d, yyyy HH:mm') : '—'}
+            {entryRaw ? formatET(entryRaw, 'MMM d, yyyy HH:mm') : '—'}
           </Row>
           <Row label="Çıkış (ET)">
-            {exitTime ? format(exitTime, 'HH:mm') : '—'}
+            {exitRaw ? formatET(exitRaw, 'HH:mm') : '—'}
           </Row>
           <Row label="Session"><SessionBadge session={trade.session} /></Row>
           <Row label="Session Quarter">{trade.session_quarter ?? '—'}</Row>

@@ -74,6 +74,18 @@ export const TR = {
     last_90:    'Son 90 Gün',
     all:        'Tümü',
   },
+  stats: {
+    trades:       'işlem',
+    grossPL:      'Brüt kazanç / kayıp',
+    positiveDays: 'pozitif gün oranı',
+    vsLoss:       (n: number) => `vs $${n} kayıp`,
+    winRateAbbr:  'KO:',
+    avgR:         'Ort R:',
+    count:        'Adet',
+    noTrades:     'Henüz işlem yok',
+    addFirst:     'Jurnal\'dan ilk işleminizi ekleyin',
+    noConfluences:'Confluence eklenmiş işlem henüz yok.',
+  },
   metricInfo: {
     pnl:          'Seçili dönemdeki toplam kar/zarar. Komisyon dahildir.',
     profitFactor: 'Toplam kazançların toplam kayıplara oranı. 1.5 üzeri sürdürülebilir bir edge gösterir.',
