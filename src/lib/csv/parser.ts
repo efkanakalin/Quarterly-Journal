@@ -197,6 +197,7 @@ function parseCsvRow(row: CsvRow): Omit<Trade, 'id' | 'user_id' | 'created_at' |
     r_multiple:        null,
     chart_link:        null,
     notes:             null,
+    currency:          'USD',
     source:            'csv',
     is_complete:       false,
     csv_fingerprint:   buildFingerprint(row.buyFillId ?? '', row.sellFillId ?? ''),

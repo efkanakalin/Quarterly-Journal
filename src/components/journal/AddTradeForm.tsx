@@ -10,6 +10,7 @@ import { TIMEFRAMES } from '@/lib/constants/timeframes'
 import { SYMBOLS_LIST } from '@/lib/constants/symbols'
 import { deriveSession, deriveSessionQuarter, deriveMicroQuarter90m } from '@/lib/derivations/session'
 import { deriveWeekOfYear, deriveMonthQuarter, deriveYearQuarter, deriveDayOfWeek } from '@/lib/derivations/quarter'
+import { CURRENCIES } from '@/lib/constants/currencies'
 import { S } from '@/lib/constants/strings'
 import type { Outcome, Session, Timeframe, ConfirmationType, TradeWithRelations } from '@/types'
 
@@ -38,6 +39,7 @@ export function AddTradeForm({ onClose }: Props) {
   const [session, setSession] = useState<Session | ''>('')
   const [time, setTime] = useState('')
   const [pnl, setPnl] = useState('')
+  const [currency, setCurrency] = useState('USD')
   const [chartLink, setChartLink] = useState('')
   const [notes, setNotes] = useState('')
 
@@ -92,6 +94,7 @@ export function AddTradeForm({ onClose }: Props) {
         r_multiple: null,
         chart_link: chartLink || null,
         notes: notes || null,
+        currency,
         source: 'manual' as const,
         is_complete: true,
         csv_fingerprint: null,
@@ -176,8 +179,13 @@ export function AddTradeForm({ onClose }: Props) {
           <input type="time" value={time} onChange={e => setTime(e.target.value)} className={INPUT + ' [color-scheme:light] dark:[color-scheme:dark]'} />
         </div>
         <div className="space-y-1">
-          <label className={LABEL}>Kar/Zarar ($)</label>
-          <input type="number" step="0.01" value={pnl} onChange={e => setPnl(e.target.value)} placeholder="örn. 37.50" className={INPUT} />
+          <label className={LABEL}>Kar/Zarar</label>
+          <div className="flex gap-1">
+            <select value={currency} onChange={e => setCurrency(e.target.value)} className={INPUT + ' !w-20'}>
+              {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>)}
+            </select>
+            <input type="number" step="0.01" value={pnl} onChange={e => setPnl(e.target.value)} placeholder="37.50" className={INPUT} />
+          </div>
         </div>
       </div>
 
