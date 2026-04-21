@@ -4,6 +4,7 @@ import { fromZonedTime } from 'date-fns-tz'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useTradesStore } from '@/stores/useTradesStore'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { SYMBOL_COLORS, OUTCOME_COLORS, SESSION_COLORS, SESSION_LABELS } from '@/lib/constants/colors'
 import { CONFIRMATION_TYPES, CONFIRMATION_COLORS } from '@/lib/constants/confirmations'
 import { TIMEFRAMES, sortByTimeframe } from '@/lib/constants/timeframes'
@@ -29,6 +30,7 @@ const LABEL = 'text-xs font-medium text-gray-600 dark:text-[#9ca3af]'
 export function AddTradeForm({ onClose }: Props) {
   const S = useS()
   const { addTrade } = useTradesStore()
+  const user = useAuthStore(s => s.user) // FIX: user_id için
 
   const [symbol,    setSymbol]    = useState('')
   const [outcome,   setOutcome]   = useState<Outcome | ''>('')
@@ -48,30 +50,15 @@ export function AddTradeForm({ onClose }: Props) {
     win: S.outcome.win, loss: S.outcome.loss, breakeven: S.outcome.breakeven,
   }
 
-  // Auto-add when confluence type changes (Madde 4)
-  const handleConfTypeChange = (newType: ConfirmationType) => {
-    setConfType(newType)
-    const already = pendingConfs.some(c => c.timeframe === confTf && c.confirmation_type === newType)
-    if (!already) {
-      setPendingConfs(p => [...p, { timeframe: confTf, confirmation_type: newType }])
-    }
-  }
-
-  // Auto-add when TF changes (Madde 4)
-  const handleConfTfChange = (newTf: Timeframe) => {
-    setConfTf(newTf)
-    const already = pendingConfs.some(c => c.timeframe === newTf && c.confirmation_type === confType)
-    if (!already) {
-      setPendingConfs(p => [...p, { timeframe: newTf, confirmation_type: confType }])
-    }
-  }
-
-  // Manual + add (Madde 4) — forces add even if already exists
+  // Sadece + butonu ekler — otomatik ekleme yok (Madde 4)
   const addConf = () => {
-    setPendingConfs(p => [...p, { timeframe: confTf, confirmation_type: confType }])
+    const already = pendingConfs.some(c => c.timeframe === confTf && c.confirmation_type === confType)
+    if (!already) {
+      setPendingConfs(p => [...p, { timeframe: confTf, confirmation_type: confType }])
+    }
   }
 
-  // Paste shortcut (Madde 3)
+  // Paste shortcut
   const handlePasteChartLink = async () => {
     try {
       const text = await navigator.clipboard.readText()
@@ -91,6 +78,10 @@ export function AddTradeForm({ onClose }: Props) {
       toast.error('Pair, Result and Date are required.')
       return
     }
+    if (!user?.id) {
+      toast.error('Not authenticated.')
+      return
+    }
     setSaving(true)
     try {
       const entryUtc = buildEntryUtc()
@@ -100,8 +91,8 @@ export function AddTradeForm({ onClose }: Props) {
       const resolvedSession = derivedSession as Session | null
       const pnlNum = pnl ? parseFloat(pnl) : null
 
-      // currency alanı kaldırıldı — migration 003 gerekmeden çalışması için (Madde 5 fix)
       const payload = {
+        user_id: user.id, // FIX: RLS için zorunlu
         symbol_raw: symbol, symbol,
         contract_class: contractClass,
         direction: null, qty: null,
@@ -124,11 +115,9 @@ export function AddTradeForm({ onClose }: Props) {
         .from('trades').insert(payload).select().single()
       if (tradeError) throw new Error(tradeError.message)
 
-      // Unique pending confs için tekrar filtreleme
       const uniqueConfs = pendingConfs.filter(
         (c, i, arr) => arr.findIndex(x => x.timeframe === c.timeframe && x.confirmation_type === c.confirmation_type) === i
       )
-
       let savedConfs: TradeWithRelations['trade_confirmations'] = []
       if (uniqueConfs.length > 0) {
         const { data: confData, error: confError } = await supabase
@@ -155,16 +144,16 @@ export function AddTradeForm({ onClose }: Props) {
     <div className="rounded-xl border border-blue-500/30 bg-white dark:bg-[#1a1a1a] p-4 space-y-4">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide">{S.journal.addRow}</span>
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
+        <button tabIndex={-1} onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
           <X className="h-4 w-4" />
         </button>
       </div>
 
-      {/* Sembol + Sonuç + Tarih */}
+      {/* Pair + Result + Date */}
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1">
           <label className={LABEL}>{S.journal.pair} <span className="text-red-500">*</span></label>
-          <select value={symbol} onChange={e => setSymbol(e.target.value)} className={INPUT}>
+          <select tabIndex={1} value={symbol} onChange={e => setSymbol(e.target.value)} className={INPUT}>
             <option value="">{S.journal.pair === 'Pair' ? 'Select...' : 'Seç...'}</option>
             {SYMBOLS_LIST.map(s => (
               <option key={s.code} value={s.code} style={{ color: SYMBOL_COLORS[s.code] ?? '#111' }}>{s.code}</option>
@@ -173,83 +162,90 @@ export function AddTradeForm({ onClose }: Props) {
         </div>
         <div className="space-y-1">
           <label className={LABEL}>{S.journal.result} <span className="text-red-500">*</span></label>
-          <select value={outcome} onChange={e => setOutcome(e.target.value as Outcome)} className={INPUT} style={{ color: outcome ? OUTCOME_COLORS[outcome as Outcome] : undefined }}>
+          <select tabIndex={2} value={outcome} onChange={e => setOutcome(e.target.value as Outcome)} className={INPUT} style={{ color: outcome ? OUTCOME_COLORS[outcome as Outcome] : undefined }}>
             <option value="">{S.journal.result === 'Result' ? 'Select...' : 'Seç...'}</option>
             {OUTCOMES.map(o => <option key={o} value={o} style={{ color: OUTCOME_COLORS[o] }}>{OUTCOME_LABELS[o]}</option>)}
           </select>
         </div>
         <div className="space-y-1">
           <label className={LABEL}>{S.journal.date} <span className="text-red-500">*</span></label>
-          <input type="date" value={date} onChange={e => setDate(e.target.value)} className={INPUT + ' [color-scheme:light] dark:[color-scheme:dark]'} />
+          {/* Madde 2: tüm kutuya tıklayınca calendar açılır, appearance kaldırıldı */}
+          <input
+            tabIndex={3}
+            type="date"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+            onClick={e => { try { (e.target as HTMLInputElement).showPicker() } catch {} }}
+            className={INPUT + ' cursor-pointer [color-scheme:light] dark:[color-scheme:dark] [&::-webkit-calendar-picker-indicator]:opacity-0 [&::-webkit-calendar-picker-indicator]:absolute'}
+          />
         </div>
       </div>
 
-      {/* Seans + Saat + PNL (Madde 2: sadece $) */}
+      {/* Session + Time + PNL */}
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1">
           <label className={LABEL}>{S.journal.session}</label>
-          <select value={session} onChange={e => setSession(e.target.value as Session)} className={INPUT} style={{ color: session ? SESSION_COLORS[session] : undefined }}>
+          <select tabIndex={4} value={session} onChange={e => setSession(e.target.value as Session)} className={INPUT} style={{ color: session ? SESSION_COLORS[session] : undefined }}>
             <option value="">{S.journal.result === 'Result' ? 'Optional' : 'Opsiyonel'}</option>
             {SESSIONS.map(s => <option key={s} value={s} style={{ color: SESSION_COLORS[s] }}>{SESSION_LABELS[s]}</option>)}
           </select>
         </div>
         <div className="space-y-1">
           <label className={LABEL}>{S.journal.time} (ET)</label>
-          <input type="time" value={time} onChange={e => setTime(e.target.value)} className={INPUT + ' [color-scheme:light] dark:[color-scheme:dark]'} />
+          <input tabIndex={5} type="time" value={time} onChange={e => setTime(e.target.value)} className={INPUT + ' [color-scheme:light] dark:[color-scheme:dark]'} />
         </div>
         <div className="space-y-1">
           <label className={LABEL}>{S.dashboard.pnl} ($)</label>
-          {/* Madde 2: sadece $ göster, currency selector yok */}
           <div className="flex items-center gap-1">
             <span className="px-2 py-2 text-sm text-gray-500 dark:text-[#9ca3af] bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg">$</span>
-            <input type="number" step="0.01" value={pnl} onChange={e => setPnl(e.target.value)} placeholder="37.50" className={INPUT} />
+            <input tabIndex={6} type="number" step="0.01" value={pnl} onChange={e => setPnl(e.target.value)} placeholder="37.50" className={INPUT} />
           </div>
         </div>
       </div>
 
-      {/* Chart Link (Madde 3: paste butonu) + Notlar */}
+      {/* Chart Link + Notes */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className={LABEL}>📎 Chart Link</label>
           <div className="flex gap-1">
-            <input type="url" value={chartLink} onChange={e => setChartLink(e.target.value)} placeholder="https://tradingview.com/..." className={INPUT} />
-            <button
-              onClick={handlePasteChartLink}
-              title="Paste (Ctrl+V)"
-              className="shrink-0 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a] px-2.5 text-gray-500 hover:text-blue-500 transition-colors"
-            >
+            <input tabIndex={7} type="url" value={chartLink} onChange={e => setChartLink(e.target.value)} placeholder="https://tradingview.com/..." className={INPUT} />
+            <button tabIndex={-1} onClick={handlePasteChartLink} title="Paste" className="shrink-0 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a] px-2.5 text-gray-500 hover:text-blue-500 transition-colors">
               <ClipboardPaste className="h-4 w-4" />
             </button>
           </div>
         </div>
         <div className="space-y-1">
           <label className={LABEL}>{S.wizard.notesTitle}</label>
-          <input type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder={S.wizard.notesPlaceholder} className={INPUT} />
+          <input tabIndex={8} type="text" value={notes} onChange={e => setNotes(e.target.value)} placeholder={S.wizard.notesPlaceholder} className={INPUT} />
         </div>
       </div>
 
-      {/* Confluences (Madde 4: auto-add) */}
+      {/* Confluences — sadece + ile ekleme (Madde 4) */}
       <div className="space-y-2">
         <label className={LABEL}>{S.journal.confluence}</label>
         <div className="flex items-center gap-2">
           <select
+            tabIndex={9}
             value={confTf}
-            onChange={e => handleConfTfChange(e.target.value as Timeframe)}
+            onChange={e => setConfTf(e.target.value as Timeframe)}
             className={INPUT + ' !w-auto'}
           >
             {TIMEFRAMES.map(tf => <option key={tf} value={tf}>{tf}</option>)}
           </select>
           <select
+            tabIndex={10}
             value={confType}
-            onChange={e => handleConfTypeChange(e.target.value as ConfirmationType)}
+            onChange={e => setConfType(e.target.value as ConfirmationType)}
             className={INPUT + ' flex-1'}
           >
             {CONFIRMATION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
+          {/* Madde 4: + butonu renkli */}
           <button
+            tabIndex={11}
             onClick={addConf}
-            title="Add another"
-            className="flex items-center gap-1 rounded-lg bg-gray-100 dark:bg-white/10 px-3 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+            title="Add confluence"
+            className="flex items-center gap-1 rounded-lg bg-blue-500 hover:bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors"
           >
             <Plus className="h-3.5 w-3.5" />
           </button>
@@ -262,10 +258,7 @@ export function AddTradeForm({ onClose }: Props) {
               return (
                 <span key={sortedIdx} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium" style={{ backgroundColor: `${color}22`, color }}>
                   {c.timeframe} {c.confirmation_type}
-                  <button
-                    onClick={() => setPendingConfs(p => p.filter((_, i) => i !== origIdx))}
-                    className="ml-1 hover:opacity-70"
-                  >
+                  <button tabIndex={-1} onClick={() => setPendingConfs(p => p.filter((_, i) => i !== origIdx))} className="ml-1 hover:opacity-70">
                     <X className="h-3 w-3" />
                   </button>
                 </span>
@@ -276,10 +269,10 @@ export function AddTradeForm({ onClose }: Props) {
       </div>
 
       <div className="flex items-center justify-end gap-2 pt-1">
-        <button onClick={onClose} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-[#9ca3af] dark:hover:text-white transition-colors">
+        <button tabIndex={-1} onClick={onClose} className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-[#9ca3af] dark:hover:text-white transition-colors">
           {S.journal.cancelButton}
         </button>
-        <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50 transition-colors">
+        <button tabIndex={12} onClick={handleSave} disabled={saving} className="flex items-center gap-2 rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50 transition-colors">
           <Check className="h-4 w-4" />
           {saving ? '...' : S.journal.saveButton}
         </button>

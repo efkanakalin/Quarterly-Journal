@@ -75,21 +75,21 @@ export function TradeTable() {
 
   return (
     <>
-      {/* Madde 2: max 7-8 satır görünür, sonrası scroll */}
+      {/* +%20 genişlik, 15 satır görünür, tema uyumlu scrollbar */}
       <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
-        <div className="overflow-x-auto overflow-y-auto max-h-[480px]">
+        <div className="overflow-x-auto overflow-y-auto max-h-[960px] scrollbar-light dark:scrollbar-dark">
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-[#161616]">
               <tr className="border-b-2 border-gray-200 dark:border-white/10 text-left">
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[110px]">{S.journal.pair}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[90px]">{S.journal.result}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[140px]">{S.journal.date}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[95px]">{S.journal.session}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[80px]">{S.journal.time}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[280px]">{S.journal.confluence}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[200px]">{S.journal.notes}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[60px]">{S.journal.link}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[90px]"></th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[132px]">{S.journal.pair}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[108px]">{S.journal.result}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[168px]">{S.journal.date}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[114px]">{S.journal.session}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[96px]">{S.journal.time}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[336px]">{S.journal.confluence}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[264px]">{S.journal.notes}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[72px]">{S.journal.link}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[108px]"></th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-[#1a1a1a]">
