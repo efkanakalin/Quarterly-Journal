@@ -54,9 +54,8 @@ export function Journal() {
         </div>
       </div>
 
-      {/* Madde 1: başlık ile liste arası boşluk */}
       {tab === 'list' && (
-        <div className="mt-4">
+        <div className="mt-12">
           <TradeTable />
         </div>
       )}

@@ -21,22 +21,22 @@ export function CalendarGrid({ trades, onDayClick }: Props) {
   const monthStart = startOfMonth(month)
   const monthEnd   = endOfMonth(month)
   const gridStart  = startOfWeek(monthStart, { weekStartsOn: 0 })
-  const gridEnd    = endOfWeek(monthEnd,   { weekStartsOn: 0 })
+  const gridEnd    = endOfWeek(monthEnd,     { weekStartsOn: 0 })
   const days       = eachDayOfInterval({ start: gridStart, end: gridEnd })
 
   const weeks: Date[][] = []
   for (let i = 0; i < days.length; i += 7) weeks.push(days.slice(i, i + 7))
 
-  // Aylık istatistik
+  // Aylık stats
   const monthlyPnl = Object.entries(dailyMap)
     .filter(([d]) => d.startsWith(format(month, 'yyyy-MM')))
     .reduce((s, [, v]) => s + v.pnl, 0)
-  const tradingDays = Object.keys(dailyMap).filter(d => d.startsWith(format(month, 'yyyy-MM'))).length
+  const tradingDays = Object.keys(dailyMap)
+    .filter(d => d.startsWith(format(month, 'yyyy-MM'))).length
 
   const handleDayClick = (day: Date) => {
     if (!onDayClick || !isSameMonth(day, month)) return
-    const key = format(day, 'yyyy-MM-dd')
-    const dt = dailyMap[key]?.trades ?? []
+    const dt = dailyMap[format(day, 'yyyy-MM-dd')]?.trades ?? []
     if (dt.length > 0) onDayClick(day, dt)
   }
 
@@ -52,7 +52,10 @@ export function CalendarGrid({ trades, onDayClick }: Props) {
           <button onClick={() => setMonth(m => addMonths(m, 1))} className="rounded p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
             <ChevronRight className="h-4 w-4" />
           </button>
-          <button onClick={() => setMonth(new Date())} className="rounded-md px-2 py-0.5 text-xs border border-gray-200 dark:border-white/10 text-gray-500 dark:text-[#9ca3af] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors ml-1">
+          <button
+            onClick={() => setMonth(new Date())}
+            className="ml-1 rounded-md px-2 py-0.5 text-xs border border-gray-200 dark:border-white/10 text-gray-500 dark:text-[#9ca3af] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+          >
             This month
           </button>
         </div>
@@ -62,120 +65,124 @@ export function CalendarGrid({ trades, onDayClick }: Props) {
             backgroundColor: monthlyPnl >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
             color: monthlyPnl >= 0 ? '#10b981' : '#ef4444',
           }}>
-            {monthlyPnl >= 0 ? '+' : ''}${Math.abs(monthlyPnl) >= 1000 ? `${(monthlyPnl / 1000).toFixed(1)}K` : monthlyPnl.toFixed(0)}
+            {monthlyPnl < 0 ? '-' : ''}${Math.abs(monthlyPnl) >= 1000 ? `${(Math.abs(monthlyPnl) / 1000).toFixed(1)}K` : Math.abs(monthlyPnl).toFixed(0)}
           </span>
           <span className="text-xs font-medium text-gray-500 dark:text-[#9ca3af]">{tradingDays} days</span>
         </div>
       </div>
 
-      {/* Grid: 7 gün + 1 haftalık stats kolonu */}
-      <div className="grid grid-cols-[repeat(7,1fr)_100px]">
-        {/* Weekday headers */}
+      {/* Weekday başlıkları */}
+      <div className="grid grid-cols-[repeat(7,1fr)_88px] px-3 pt-3 pb-1 gap-1.5">
         {WEEKDAYS.map(d => (
-          <div key={d} className="py-2 text-center text-xs font-semibold text-gray-400 dark:text-[#9ca3af] border-b border-gray-100 dark:border-white/10">
+          <div key={d} className="text-center text-xs font-semibold text-gray-400 dark:text-[#9ca3af] py-1">
             {d}
           </div>
         ))}
-        <div className="py-2 text-center text-xs font-semibold text-gray-400 dark:text-[#9ca3af] border-b border-gray-100 dark:border-white/10 border-l border-l-gray-100 dark:border-l-white/10">
+        <div className="text-center text-xs font-semibold text-gray-400 dark:text-[#9ca3af] py-1">
           Week
         </div>
+      </div>
 
-        {/* Weeks */}
+      {/* Haftalar — her hücre kendi yuvarlak kutusu */}
+      <div className="px-3 pb-3 space-y-1.5">
         {weeks.map((week, wi) => {
-          // Haftalık stats
           const weekPnl = week
             .filter(d => isSameMonth(d, month))
             .reduce((s, d) => s + (dailyMap[format(d, 'yyyy-MM-dd')]?.pnl ?? 0), 0)
           const weekTradingDays = week
-            .filter(d => isSameMonth(d, month) && dailyMap[format(d, 'yyyy-MM-dd')])
+            .filter(d => isSameMonth(d, month) && !!dailyMap[format(d, 'yyyy-MM-dd')])
             .length
 
-          return [
-            // 7 gün hücreleri
-            ...week.map(day => {
-              const key     = format(day, 'yyyy-MM-dd')
-              const data    = dailyMap[key]
-              const inMonth = isSameMonth(day, month)
-              const today   = isToday(day)
-              const pnl     = inMonth ? (data?.pnl ?? null) : null
+          return (
+            <div key={wi} className="grid grid-cols-[repeat(7,1fr)_88px] gap-1.5">
+              {week.map(day => {
+                const key     = format(day, 'yyyy-MM-dd')
+                const data    = dailyMap[key]
+                const inMonth = isSameMonth(day, month)
+                const today   = isToday(day)
+                const pnl     = inMonth ? (data?.pnl ?? null) : null
 
-              // Renkler — referans görsele göre
-              let bgStyle = ''
-              if (!inMonth) {
-                bgStyle = 'bg-gray-50 dark:bg-[#111]'
-              } else if (pnl === null) {
-                bgStyle = 'bg-white dark:bg-[#1e1e1e] border border-gray-150 dark:border-white/5'
-              } else if (pnl > 0) {
-                bgStyle = 'bg-emerald-600 dark:bg-emerald-700'
-              } else if (pnl < 0) {
-                bgStyle = 'bg-red-800 dark:bg-red-900'
-              } else {
-                bgStyle = 'bg-blue-800 dark:bg-blue-900'
-              }
+                // Hücre arka plan rengi
+                let cellStyle: React.CSSProperties = {}
+                let cellClass = 'rounded-xl border transition-all min-h-[90px] relative '
 
-              return (
-                <div
-                  key={key}
-                  onClick={() => handleDayClick(day)}
-                  className={[
-                    'relative min-h-[90px] border-b border-r border-gray-100 dark:border-white/5',
-                    'transition-all',
-                    inMonth && data ? 'cursor-pointer hover:opacity-90' : '',
-                    today ? 'ring-2 ring-inset ring-blue-400' : '',
-                    bgStyle,
-                  ].join(' ')}
-                >
-                  {inMonth && (
-                    <>
-                      {/* Date — sağ üst */}
-                      <span className={`absolute top-2 right-2 text-xs font-medium ${
-                        today
-                          ? 'text-blue-400'
-                          : pnl !== null
-                          ? 'text-white/80'
-                          : 'text-gray-400 dark:text-[#9ca3af]'
-                      }`}>
-                        {format(day, 'd')}
-                      </span>
+                if (!inMonth) {
+                  cellClass += 'bg-gray-50 dark:bg-white/3 border-gray-100 dark:border-white/5 opacity-40'
+                } else if (pnl === null) {
+                  // Boş gün — gri kenarlıklı kutu
+                  cellClass += 'bg-white dark:bg-[#222] border-gray-200 dark:border-white/10'
+                } else if (pnl > 0) {
+                  cellClass += 'border-transparent'
+                  cellStyle = { backgroundColor: '#2d6a4f' }
+                } else if (pnl < 0) {
+                  cellClass += 'border-transparent'
+                  cellStyle = { backgroundColor: '#7b2020' }
+                } else {
+                  cellClass += 'border-transparent'
+                  cellStyle = { backgroundColor: '#1e3a5f' }
+                }
 
-                      {/* PNL + trade count — orta */}
-                      {pnl !== null && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none">
-                          <span className="text-sm font-bold font-mono leading-none text-white">
-                            {pnl < 0 ? '-' : ''}${Math.abs(pnl) >= 1000 ? `${(Math.abs(pnl) / 1000).toFixed(1)}K` : Math.abs(pnl).toFixed(0)}
-                          </span>
-                          <span className="text-[10px] text-white/70">
-                            {data!.count} trade{data!.count !== 1 ? 's' : ''}
-                          </span>
-                        </div>
-                      )}
-                    </>
-                  )}
-                </div>
-              )
-            }),
+                if (today) cellClass += ' ring-2 ring-blue-400 ring-offset-1 ring-offset-white dark:ring-offset-[#1a1a1a]'
+                if (inMonth && data) cellClass += ' cursor-pointer hover:opacity-85'
 
-            // Haftalık stats kolonu
-            <div
-              key={`week-${wi}`}
-              className="min-h-[90px] border-b border-l border-gray-100 dark:border-white/5 flex flex-col items-center justify-center gap-1 px-1"
-            >
-              <span className="text-[10px] font-semibold text-gray-400 dark:text-[#9ca3af]">Week {wi + 1}</span>
-              {weekPnl !== 0 || weekTradingDays > 0 ? (
-                <>
-                  <span
-                    className="text-sm font-bold font-mono"
-                    style={{ color: weekPnl > 0 ? '#10b981' : weekPnl < 0 ? '#ef4444' : '#9ca3af' }}
+                return (
+                  <div
+                    key={key}
+                    onClick={() => handleDayClick(day)}
+                    className={cellClass}
+                    style={cellStyle}
                   >
-                    {weekPnl >= 0 ? '' : ''}{Math.abs(weekPnl) >= 1000 ? `$${(weekPnl / 1000).toFixed(1)}K` : `$${weekPnl.toFixed(0)}`}
-                  </span>
-                  <span className="text-[10px] text-gray-400 dark:text-[#9ca3af]">{weekTradingDays} day{weekTradingDays !== 1 ? 's' : ''}</span>
-                </>
-              ) : (
-                <span className="text-[10px] text-gray-300 dark:text-white/20">—</span>
-              )}
-            </div>,
-          ]
+                    {inMonth && (
+                      <>
+                        {/* Tarih — sağ üst */}
+                        <span className={`absolute top-2 right-2.5 text-xs font-medium ${
+                          today ? 'text-blue-400' : pnl !== null ? 'text-white/80' : 'text-gray-400 dark:text-[#9ca3af]'
+                        }`}>
+                          {format(day, 'd')}
+                        </span>
+
+                        {/* PNL + trade sayısı — orta */}
+                        {pnl !== null && (
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none">
+                            <span className="text-sm font-bold font-mono leading-none text-white">
+                              {pnl < 0 ? '-' : ''}${Math.abs(pnl) >= 1000
+                                ? `${(Math.abs(pnl) / 1000).toFixed(1)}K`
+                                : Math.abs(pnl).toFixed(0)}
+                            </span>
+                            <span className="text-[10px] text-white/70">
+                              {data!.count} trade{data!.count !== 1 ? 's' : ''}
+                            </span>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                )
+              })}
+
+              {/* Haftalık stats kutusu */}
+              <div className="rounded-xl border border-gray-100 dark:border-white/8 bg-gray-50 dark:bg-white/3 min-h-[90px] flex flex-col items-center justify-center gap-1 px-1">
+                <span className="text-[10px] font-semibold text-gray-400 dark:text-[#9ca3af]">Week {wi + 1}</span>
+                {weekTradingDays > 0 ? (
+                  <>
+                    <span
+                      className="text-sm font-bold font-mono"
+                      style={{ color: weekPnl > 0 ? '#10b981' : weekPnl < 0 ? '#ef4444' : '#9ca3af' }}
+                    >
+                      {weekPnl < 0 ? '-' : ''}${Math.abs(weekPnl) >= 1000
+                        ? `${(Math.abs(weekPnl) / 1000).toFixed(1)}K`
+                        : Math.abs(weekPnl).toFixed(0)}
+                    </span>
+                    <span className="text-[10px] text-gray-400 dark:text-[#9ca3af]">
+                      {weekTradingDays} day{weekTradingDays !== 1 ? 's' : ''}
+                    </span>
+                  </>
+                ) : (
+                  <span className="text-[10px] text-gray-300 dark:text-white/20">—</span>
+                )}
+              </div>
+            </div>
+          )
         })}
       </div>
     </div>
