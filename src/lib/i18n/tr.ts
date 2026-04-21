@@ -63,7 +63,7 @@ export const TR = {
   },
   outcome: {
     win:        'KAZANÇ',
-    loss:       'KAYIP',
+    loss:       'STOP',
     breakeven:  'B.BAŞ',
   },
   dateRange: {

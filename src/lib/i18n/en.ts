@@ -63,7 +63,7 @@ export const EN = {
   },
   outcome: {
     win:        'WIN',
-    loss:       'LOSS',
+    loss:       'STOP',
     breakeven:  'B/E',
   },
   dateRange: {
