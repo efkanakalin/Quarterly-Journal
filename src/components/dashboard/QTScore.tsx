@@ -4,106 +4,107 @@ import type { TradeWithRelations } from '@/types'
 
 interface Props { trades: TradeWithRelations[] }
 
-interface CriterionRow {
-  label: string
-  value: number
-  max: number
-  description: string
+function scoreColor(score: number) {
+  if (score >= 60) return { text: '#10b981', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.25)' }
+  if (score >= 35) return { text: '#f59e0b', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.25)' }
+  return             { text: '#ef4444', bg: 'rgba(239,68,68,0.12)',    border: 'rgba(239,68,68,0.25)' }
 }
 
-function scoreColor(score: number): string {
-  if (score >= 60) return '#10b981'
-  if (score >= 35) return '#f59e0b'
-  return '#ef4444'
+function signColor(v: number) {
+  return v > 0 ? '#10b981' : v < 0 ? '#ef4444' : '#9ca3af'
 }
 
-function signColor(v: number): string {
-  if (v > 0) return '#10b981'
-  if (v < 0) return '#ef4444'
-  return '#9ca3af'
-}
+const CRITERIA = [
+  { key: 'profitFactor',      labelEn: 'Profit Factor',      labelTr: 'Kar Faktörü',      max: 20 },
+  { key: 'winRate',           labelEn: 'Win Rate',           labelTr: 'Kazanma Oranı',    max: 25 },
+  { key: 'lossCount',         labelEn: 'Loss Count',         labelTr: 'Kayıp Sayısı',     max: 4.5 },
+  { key: 'totalTrades',       labelEn: 'Trade Count',        labelTr: 'İşlem Sayısı',     max: 4 },
+  { key: 'asiaSession',       labelEn: 'Asia Session',       labelTr: 'Asya Seansı',      max: 2 },
+  { key: 'profitStability',   labelEn: 'Profit Stability',   labelTr: 'Kâr İstikrarı',   max: 5 },
+  { key: 'bounceBack',        labelEn: 'Bounce Back',        labelTr: 'Bounce Back',      max: 5.7 },
+  { key: 'journalDiscipline', labelEn: 'Journal Discipline', labelTr: 'Journal Disiplini', max: 999 },
+]
 
 export function QTScore({ trades }: Props) {
   const S = useS()
+  const isTr = S.dashboard.qtScore === 'QT Skoru'
   const result = calculateQTScore(trades)
-  const color  = scoreColor(result.total)
-  const b      = result.breakdown
-
-  const pct = Math.min(100, (result.total / 80) * 100) // 80 = practical max for bar
-
-  const rows: CriterionRow[] = [
-    { label: 'Kar Faktörü',      value: b.profitFactor,      max: 20,  description: '≥5→+20 / ≥2→+15 / ≥1→+10' },
-    { label: 'Kazanma Oranı',    value: b.winRate,           max: 25,  description: 'WR% × 0.25' },
-    { label: 'Kayıp Sayısı',     value: b.lossCount,         max: 4.5, description: '≤2→+4.5 / 3-4→−4.5 / ≥5→−6.5' },
-    { label: 'İşlem Sayısı',     value: b.totalTrades,       max: 4,   description: '≤10→+4 / >10→−4' },
-    { label: 'Asya Seansı',      value: b.asiaSession,       max: 2,   description: 'İşlem yok→+2 / var→−2' },
-    { label: 'Kâr İstikrarı',    value: b.profitStability,   max: 5,   description: 'En iyi trade ≤%70→+5 / >%70→−6.5' },
-    { label: 'Bounce Back',      value: b.bounceBack,        max: 5.7, description: 'Dün kırmızı+bugün WR>%50→+5.7' },
-    { label: 'Journal Disiplini',value: b.journalDiscipline, max: 999, description: 'Eksiksiz satır × +3' },
-  ]
+  const colors = scoreColor(result.total)
+  const pct = Math.min(100, (result.total / 80) * 100)
 
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-5 space-y-4">
+    <div
+      className="rounded-xl border p-5 space-y-4"
+      style={{ background: colors.bg, borderColor: colors.border }}
+    >
       {/* Başlık + tarih */}
       <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-gray-500 dark:text-[#9ca3af]">{S.dashboard.qtScore}</p>
+        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: colors.text }}>
+          {S.dashboard.qtScore}
+        </p>
         {result.tradeDate && (
           <span className="text-[10px] text-gray-400 dark:text-[#6b7280] font-mono">{result.tradeDate}</span>
         )}
       </div>
 
-      {/* Skor + bar */}
-      <div className="flex items-center gap-4">
-        <div className="text-center">
-          <span className="text-5xl font-bold tabular-nums" style={{ color }}>{result.total}</span>
-          <p className="text-xs text-gray-400 dark:text-[#9ca3af] mt-0.5">/ 100</p>
-        </div>
-        <div className="flex-1 space-y-1">
-          <div className="h-3 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
-            <div
-              className="h-full rounded-full transition-all duration-700"
-              style={{ width: `${pct}%`, backgroundColor: color }}
-            />
-          </div>
+      {/* Büyük skor */}
+      <div className="flex items-end gap-3">
+        <span className="text-6xl font-black tabular-nums leading-none" style={{ color: colors.text }}>
+          {result.total}
+        </span>
+        <div className="mb-1 space-y-1">
+          <span className="text-sm text-gray-400 dark:text-[#9ca3af] font-medium">/ 100</span>
           <p className="text-[10px] text-gray-400 dark:text-[#9ca3af]">
             {result.total === 0 && trades.length === 0
-              ? 'Veri yok'
-              : result.total >= 60 ? '✓ İyi disiplin'
-              : result.total >= 35 ? '⚠ Gelişim gerekli'
-              : '✗ Disiplini gözden geçir'}
+              ? (isTr ? 'Veri yok' : 'No data')
+              : result.total >= 60 ? (isTr ? '✓ İyi disiplin' : '✓ Good discipline')
+              : result.total >= 35 ? (isTr ? '⚠ Gelişim gerekli' : '⚠ Needs improvement')
+              : (isTr ? '✗ Disiplini gözden geçir' : '✗ Review discipline')}
           </p>
         </div>
       </div>
 
-      {/* Kriter tablosu */}
-      <div className="space-y-1.5 pt-1 border-t border-gray-100 dark:border-white/10">
-        {rows.map(row => (
-          <div key={row.label} className="flex items-center justify-between group">
-            <div className="flex-1 min-w-0">
-              <span className="text-xs text-gray-600 dark:text-[#9ca3af] truncate block">{row.label}</span>
-            </div>
-            <div className="flex items-center gap-3 shrink-0">
-              {/* Mini bar */}
-              <div className="w-20 h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
-                {row.value !== 0 && (
-                  <div
-                    className="h-full rounded-full transition-all"
-                    style={{
-                      width: row.max < 100 ? `${Math.min(100, (Math.abs(row.value) / row.max) * 100)}%` : `${Math.min(100, row.value)}%`,
-                      backgroundColor: row.value >= 0 ? '#10b981' : '#ef4444',
-                    }}
-                  />
-                )}
-              </div>
-              <span
-                className="text-xs font-mono font-semibold w-10 text-right"
-                style={{ color: signColor(row.value) }}
-              >
-                {row.value > 0 ? `+${row.value}` : row.value}
+      {/* Progress bar */}
+      <div className="h-2 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
+        <div
+          className="h-full rounded-full transition-all duration-700"
+          style={{ width: `${pct}%`, backgroundColor: colors.text }}
+        />
+      </div>
+
+      {/* Kriter listesi */}
+      <div className="space-y-2 pt-1 border-t border-gray-100 dark:border-white/10">
+        {CRITERIA.map(c => {
+          const val = result.breakdown[c.key as keyof typeof result.breakdown]
+          return (
+            <div key={c.key} className="flex items-center justify-between gap-2">
+              <span className="text-[11px] text-gray-500 dark:text-[#9ca3af] truncate flex-1">
+                {isTr ? c.labelTr : c.labelEn}
               </span>
+              <div className="flex items-center gap-2 shrink-0">
+                <div className="w-16 h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
+                  {val !== 0 && (
+                    <div
+                      className="h-full rounded-full"
+                      style={{
+                        width: c.max < 100
+                          ? `${Math.min(100, (Math.abs(val) / c.max) * 100)}%`
+                          : `${Math.min(100, val)}%`,
+                        backgroundColor: val >= 0 ? '#10b981' : '#ef4444',
+                      }}
+                    />
+                  )}
+                </div>
+                <span
+                  className="text-[11px] font-mono font-semibold w-9 text-right"
+                  style={{ color: signColor(val) }}
+                >
+                  {val > 0 ? `+${val}` : val}
+                </span>
+              </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )
