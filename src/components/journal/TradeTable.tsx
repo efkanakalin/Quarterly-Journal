@@ -81,15 +81,15 @@ export function TradeTable() {
           <table className="w-full text-sm">
             <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-[#161616]">
               <tr className="border-b-2 border-gray-200 dark:border-white/10 text-left">
-                <th className="px-4 py-3.5 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[110px]">{S.journal.pair}</th>
-                <th className="px-4 py-3.5 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[90px]">{S.journal.result}</th>
-                <th className="px-4 py-3.5 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[140px]">{S.journal.date}</th>
-                <th className="px-4 py-3.5 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[95px]">{S.journal.session}</th>
-                <th className="px-4 py-3.5 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[80px]">{S.journal.time}</th>
-                <th className="px-4 py-3.5 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[280px]">{S.journal.confluence}</th>
-                <th className="px-4 py-3.5 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[200px]">{S.journal.notes}</th>
-                <th className="px-4 py-3.5 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[60px]">{S.journal.link}</th>
-                <th className="px-4 py-3.5 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[90px]"></th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[110px]">{S.journal.pair}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[90px]">{S.journal.result}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[140px]">{S.journal.date}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[95px]">{S.journal.session}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[80px]">{S.journal.time}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[280px]">{S.journal.confluence}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[200px]">{S.journal.notes}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[60px]">{S.journal.link}</th>
+                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[90px]"></th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-[#1a1a1a]">
@@ -101,7 +101,7 @@ export function TradeTable() {
                     onClick={() => setDetailTrade(trade)}
                     className="border-b border-gray-100 dark:border-white/8 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors"
                   >
-                    <td className="px-4 py-3.5">
+                    <td className="px-4 py-4">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-400">{trade.source === 'csv' ? '📥' : '✏️'}</span>
                         <PairBadge symbol={trade.symbol} />
@@ -110,21 +110,21 @@ export function TradeTable() {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-3.5"><OutcomeBadge outcome={trade.outcome} /></td>
-                    <td className="px-4 py-3.5 text-gray-900 dark:text-white text-sm">
+                    <td className="px-4 py-4"><OutcomeBadge outcome={trade.outcome} /></td>
+                    <td className="px-4 py-4 text-gray-900 dark:text-white text-sm">
                       {entryTime ? format(entryTime, 'MMM d, yyyy') : '—'}
                     </td>
-                    <td className="px-4 py-3.5"><SessionBadge session={trade.session} /></td>
-                    <td className="px-4 py-3.5 text-gray-900 dark:text-white font-mono text-sm">
+                    <td className="px-4 py-4"><SessionBadge session={trade.session} /></td>
+                    <td className="px-4 py-4 text-gray-900 dark:text-white font-mono text-sm">
                       {entryTime ? format(entryTime, 'HH:mm') : '—'}
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-4 py-4">
                       <ConfirmationChips confirmations={trade.trade_confirmations} />
                     </td>
-                    {/* Notes sütunu */}
-                    <td className="px-4 py-3.5 max-w-[200px]">
+                    {/* Notes sütunu — max 2 satır (Madde 1) */}
+                    <td className="px-4 py-4 min-w-[220px] max-w-[280px]">
                       {trade.notes ? (
-                        <p className="text-xs text-gray-600 dark:text-[#9ca3af] truncate" title={trade.notes}>
+                        <p className="text-xs text-gray-600 dark:text-[#9ca3af] leading-relaxed line-clamp-2">
                           {trade.notes}
                         </p>
                       ) : (
@@ -132,7 +132,7 @@ export function TradeTable() {
                       )}
                     </td>
                     {/* Chart Link sütunu */}
-                    <td className="px-4 py-3.5">
+                    <td className="px-4 py-4">
                       {trade.chart_link ? (
                         <a
                           href={trade.chart_link}
@@ -147,7 +147,7 @@ export function TradeTable() {
                         <span className="text-gray-300 dark:text-white/20">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-3.5">
+                    <td className="px-4 py-4">
                       <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                         <button
                           onClick={e => openWizard(trade, e)}

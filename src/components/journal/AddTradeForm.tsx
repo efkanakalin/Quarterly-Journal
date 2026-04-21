@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Plus, X, Check } from 'lucide-react'
+import { Plus, X, Check, ClipboardPaste } from 'lucide-react'
 import { fromZonedTime } from 'date-fns-tz'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
@@ -10,7 +10,6 @@ import { TIMEFRAMES, sortByTimeframe } from '@/lib/constants/timeframes'
 import { SYMBOLS_LIST } from '@/lib/constants/symbols'
 import { deriveSession, deriveSessionQuarter, deriveMicroQuarter90m } from '@/lib/derivations/session'
 import { deriveWeekOfYear, deriveMonthQuarter, deriveYearQuarter, deriveDayOfWeek } from '@/lib/derivations/quarter'
-import { CURRENCIES } from '@/lib/constants/currencies'
 import { useS } from '@/lib/i18n'
 import type { Outcome, Session, Timeframe, ConfirmationType, TradeWithRelations } from '@/types'
 
@@ -37,7 +36,6 @@ export function AddTradeForm({ onClose }: Props) {
   const [session,   setSession]   = useState<Session | ''>('')
   const [time,      setTime]      = useState('')
   const [pnl,       setPnl]       = useState('')
-  const [currency,  setCurrency]  = useState('USD')
   const [chartLink, setChartLink] = useState('')
   const [notes,     setNotes]     = useState('')
 
@@ -46,14 +44,41 @@ export function AddTradeForm({ onClose }: Props) {
   const [confType,     setConfType]     = useState<ConfirmationType>('SSMT')
   const [saving,       setSaving]       = useState(false)
 
-  // Labels reaktif — dil değişince güncellenir
   const OUTCOME_LABELS: Record<Outcome, string> = {
     win: S.outcome.win, loss: S.outcome.loss, breakeven: S.outcome.breakeven,
   }
 
+  // Auto-add when confluence type changes (Madde 4)
+  const handleConfTypeChange = (newType: ConfirmationType) => {
+    setConfType(newType)
+    const already = pendingConfs.some(c => c.timeframe === confTf && c.confirmation_type === newType)
+    if (!already) {
+      setPendingConfs(p => [...p, { timeframe: confTf, confirmation_type: newType }])
+    }
+  }
+
+  // Auto-add when TF changes (Madde 4)
+  const handleConfTfChange = (newTf: Timeframe) => {
+    setConfTf(newTf)
+    const already = pendingConfs.some(c => c.timeframe === newTf && c.confirmation_type === confType)
+    if (!already) {
+      setPendingConfs(p => [...p, { timeframe: newTf, confirmation_type: confType }])
+    }
+  }
+
+  // Manual + add (Madde 4) — forces add even if already exists
   const addConf = () => {
-    if (pendingConfs.some(c => c.timeframe === confTf && c.confirmation_type === confType)) return
     setPendingConfs(p => [...p, { timeframe: confTf, confirmation_type: confType }])
+  }
+
+  // Paste shortcut (Madde 3)
+  const handlePasteChartLink = async () => {
+    try {
+      const text = await navigator.clipboard.readText()
+      if (text) setChartLink(text)
+    } catch {
+      toast.error('Clipboard access denied')
+    }
   }
 
   const buildEntryUtc = (): Date | null => {
@@ -63,7 +88,7 @@ export function AddTradeForm({ onClose }: Props) {
 
   const handleSave = async () => {
     if (!symbol || !outcome || !date) {
-      toast.error(S.journal.pair + ', ' + S.journal.result + ', ' + S.journal.date)
+      toast.error('Pair, Result and Date are required.')
       return
     }
     setSaving(true)
@@ -75,6 +100,7 @@ export function AddTradeForm({ onClose }: Props) {
       const resolvedSession = derivedSession as Session | null
       const pnlNum = pnl ? parseFloat(pnl) : null
 
+      // currency alanı kaldırıldı — migration 003 gerekmeden çalışması için (Madde 5 fix)
       const payload = {
         symbol_raw: symbol, symbol,
         contract_class: contractClass,
@@ -83,35 +109,43 @@ export function AddTradeForm({ onClose }: Props) {
         entry_time_et: entryUtc?.toISOString() ?? null,
         exit_time_et: null, pnl_usd: pnlNum, duration_sec: null,
         session: resolvedSession,
-        day_of_week:       entryUtc ? deriveDayOfWeek(entryUtc)                               : null,
-        session_quarter:   entryUtc && resolvedSession ? deriveSessionQuarter(entryUtc, resolvedSession)  : null,
+        day_of_week:       entryUtc ? deriveDayOfWeek(entryUtc) : null,
+        session_quarter:   entryUtc && resolvedSession ? deriveSessionQuarter(entryUtc, resolvedSession) : null,
         micro_quarter_90m: entryUtc && resolvedSession ? deriveMicroQuarter90m(entryUtc, resolvedSession) : null,
-        week_of_year:  entryUtc ? deriveWeekOfYear(entryUtc)  : null,
+        week_of_year:  entryUtc ? deriveWeekOfYear(entryUtc)   : null,
         month_quarter: entryUtc ? deriveMonthQuarter(entryUtc) : null,
         year_quarter:  entryUtc ? deriveYearQuarter(entryUtc)  : null,
         outcome: outcome as Outcome,
         r_multiple: null, chart_link: chartLink || null, notes: notes || null,
-        currency, source: 'manual' as const, is_complete: true, csv_fingerprint: null,
+        source: 'manual' as const, is_complete: true, csv_fingerprint: null,
       }
 
-      const { data: tradeData, error: tradeError } = await supabase.from('trades').insert(payload).select().single()
-      if (tradeError) throw tradeError
+      const { data: tradeData, error: tradeError } = await supabase
+        .from('trades').insert(payload).select().single()
+      if (tradeError) throw new Error(tradeError.message)
+
+      // Unique pending confs için tekrar filtreleme
+      const uniqueConfs = pendingConfs.filter(
+        (c, i, arr) => arr.findIndex(x => x.timeframe === c.timeframe && x.confirmation_type === c.confirmation_type) === i
+      )
 
       let savedConfs: TradeWithRelations['trade_confirmations'] = []
-      if (pendingConfs.length > 0) {
+      if (uniqueConfs.length > 0) {
         const { data: confData, error: confError } = await supabase
           .from('trade_confirmations')
-          .insert(pendingConfs.map(c => ({ trade_id: tradeData.id, timeframe: c.timeframe, confirmation_type: c.confirmation_type })))
+          .insert(uniqueConfs.map(c => ({ trade_id: tradeData.id, timeframe: c.timeframe, confirmation_type: c.confirmation_type })))
           .select()
-        if (confError) throw confError
+        if (confError) throw new Error(confError.message)
         savedConfs = confData ?? []
       }
 
       addTrade({ ...tradeData, trade_confirmations: savedConfs, trade_mistakes: [] } as TradeWithRelations)
-      toast.success(S.journal.saveButton + ' ✓')
+      toast.success('Trade saved.')
       onClose()
-    } catch {
-      toast.error('Error saving trade.')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Unknown error'
+      console.error('Save trade error:', msg)
+      toast.error('Error saving trade', { description: msg })
     } finally {
       setSaving(false)
     }
@@ -120,9 +154,7 @@ export function AddTradeForm({ onClose }: Props) {
   return (
     <div className="rounded-xl border border-blue-500/30 bg-white dark:bg-[#1a1a1a] p-4 space-y-4">
       <div className="flex items-center justify-between">
-        <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide">
-          {S.journal.addRow}
-        </span>
+        <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide">{S.journal.addRow}</span>
         <button onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
           <X className="h-4 w-4" />
         </button>
@@ -133,7 +165,7 @@ export function AddTradeForm({ onClose }: Props) {
         <div className="space-y-1">
           <label className={LABEL}>{S.journal.pair} <span className="text-red-500">*</span></label>
           <select value={symbol} onChange={e => setSymbol(e.target.value)} className={INPUT}>
-            <option value="">{S.journal.result === 'Result' ? 'Select...' : 'Seç...'}</option>
+            <option value="">{S.journal.pair === 'Pair' ? 'Select...' : 'Seç...'}</option>
             {SYMBOLS_LIST.map(s => (
               <option key={s.code} value={s.code} style={{ color: SYMBOL_COLORS[s.code] ?? '#111' }}>{s.code}</option>
             ))}
@@ -152,7 +184,7 @@ export function AddTradeForm({ onClose }: Props) {
         </div>
       </div>
 
-      {/* Seans + Saat + PNL */}
+      {/* Seans + Saat + PNL (Madde 2: sadece $) */}
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1">
           <label className={LABEL}>{S.journal.session}</label>
@@ -166,21 +198,29 @@ export function AddTradeForm({ onClose }: Props) {
           <input type="time" value={time} onChange={e => setTime(e.target.value)} className={INPUT + ' [color-scheme:light] dark:[color-scheme:dark]'} />
         </div>
         <div className="space-y-1">
-          <label className={LABEL}>{S.dashboard.pnl}</label>
-          <div className="flex gap-1">
-            <select value={currency} onChange={e => setCurrency(e.target.value)} className={INPUT + ' !w-20'}>
-              {CURRENCIES.map(c => <option key={c.code} value={c.code}>{c.symbol} {c.code}</option>)}
-            </select>
+          <label className={LABEL}>{S.dashboard.pnl} ($)</label>
+          {/* Madde 2: sadece $ göster, currency selector yok */}
+          <div className="flex items-center gap-1">
+            <span className="px-2 py-2 text-sm text-gray-500 dark:text-[#9ca3af] bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg">$</span>
             <input type="number" step="0.01" value={pnl} onChange={e => setPnl(e.target.value)} placeholder="37.50" className={INPUT} />
           </div>
         </div>
       </div>
 
-      {/* Chart Link + Notlar */}
+      {/* Chart Link (Madde 3: paste butonu) + Notlar */}
       <div className="grid grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className={LABEL}>📎 Chart Link</label>
-          <input type="url" value={chartLink} onChange={e => setChartLink(e.target.value)} placeholder="https://tradingview.com/..." className={INPUT} />
+          <div className="flex gap-1">
+            <input type="url" value={chartLink} onChange={e => setChartLink(e.target.value)} placeholder="https://tradingview.com/..." className={INPUT} />
+            <button
+              onClick={handlePasteChartLink}
+              title="Paste (Ctrl+V)"
+              className="shrink-0 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a] px-2.5 text-gray-500 hover:text-blue-500 transition-colors"
+            >
+              <ClipboardPaste className="h-4 w-4" />
+            </button>
+          </div>
         </div>
         <div className="space-y-1">
           <label className={LABEL}>{S.wizard.notesTitle}</label>
@@ -188,29 +228,46 @@ export function AddTradeForm({ onClose }: Props) {
         </div>
       </div>
 
-      {/* Konfirmasyonlar */}
+      {/* Confluences (Madde 4: auto-add) */}
       <div className="space-y-2">
         <label className={LABEL}>{S.journal.confluence}</label>
         <div className="flex items-center gap-2">
-          <select value={confTf} onChange={e => setConfTf(e.target.value as Timeframe)} className={INPUT + ' !w-auto'}>
+          <select
+            value={confTf}
+            onChange={e => handleConfTfChange(e.target.value as Timeframe)}
+            className={INPUT + ' !w-auto'}
+          >
             {TIMEFRAMES.map(tf => <option key={tf} value={tf}>{tf}</option>)}
           </select>
-          <select value={confType} onChange={e => setConfType(e.target.value as ConfirmationType)} className={INPUT + ' flex-1'}>
+          <select
+            value={confType}
+            onChange={e => handleConfTypeChange(e.target.value as ConfirmationType)}
+            className={INPUT + ' flex-1'}
+          >
             {CONFIRMATION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
           </select>
-          <button onClick={addConf} className="flex items-center gap-1 rounded-lg bg-gray-100 dark:bg-white/10 px-3 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors">
+          <button
+            onClick={addConf}
+            title="Add another"
+            className="flex items-center gap-1 rounded-lg bg-gray-100 dark:bg-white/10 px-3 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-200 dark:hover:bg-white/20 transition-colors"
+          >
             <Plus className="h-3.5 w-3.5" />
           </button>
         </div>
         {pendingConfs.length > 0 && (
           <div className="flex flex-wrap gap-2">
-            {sortByTimeframe([...pendingConfs]).map((c, _sortedIdx) => {
-              const idx = pendingConfs.findIndex(p => p.timeframe === c.timeframe && p.confirmation_type === c.confirmation_type)
+            {sortByTimeframe([...pendingConfs]).map((c, sortedIdx) => {
+              const origIdx = pendingConfs.findIndex(p => p.timeframe === c.timeframe && p.confirmation_type === c.confirmation_type)
               const color = CONFIRMATION_COLORS[c.confirmation_type] ?? '#9ca3af'
               return (
-                <span key={idx} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium" style={{ backgroundColor: `${color}22`, color }}>
+                <span key={sortedIdx} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium" style={{ backgroundColor: `${color}22`, color }}>
                   {c.timeframe} {c.confirmation_type}
-                  <button onClick={() => setPendingConfs(p => p.filter((_, i) => i !== idx))} className="ml-1 hover:opacity-70"><X className="h-3 w-3" /></button>
+                  <button
+                    onClick={() => setPendingConfs(p => p.filter((_, i) => i !== origIdx))}
+                    className="ml-1 hover:opacity-70"
+                  >
+                    <X className="h-3 w-3" />
+                  </button>
                 </span>
               )
             })}
