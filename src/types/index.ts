@@ -51,6 +51,7 @@ export interface Trade {
   notes: string | null
 
   // Meta
+  currency: string
   source: Source
   is_complete: boolean
   csv_fingerprint: string | null

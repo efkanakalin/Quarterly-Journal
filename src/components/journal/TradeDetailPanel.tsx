@@ -16,9 +16,9 @@ interface Props {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="flex items-start justify-between gap-4 py-2.5 border-b border-white/5 last:border-0">
-      <span className="text-xs text-[#9ca3af] shrink-0 w-32">{label}</span>
-      <span className="text-sm text-white text-right">{children}</span>
+    <div className="flex items-start justify-between gap-4 py-2.5 border-b border-gray-100 dark:border-white/5 last:border-0">
+      <span className="text-xs text-gray-500 dark:text-[#9ca3af] shrink-0 w-32">{label}</span>
+      <span className="text-sm text-gray-900 dark:text-white text-right">{children}</span>
     </div>
   )
 }
@@ -41,7 +41,7 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
     <Sheet open={open} onOpenChange={(v: boolean) => !v && onClose()}>
       <SheetContent
         side="right"
-        className="w-[400px] bg-[#1a1a1a] border-white/10 overflow-y-auto"
+        className="w-[400px] bg-white dark:bg-[#1a1a1a] border-gray-200 dark:border-white/10 overflow-y-auto"
       >
         <SheetHeader className="mb-4">
           <SheetTitle className="flex items-center gap-2 text-white">
@@ -87,14 +87,14 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
 
         {trade.trade_confirmations?.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs text-[#9ca3af] mb-2">Konfirmasyonlar</p>
+            <p className="text-xs text-gray-500 dark:text-[#9ca3af] mb-2">Konfirmasyonlar</p>
             <ConfirmationChips confirmations={trade.trade_confirmations} />
           </div>
         )}
 
         {trade.trade_mistakes?.length > 0 && (
           <div className="mt-4">
-            <p className="text-xs text-[#9ca3af] mb-2">Hatalar</p>
+            <p className="text-xs text-gray-500 dark:text-[#9ca3af] mb-2">Hatalar</p>
             <div className="flex flex-wrap gap-1">
               {trade.trade_mistakes.map((m) => (
                 <span
@@ -110,7 +110,7 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
 
         {trade.chart_link && (
           <div className="mt-4">
-            <p className="text-xs text-[#9ca3af] mb-2">Chart</p>
+            <p className="text-xs text-gray-500 dark:text-[#9ca3af] mb-2">Chart</p>
             <a
               href={trade.chart_link}
               target="_blank"
@@ -124,8 +124,8 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
 
         {trade.notes && (
           <div className="mt-4">
-            <p className="text-xs text-[#9ca3af] mb-2">Notlar</p>
-            <p className="text-sm text-white whitespace-pre-wrap">{trade.notes}</p>
+            <p className="text-xs text-gray-500 dark:text-[#9ca3af] mb-2">Notlar</p>
+            <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">{trade.notes}</p>
           </div>
         )}
       </SheetContent>

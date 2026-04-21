@@ -18,10 +18,10 @@ export function DayTradesModal({ date, trades, onClose }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-lg rounded-xl border border-white/10 bg-[#1a1a1a] shadow-xl max-h-[80vh] flex flex-col">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+      <div className="w-full max-w-lg rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] shadow-xl max-h-[80vh] flex flex-col">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 dark:border-white/10">
           <div>
-            <p className="text-sm font-semibold text-white">{format(date, 'MMMM d, yyyy')}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white">{format(date, 'MMMM d, yyyy')}</p>
             <p
               className="text-xs font-mono"
               style={{ color: totalPnl >= 0 ? '#10b981' : '#ef4444' }}

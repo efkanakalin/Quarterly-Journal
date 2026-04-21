@@ -1,9 +1,8 @@
 import { format } from 'date-fns'
+import { S } from '@/lib/constants/strings'
 import type { TradeWithRelations } from '@/types'
 
-interface Props {
-  trades: TradeWithRelations[]
-}
+interface Props { trades: TradeWithRelations[] }
 
 export function BestWorstCards({ trades }: Props) {
   const pnlTrades = trades.filter(t => t.pnl_usd !== null)
@@ -14,25 +13,25 @@ export function BestWorstCards({ trades }: Props) {
 
   return (
     <div className="grid grid-cols-3 gap-4">
-      <MiniTradeCard label="En İyi Trade" trade={best} color="#10b981" />
-      <div className="rounded-xl border border-white/10 bg-[#1a1a1a] px-5 py-4 flex flex-col items-center justify-center gap-1">
-        <p className="text-xs text-[#9ca3af] uppercase tracking-wide">Toplam Trade</p>
-        <p className="text-3xl font-bold text-white">{pnlTrades.length}</p>
+      <MiniCard label={S.dashboard.bestTrade}  trade={best}  color="#10b981" />
+      <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] px-5 py-4 flex flex-col items-center justify-center gap-1">
+        <p className="text-xs text-gray-500 dark:text-[#9ca3af]">{S.dashboard.totalTrades}</p>
+        <p className="text-3xl font-bold text-gray-900 dark:text-white">{pnlTrades.length}</p>
       </div>
-      <MiniTradeCard label="En Kötü Trade" trade={worst} color="#ef4444" />
+      <MiniCard label={S.dashboard.worstTrade} trade={worst} color="#ef4444" />
     </div>
   )
 }
 
-function MiniTradeCard({ label, trade, color }: { label: string; trade: TradeWithRelations; color: string }) {
+function MiniCard({ label, trade, color }: { label: string; trade: TradeWithRelations; color: string }) {
   const date = trade.entry_time_et ? format(new Date(trade.entry_time_et), 'MMM d, yyyy') : '—'
   return (
-    <div className="rounded-xl border border-white/10 bg-[#1a1a1a] px-5 py-4 space-y-1">
-      <p className="text-xs text-[#9ca3af] uppercase tracking-wide">{label}</p>
+    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] px-5 py-4 space-y-1">
+      <p className="text-xs text-gray-500 dark:text-[#9ca3af]">{label}</p>
       <p className="text-xl font-bold" style={{ color }}>
         {trade.pnl_usd! >= 0 ? '+' : ''}${trade.pnl_usd!.toFixed(2)}
       </p>
-      <p className="text-xs text-[#9ca3af]">{trade.symbol} · {date}</p>
+      <p className="text-xs text-gray-400 dark:text-[#9ca3af]">{trade.symbol} · {date}</p>
     </div>
   )
 }
