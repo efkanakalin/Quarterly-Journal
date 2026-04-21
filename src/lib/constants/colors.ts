@@ -5,12 +5,16 @@ export const OUTCOME_COLORS = {
 } as const
 
 export const SYMBOL_COLORS: Record<string, string> = {
-  MNQ: '#f59e0b',
-  MES: '#3b82f6',
-  MYM: '#10b981',
-  NQ:  '#f97316',
-  ES:  '#8b5cf6',
-  YM:  '#ec4899',
+  MNQ:    '#f59e0b',
+  MES:    '#3b82f6',
+  MYM:    '#10b981',
+  NQ:     '#f97316',
+  ES:     '#8b5cf6',
+  YM:     '#ec4899',
+  EURUSD: '#06b6d4',
+  GBPUSD: '#6366f1',
+  BTCUSD: '#f59e0b',
+  ETHUSD: '#64748b',
 }
 
 export const SESSION_COLORS = {

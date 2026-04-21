@@ -1,10 +1,11 @@
 import { useRef, useState } from 'react'
-import { Upload } from 'lucide-react'
+import { Upload, Info } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { parseCsvFile } from '@/lib/csv/parser'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useTradesStore } from '@/stores/useTradesStore'
+import { S } from '@/lib/constants/strings'
 import type { ImportResult, TradeWithRelations } from '@/types'
 
 export function CsvUpload() {
@@ -25,8 +26,8 @@ export function CsvUpload() {
     try {
       const parsed = await parseCsvFile(file)
       const result = await importTrades(parsed, user.id, addTrade)
-      toast.success(`${result.imported} trade import edildi`, {
-        description: result.skipped > 0 ? `${result.skipped} duplikasyon atlandı` : undefined,
+      toast.success(`${result.imported} işlem içe aktarıldı`, {
+        description: result.skipped > 0 ? `${result.skipped} tekrar atlandı` : undefined,
       })
     } catch (err) {
       console.error(err)
@@ -45,38 +46,37 @@ export function CsvUpload() {
     if (file) handleFile(file)
   }
 
-  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (file) handleFile(file)
-  }
-
   return (
-    <div
-      onClick={() => !loading && inputRef.current?.click()}
-      onDragOver={(e) => { e.preventDefault(); setDragging(true) }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={onDrop}
-      className={`
-        flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-8 transition-colors
-        ${dragging ? 'border-blue-500 bg-blue-500/10' : 'border-white/10 hover:border-white/20 hover:bg-white/5'}
-        ${loading ? 'pointer-events-none opacity-50' : ''}
-      `}
-    >
-      <input
-        ref={inputRef}
-        type="file"
-        accept=".csv"
-        className="hidden"
-        onChange={onInputChange}
-      />
-      <Upload className="h-8 w-8 text-[#9ca3af]" />
-      <div className="text-center">
-        <p className="text-sm font-medium text-white">
-          {loading ? 'Import ediliyor...' : 'CSV yükle'}
-        </p>
-        <p className="mt-1 text-xs text-[#9ca3af]">
-          Tradovate Performance.csv — sürükle bırak veya tıkla
-        </p>
+    <div className="space-y-2">
+      <div
+        onClick={() => !loading && inputRef.current?.click()}
+        onDragOver={e => { e.preventDefault(); setDragging(true) }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={onDrop}
+        className={[
+          'flex cursor-pointer flex-col items-center justify-center gap-3 rounded-xl border-2 border-dashed p-6 transition-colors',
+          dragging
+            ? 'border-blue-500 bg-blue-50 dark:bg-blue-500/10'
+            : 'border-gray-200 dark:border-white/10 hover:border-gray-300 dark:hover:border-white/20 hover:bg-gray-50 dark:hover:bg-white/5',
+          loading ? 'pointer-events-none opacity-50' : '',
+        ].join(' ')}
+      >
+        <input ref={inputRef} type="file" accept=".csv" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
+        <Upload className="h-6 w-6 text-gray-400 dark:text-[#9ca3af]" />
+        <div className="text-center">
+          <p className="text-sm font-medium text-gray-700 dark:text-white">
+            {loading ? 'İçe aktarılıyor...' : S.journal.importCsv}
+          </p>
+          <p className="mt-0.5 text-xs text-gray-400 dark:text-[#9ca3af]">
+            Tradovate Performance.csv — sürükle bırak veya tıkla
+          </p>
+        </div>
+      </div>
+
+      {/* CR-05: Timezone info */}
+      <div className="flex items-start gap-2 px-1">
+        <Info className="h-3.5 w-3.5 text-gray-400 dark:text-[#9ca3af] shrink-0 mt-0.5" />
+        <p className="text-xs text-gray-400 dark:text-[#9ca3af]">{S.journal.tzInfo}</p>
       </div>
     </div>
   )
@@ -98,12 +98,8 @@ async function importTrades(
       .single()
 
     if (error) {
-      // Unique constraint violation = duplicate
-      if (error.code === '23505') {
-        skipped++
-      } else {
-        console.error('Insert error:', error)
-      }
+      if (error.code === '23505') skipped++
+      else console.error('Insert error:', error)
       continue
     }
 

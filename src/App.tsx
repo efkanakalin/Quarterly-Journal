@@ -3,10 +3,14 @@ import { Routes, Route, Navigate } from 'react-router-dom'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { AuthGuard } from '@/components/shared/AuthGuard'
-import { Layout } from '@/components/shared/Layout'
+import { AppLayout } from '@/components/layout/AppLayout'
 import { Login } from '@/pages/Login'
 import { Dashboard } from '@/pages/Dashboard'
 import { Journal } from '@/pages/Journal'
+import { DailyStats } from '@/pages/DailyStats'
+import { ScoreBoard } from '@/pages/ScoreBoard'
+import { Profile } from '@/pages/Profile'
+import { CreateProfile } from '@/pages/CreateProfile'
 
 function App() {
   const setSession = useAuthStore(s => s.setSession)
@@ -25,18 +29,22 @@ function App() {
 
   return (
     <Routes>
-      <Route path="/login" element={<Login />} />
+      <Route path="/login"          element={<Login />} />
+      <Route path="/create-profile" element={<CreateProfile />} />
 
       <Route
         element={
           <AuthGuard>
-            <Layout />
+            <AppLayout />
           </AuthGuard>
         }
       >
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/journal"   element={<Journal />} />
-        <Route path="/"          element={<Navigate to="/dashboard" replace />} />
+        <Route path="/journal"     element={<Journal />} />
+        <Route path="/dashboard"   element={<Dashboard />} />
+        <Route path="/daily-stats" element={<DailyStats />} />
+        <Route path="/scoreboard"  element={<ScoreBoard />} />
+        <Route path="/profile"     element={<Profile />} />
+        <Route path="/"            element={<Navigate to="/journal" replace />} />
       </Route>
 
       <Route path="*" element={<Navigate to="/" replace />} />
