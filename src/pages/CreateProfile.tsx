@@ -52,7 +52,7 @@ export function CreateProfile() {
     <div className="min-h-screen bg-gray-100 dark:bg-[#0a0a0a] flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
-          <img src="/logo.png" alt="QT Journal" className="h-10 w-auto object-contain mx-auto" onError={e => { e.currentTarget.style.display='none' }} />
+          <img src="/logo.svg" alt="QT Journal" className="h-20 w-auto object-contain mx-auto" onError={e => { e.currentTarget.style.display='none' }} />
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">{S.profile.createTitle}</h1>
           <p className="text-sm text-gray-500 dark:text-[#9ca3af]">{S.profile.createSubtitle}</p>
         </div>
