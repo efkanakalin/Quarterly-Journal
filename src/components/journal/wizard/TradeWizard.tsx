@@ -1,0 +1,233 @@
+import { useState, useEffect } from 'react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { toast } from 'sonner'
+import { supabase } from '@/lib/supabase'
+import { useTradesStore } from '@/stores/useTradesStore'
+import { WizardStep1Confirmations } from './WizardStep1Confirmations'
+import { WizardStep2ChartLink } from './WizardStep2ChartLink'
+import { WizardStep3Outcome } from './WizardStep3Outcome'
+import { WizardStep4Notes } from './WizardStep4Notes'
+import type { TradeWithRelations, TradeConfirmation, MistakeType } from '@/types'
+
+interface Props {
+  trade: TradeWithRelations
+  open: boolean
+  onClose: () => void
+  onComplete: (tradeId: string) => void
+}
+
+const TOTAL_STEPS = 4
+
+export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
+  const { updateTrade } = useTradesStore()
+  const [step, setStep] = useState(1)
+  const [saving, setSaving] = useState(false)
+
+  const [confirmations, setConfirmations] = useState<TradeConfirmation[]>([])
+  const [chartLink, setChartLink] = useState('')
+  const [rMultiple, setRMultiple] = useState('')
+  const [mistakes, setMistakes] = useState<MistakeType[]>([])
+  const [notes, setNotes] = useState('')
+
+  useEffect(() => {
+    if (open) {
+      setStep(1)
+      setConfirmations(trade.trade_confirmations ?? [])
+      setChartLink(trade.chart_link ?? '')
+      setRMultiple(trade.r_multiple != null ? String(trade.r_multiple) : '')
+      setMistakes((trade.trade_mistakes ?? []).map(m => m.mistake_type as MistakeType))
+      setNotes(trade.notes ?? '')
+    }
+  }, [trade.id, open])
+
+  const saveStep = async (currentStep: number) => {
+    setSaving(true)
+    try {
+      if (currentStep === 1) {
+        await supabase.from('trade_confirmations').delete().eq('trade_id', trade.id)
+        if (confirmations.length > 0) {
+          const { error } = await supabase.from('trade_confirmations').insert(
+            confirmations.map(c => ({
+              trade_id: trade.id,
+              timeframe: c.timeframe,
+              confirmation_type: c.confirmation_type,
+            }))
+          )
+          if (error) throw error
+        }
+        // Fetch updated confirmations to sync store
+        const { data } = await supabase
+          .from('trade_confirmations')
+          .select('*')
+          .eq('trade_id', trade.id)
+        updateTrade(trade.id, {}, data ?? [], undefined)
+      } else if (currentStep === 2) {
+        const { error } = await supabase
+          .from('trades')
+          .update({ chart_link: chartLink || null })
+          .eq('id', trade.id)
+        if (error) throw error
+        updateTrade(trade.id, { chart_link: chartLink || null })
+      } else if (currentStep === 3) {
+        if (trade.outcome === 'win') {
+          const r = rMultiple ? parseFloat(rMultiple) : null
+          const { error } = await supabase
+            .from('trades')
+            .update({ r_multiple: r })
+            .eq('id', trade.id)
+          if (error) throw error
+          updateTrade(trade.id, { r_multiple: r })
+        } else {
+          await supabase.from('trade_mistakes').delete().eq('trade_id', trade.id)
+          if (mistakes.length > 0) {
+            const { error } = await supabase.from('trade_mistakes').insert(
+              mistakes.map(m => ({ trade_id: trade.id, mistake_type: m }))
+            )
+            if (error) throw error
+          }
+          const { data: mistakesData } = await supabase
+            .from('trade_mistakes')
+            .select('*')
+            .eq('trade_id', trade.id)
+          updateTrade(trade.id, {}, undefined, mistakesData ?? [])
+        }
+      } else if (currentStep === 4) {
+        const { error } = await supabase
+          .from('trades')
+          .update({ notes: notes || null })
+          .eq('id', trade.id)
+        if (error) throw error
+        updateTrade(trade.id, { notes: notes || null })
+      }
+    } catch {
+      toast.error('Kaydetme hatası.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleNext = async () => {
+    await saveStep(step)
+    setStep(s => s + 1)
+  }
+
+  const handlePrev = () => setStep(s => s - 1)
+
+  const handleClose = async () => {
+    await saveStep(step)
+    onClose()
+  }
+
+  const handleFinish = async () => {
+    await saveStep(step)
+    const { error } = await supabase
+      .from('trades')
+      .update({ is_complete: true })
+      .eq('id', trade.id)
+    if (error) {
+      toast.error('Tamamlama hatası.')
+      return
+    }
+    updateTrade(trade.id, { is_complete: true })
+    toast.success('Trade tamamlandı.')
+    onComplete(trade.id)
+  }
+
+  if (!open) return null
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="w-full max-w-md rounded-xl border border-white/10 bg-[#1a1a1a] flex flex-col shadow-xl">
+        {/* Header */}
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/10">
+          <span className="text-xs text-[#9ca3af] font-mono">
+            {trade.symbol} · {trade.outcome?.toUpperCase()} ·{' '}
+            {trade.pnl_usd != null
+              ? `${trade.pnl_usd >= 0 ? '+' : ''}$${trade.pnl_usd.toFixed(2)}`
+              : '—'}
+          </span>
+          <button
+            onClick={handleClose}
+            disabled={saving}
+            className="text-[#9ca3af] hover:text-white transition-colors disabled:opacity-50"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Step content */}
+        <div className="px-6 py-5 min-h-[260px]">
+          {step === 1 && (
+            <WizardStep1Confirmations
+              confirmations={confirmations}
+              onChange={setConfirmations}
+            />
+          )}
+          {step === 2 && (
+            <WizardStep2ChartLink value={chartLink} onChange={setChartLink} />
+          )}
+          {step === 3 && (
+            <WizardStep3Outcome
+              outcome={trade.outcome}
+              rMultiple={rMultiple}
+              onRMultipleChange={setRMultiple}
+              mistakes={mistakes}
+              onMistakesChange={setMistakes}
+            />
+          )}
+          {step === 4 && (
+            <WizardStep4Notes value={notes} onChange={setNotes} />
+          )}
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between px-6 pb-5 pt-4 border-t border-white/10">
+          {/* Pagination dots */}
+          <div className="flex gap-1.5 items-center">
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
+              <span
+                key={i}
+                className={`h-1.5 rounded-full transition-all duration-200 ${
+                  i + 1 === step
+                    ? 'w-4 bg-blue-500'
+                    : i + 1 < step
+                    ? 'w-1.5 bg-blue-500/40'
+                    : 'w-1.5 bg-white/20'
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Nav buttons */}
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handlePrev}
+              disabled={step === 1 || saving}
+              className="rounded-md p-2 text-[#9ca3af] hover:bg-white/10 hover:text-white disabled:opacity-30 transition-colors"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+
+            {step < TOTAL_STEPS ? (
+              <button
+                onClick={handleNext}
+                disabled={saving}
+                className="rounded-md p-2 text-[#9ca3af] hover:bg-white/10 hover:text-white disabled:opacity-30 transition-colors"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            ) : (
+              <button
+                onClick={handleFinish}
+                disabled={saving}
+                className="rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50 transition-colors"
+              >
+                {saving ? '...' : 'Bitir'}
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}

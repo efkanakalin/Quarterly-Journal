@@ -8,13 +8,17 @@ import { SessionBadge } from './SessionBadge'
 import { ConfirmationChips } from './ConfirmationChips'
 import { TradeDetailPanel } from './TradeDetailPanel'
 import { DeleteTradeDialog } from './DeleteTradeDialog'
+import { TradeWizard } from './wizard/TradeWizard'
 import { useTradesStore } from '@/stores/useTradesStore'
 import type { TradeWithRelations } from '@/types'
 
 export function TradeTable() {
   const { trades, loading, deleteTrade } = useTradesStore()
-  const [selectedTrade, setSelectedTrade] = useState<TradeWithRelations | null>(null)
+  const [detailTrade, setDetailTrade] = useState<TradeWithRelations | null>(null)
+  const [wizardTrade, setWizardTrade] = useState<TradeWithRelations | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
+  const [nextPromptOpen, setNextPromptOpen] = useState(false)
+  const [completedId, setCompletedId] = useState<string | null>(null)
 
   const handleDelete = async () => {
     if (!deleteTarget) return
@@ -26,6 +30,33 @@ export function TradeTable() {
     } finally {
       setDeleteTarget(null)
     }
+  }
+
+  const openWizard = (trade: TradeWithRelations, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setWizardTrade(trade)
+  }
+
+  const handleWizardComplete = (tradeId: string) => {
+    setCompletedId(tradeId)
+    setWizardTrade(null)
+    const remaining = trades.filter(t => !t.is_complete && t.id !== tradeId && t.source === 'csv')
+    if (remaining.length > 0) {
+      setNextPromptOpen(true)
+    }
+  }
+
+  const handleWizardClose = () => setWizardTrade(null)
+
+  const goToNextIncomplete = () => {
+    setNextPromptOpen(false)
+    const remaining = trades.filter(
+      t => !t.is_complete && t.id !== completedId && t.source === 'csv'
+    )
+    if (remaining.length > 0) {
+      setWizardTrade(remaining[0])
+    }
+    setCompletedId(null)
   }
 
   if (loading) {
@@ -68,7 +99,7 @@ export function TradeTable() {
               return (
                 <tr
                   key={trade.id}
-                  onClick={() => setSelectedTrade(trade)}
+                  onClick={() => setDetailTrade(trade)}
                   className="border-b border-white/5 last:border-0 hover:bg-white/5 cursor-pointer transition-colors"
                 >
                   <td className="px-4 py-3">
@@ -78,7 +109,7 @@ export function TradeTable() {
                       </span>
                       <PairBadge symbol={trade.symbol} />
                       {!trade.is_complete && (
-                        <span className="text-xs text-yellow-400">⚠</span>
+                        <span className="text-xs text-yellow-400" title="Eksik">⚠</span>
                       )}
                     </div>
                   </td>
@@ -103,9 +134,9 @@ export function TradeTable() {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
-                        onClick={() => setSelectedTrade(trade)}
+                        onClick={(e) => openWizard(trade, e)}
                         className="rounded p-1.5 text-[#9ca3af] hover:bg-white/10 hover:text-white transition-colors"
-                        title="Düzenle"
+                        title="Wizard"
                       >
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
@@ -126,16 +157,51 @@ export function TradeTable() {
       </div>
 
       <TradeDetailPanel
-        trade={selectedTrade}
-        open={!!selectedTrade}
-        onClose={() => setSelectedTrade(null)}
+        trade={detailTrade}
+        open={!!detailTrade}
+        onClose={() => setDetailTrade(null)}
       />
+
+      {wizardTrade && (
+        <TradeWizard
+          trade={wizardTrade}
+          open={!!wizardTrade}
+          onClose={handleWizardClose}
+          onComplete={handleWizardComplete}
+        />
+      )}
 
       <DeleteTradeDialog
         open={!!deleteTarget}
         onConfirm={handleDelete}
         onCancel={() => setDeleteTarget(null)}
       />
+
+      {/* Next incomplete trade prompt */}
+      {nextPromptOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[#1a1a1a] p-6 space-y-4 shadow-xl">
+            <p className="text-white text-sm font-medium">Sıradaki eksik trade'e geç?</p>
+            <p className="text-xs text-[#9ca3af]">
+              {trades.filter(t => !t.is_complete && t.source === 'csv').length} eksik trade kaldı.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => { setNextPromptOpen(false); setCompletedId(null) }}
+                className="px-4 py-2 text-sm text-[#9ca3af] hover:text-white transition-colors"
+              >
+                Hayır
+              </button>
+              <button
+                onClick={goToNextIncomplete}
+                className="px-4 py-2 text-sm bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+              >
+                Evet, geç
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   )
 }

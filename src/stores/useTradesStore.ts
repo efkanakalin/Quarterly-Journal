@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
-import type { Trade, TradeWithRelations } from '@/types'
+import type { Trade, TradeWithRelations, TradeConfirmation, TradeMistake } from '@/types'
 
 interface TradesState {
   trades: TradeWithRelations[]
@@ -8,14 +8,20 @@ interface TradesState {
   error: string | null
   fetchTrades: () => Promise<void>
   deleteTrade: (id: string) => Promise<void>
-  updateTrade: (id: string, updates: Partial<Trade>) => Promise<void>
+  /** Syncs local store only — callers are responsible for persisting to Supabase. */
+  updateTrade: (
+    id: string,
+    updates: Partial<Trade>,
+    confirmations?: TradeConfirmation[],
+    mistakes?: TradeMistake[]
+  ) => void
   addTrade: (trade: TradeWithRelations) => void
 }
 
 export const useTradesStore = create<TradesState>((set) => ({
-  trades:  [],
+  trades: [],
   loading: false,
-  error:   null,
+  error: null,
 
   fetchTrades: async () => {
     set({ loading: true, error: null })
@@ -42,18 +48,17 @@ export const useTradesStore = create<TradesState>((set) => ({
     set(state => ({ trades: state.trades.filter(t => t.id !== id) }))
   },
 
-  updateTrade: async (id: string, updates: Partial<Trade>) => {
-    const { error } = await supabase
-      .from('trades')
-      .update(updates)
-      .eq('id', id)
-
-    if (error) throw error
-
+  updateTrade: (id, updates, confirmations, mistakes) => {
     set(state => ({
-      trades: state.trades.map(t =>
-        t.id === id ? { ...t, ...updates } : t
-      ),
+      trades: state.trades.map(t => {
+        if (t.id !== id) return t
+        return {
+          ...t,
+          ...updates,
+          ...(confirmations !== undefined ? { trade_confirmations: confirmations } : {}),
+          ...(mistakes !== undefined ? { trade_mistakes: mistakes } : {}),
+        }
+      }),
     }))
   },
 
