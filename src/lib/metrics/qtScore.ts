@@ -1,48 +1,132 @@
-import { QT_SCORE_CONFIG as CFG } from './qtScoreConfig'
+import { format } from 'date-fns'
 import type { TradeWithRelations } from '@/types'
 
+export interface QTScoreBreakdown {
+  profitFactor:      number   // max +20
+  winRate:           number   // max +25
+  lossCount:         number   // +4.5 / -4.5 / -6.5
+  totalTrades:       number   // +4 / -4
+  asiaSession:       number   // +2 / -2
+  profitStability:   number   // +5 / -6.5
+  bounceBack:        number   // +5.7 / 0
+  journalDiscipline: number   // filledRows * 3
+}
+
 export interface QTScoreResult {
-  total: number          // 0–100
-  confirmationDensity: number
-  sessionDiscipline: number
-  executionCleanliness: number
-  rEfficiency: number
+  total: number
+  breakdown: QTScoreBreakdown
+  tradeDate: string | null   // which day was scored
 }
 
 /**
- * Placeholder formül — Efkan'ın gerçek formülü gelince SADECE bu fonksiyon değişir.
- * Config sabitleri qtScoreConfig.ts içinde.
+ * Günlük Disiplin Skoru — en son işlem gününe göre hesaplanır.
+ * Formül: QT Journal calculation.txt v1.0
  */
 export function calculateQTScore(trades: TradeWithRelations[]): QTScoreResult {
-  if (trades.length === 0) {
-    return { total: 0, confirmationDensity: 0, sessionDiscipline: 0, executionCleanliness: 0, rEfficiency: 0 }
+  const empty: QTScoreResult = {
+    total: 0,
+    breakdown: { profitFactor: 0, winRate: 0, lossCount: 0, totalTrades: 0, asiaSession: 0, profitStability: 0, bounceBack: 0, journalDiscipline: 0 },
+    tradeDate: null,
   }
 
-  // 1. Konfirmasyon Yoğunluğu
-  const totalConfs = trades.reduce((s, t) => s + (t.trade_confirmations?.length ?? 0), 0)
-  const avgConfs = totalConfs / trades.length
-  const confirmationDensity = Math.min(CFG.confirmationDensity.max, avgConfs * CFG.confirmationDensity.multiplier)
+  const validTrades = trades.filter(t => t.entry_time_et && t.pnl_usd !== null)
+  if (validTrades.length === 0) return empty
 
-  // 2. Session Disiplini — NY AM + NY PM ağırlıklı işlemler
-  const primaryCount = trades.filter(t => t.session && CFG.sessionDiscipline.primarySessions.includes(t.session)).length
-  const sessionDiscipline = (primaryCount / trades.length) * 100
+  // Günlere göre grupla
+  const dailyMap: Record<string, TradeWithRelations[]> = {}
+  for (const t of validTrades) {
+    const day = format(new Date(t.entry_time_et!), 'yyyy-MM-dd')
+    if (!dailyMap[day]) dailyMap[day] = []
+    dailyMap[day].push(t)
+  }
 
-  // 3. Execution Temizliği — hata olan işlem oranının tersi
-  const mistakeTrades = trades.filter(t => t.trade_mistakes && t.trade_mistakes.length > 0).length
-  const executionCleanliness = (1 - mistakeTrades / trades.length) * 100
+  // En son işlem günü
+  const days = Object.keys(dailyMap).sort().reverse()
+  const today = days[0]
+  const yesterday = days[1] ?? null
 
-  // 4. R Verimi — ortalama R multiple
-  const rTrades = trades.filter(t => t.r_multiple !== null)
-  const avgR = rTrades.length === 0 ? 0 : rTrades.reduce((s, t) => s + (t.r_multiple ?? 0), 0) / rTrades.length
-  const rEfficiency = Math.min(CFG.rEfficiency.max, Math.max(0, avgR * CFG.rEfficiency.multiplier))
+  const todayTrades = dailyMap[today]
+  const prevTrades  = yesterday ? dailyMap[yesterday] : []
 
-  const total = (confirmationDensity + sessionDiscipline + executionCleanliness + rEfficiency) / 4
+  const result = scoreDailyTrades(todayTrades, prevTrades)
+  return { ...result, tradeDate: today }
+}
+
+function scoreDailyTrades(
+  day: TradeWithRelations[],
+  prev: TradeWithRelations[]
+): Omit<QTScoreResult, 'tradeDate'> {
+  let score = 0
+
+  const wins   = day.filter(t => t.outcome === 'win')
+  const losses = day.filter(t => t.outcome === 'loss')
+  const grossProfit = wins.reduce((s, t) => s + (t.pnl_usd ?? 0), 0)
+  const grossLoss   = Math.abs(losses.reduce((s, t) => s + (t.pnl_usd ?? 0), 0))
+  const rated = wins.length + losses.length
+
+  // 1. Profit Factor
+  const pf = grossLoss === 0 ? (grossProfit > 0 ? 99 : 0) : grossProfit / grossLoss
+  let pfScore = 0
+  if      (pf >= 5.0) pfScore = 20
+  else if (pf >= 2.0) pfScore = 15
+  else if (pf >= 1.0) pfScore = 10
+  else if (pf >= 0.5) pfScore = 5
+  score += pfScore
+
+  // 2. Win Rate (maks 25 puan)
+  const winRate = rated === 0 ? 0 : (wins.length / rated) * 100
+  const wrScore = winRate * 0.25
+  score += wrScore
+
+  // 3. Loss Count
+  let lossScore = 0
+  if      (losses.length <= 2)                    lossScore =  4.5
+  else if (losses.length >= 3 && losses.length < 5) lossScore = -4.5
+  else if (losses.length >= 5)                    lossScore = -6.5
+  score += lossScore
+
+  // 4. Toplam İşlem Sayısı
+  const tradeScore = day.length <= 10 ? 4 : -4
+  score += tradeScore
+
+  // 5. Asya Seansı
+  const hasAsia  = day.some(t => t.session === 'asia')
+  const asiaScore = hasAsia ? -2 : 2
+  score += asiaScore
+
+  // 6. Kâr İstikrarı (en iyi işlem / toplam kazanç %)
+  let stabilityScore = 0
+  if (grossProfit > 0) {
+    const bestPnl = Math.max(...day.map(t => t.pnl_usd ?? 0))
+    const bestPct = (bestPnl / grossProfit) * 100
+    stabilityScore = bestPct <= 70 ? 5 : -6.5
+  }
+  score += stabilityScore
+
+  // 7. Bounce Back (dün kırmızı ve bugün WR > %50)
+  let bounceScore = 0
+  if (prev.length > 0) {
+    const prevPnl = prev.reduce((s, t) => s + (t.pnl_usd ?? 0), 0)
+    if (prevPnl < 0 && winRate > 50) bounceScore = 5.7
+  }
+  score += bounceScore
+
+  // 8. Journal Disiplini (eksiksiz doldurulmuş satır başına +3)
+  const filled = day.filter(t => t.is_complete).length
+  const journalScore = filled * 3
+  score += journalScore
 
   return {
-    total: Math.round(total),
-    confirmationDensity: Math.round(confirmationDensity),
-    sessionDiscipline:   Math.round(sessionDiscipline),
-    executionCleanliness: Math.round(executionCleanliness),
-    rEfficiency:         Math.round(rEfficiency),
+    total: Math.max(0, parseFloat(score.toFixed(2))),
+    breakdown: {
+      profitFactor:      pfScore,
+      winRate:           parseFloat(wrScore.toFixed(2)),
+      lossCount:         lossScore,
+      totalTrades:       tradeScore,
+      asiaSession:       asiaScore,
+      profitStability:   stabilityScore,
+      bounceBack:        bounceScore,
+      journalDiscipline: journalScore,
+    },
   }
 }
