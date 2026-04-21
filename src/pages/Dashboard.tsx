@@ -48,7 +48,7 @@ export function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Top bar */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
@@ -58,33 +58,40 @@ export function Dashboard() {
       {/* Row 1 — 5 Summary cards */}
       <SummaryCards stats={stats} />
 
-      {/* Row 2 — 3 Charts */}
+      {/* Row 2 — Grafikler sol (1/3) | Takvim sağ (2/3) */}
       <div className="grid grid-cols-3 gap-4">
-        <CumulativePnlChart data={cumulative} />
-        <DrawdownChart data={drawdown} />
-        <WeeklyBarChart weekly={weekly} monthly={monthly} />
+        {/* Sol: 3 grafik dikey */}
+        <div className="flex flex-col gap-4">
+          <CumulativePnlChart data={cumulative} />
+          <DrawdownChart data={drawdown} />
+          <WeeklyBarChart weekly={weekly} monthly={monthly} />
+        </div>
+
+        {/* Sağ: Takvim 2 kolon kaplıyor */}
+        <div className="col-span-2">
+          <CalendarGrid
+            trades={filtered}
+            onDayClick={(date, dayTrades) => {
+              setModalDate(date)
+              setModalTrades(dayTrades)
+            }}
+          />
+        </div>
       </div>
 
-      {/* Row 3 — Calendar */}
-      <CalendarGrid
-        trades={filtered}
-        onDayClick={(date, dayTrades) => {
-          setModalDate(date)
-          setModalTrades(dayTrades)
-        }}
-      />
-
-      {/* Row 4 — QT-Native panels */}
+      {/* Row 3 — Session Breakdown */}
       <SessionBreakdown trades={filtered} />
 
+      {/* Row 4 — Session Heatmap + Mistake Frequency */}
       <div className="grid grid-cols-2 gap-4">
         <SessionHeatmap trades={filtered} />
         <MistakeFrequency trades={filtered} />
       </div>
 
+      {/* Row 5 — Confirmation Effectiveness */}
       <ConfirmationEffectiveness trades={filtered} />
 
-      {/* Row 5 — Best / Total / Worst */}
+      {/* Row 6 — Best / Total / Worst */}
       <BestWorstCards trades={filtered} />
 
       <DayTradesModal

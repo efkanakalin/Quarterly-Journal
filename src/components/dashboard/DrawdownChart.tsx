@@ -24,7 +24,7 @@ export function DrawdownChart({ data }: Props) {
         <p className="text-xs font-medium text-[#9ca3af] uppercase tracking-wide">Drawdown</p>
         <span className="text-xs text-red-400 font-mono">Max: ${maxDrawdown.toFixed(2)}</span>
       </div>
-      <ResponsiveContainer width="100%" height={160}>
+      <ResponsiveContainer width="100%" height={130}>
         <AreaChart data={data} margin={{ top: 4, right: 4, bottom: 0, left: 0 }}>
           <defs>
             <linearGradient id="redGrad" x1="0" y1="0" x2="0" y2="1">
