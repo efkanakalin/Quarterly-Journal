@@ -54,7 +54,12 @@ export function Journal() {
         </div>
       </div>
 
-      {tab === 'list' && <TradeTable />}
+      {/* Madde 1: başlık ile liste arası boşluk */}
+      {tab === 'list' && (
+        <div className="mt-4">
+          <TradeTable />
+        </div>
+      )}
       {tab === 'calendar' && <CalendarView />}
 
       {/* Add Trade Modal (Madde 1: kutucuk modal) */}

@@ -75,21 +75,21 @@ export function TradeTable() {
 
   return (
     <>
-      {/* +%20 genişlik, 15 satır görünür, tema uyumlu scrollbar */}
+      {/* Yatay scroll YOK, dikey 15 satır, kalın satırlar */}
       <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
-        <div className="overflow-x-auto overflow-y-auto max-h-[960px] scrollbar-light dark:scrollbar-dark">
-          <table className="w-full text-sm">
+        <div className="overflow-y-auto max-h-[960px] scrollbar-light dark:scrollbar-dark">
+          <table className="w-full text-sm table-fixed">
             <thead className="sticky top-0 z-10 bg-gray-50 dark:bg-[#161616]">
               <tr className="border-b-2 border-gray-200 dark:border-white/10 text-left">
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[132px]">{S.journal.pair}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[108px]">{S.journal.result}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[168px]">{S.journal.date}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[114px]">{S.journal.session}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[96px]">{S.journal.time}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[336px]">{S.journal.confluence}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[264px]">{S.journal.notes}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] min-w-[72px]">{S.journal.link}</th>
-                <th className="px-4 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[108px]"></th>
+                <th className="px-3 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[10%]">{S.journal.pair}</th>
+                <th className="px-3 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[8%]">{S.journal.result}</th>
+                <th className="px-3 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[11%]">{S.journal.date}</th>
+                <th className="px-3 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[8%]">{S.journal.session}</th>
+                <th className="px-3 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[7%]">{S.journal.time}</th>
+                <th className="px-3 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[22%]">{S.journal.confluence}</th>
+                <th className="px-3 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[22%]">{S.journal.notes}</th>
+                <th className="px-3 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[5%]">{S.journal.link}</th>
+                <th className="px-3 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] w-[7%]"></th>
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-[#1a1a1a]">
@@ -101,7 +101,7 @@ export function TradeTable() {
                     onClick={() => setDetailTrade(trade)}
                     className="border-b border-gray-100 dark:border-white/8 last:border-0 hover:bg-gray-50 dark:hover:bg-white/5 cursor-pointer transition-colors"
                   >
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-5">
                       <div className="flex items-center gap-2">
                         <span className="text-xs text-gray-400">{trade.source === 'csv' ? '📥' : '✏️'}</span>
                         <PairBadge symbol={trade.symbol} />
@@ -110,19 +110,19 @@ export function TradeTable() {
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-4"><OutcomeBadge outcome={trade.outcome} /></td>
-                    <td className="px-4 py-4 text-gray-900 dark:text-white text-sm">
+                    <td className="px-3 py-5"><OutcomeBadge outcome={trade.outcome} /></td>
+                    <td className="px-3 py-5 text-gray-900 dark:text-white text-sm">
                       {entryRaw ? formatET(entryRaw, 'MMM d, yyyy') : '—'}
                     </td>
-                    <td className="px-4 py-4"><SessionBadge session={trade.session} /></td>
-                    <td className="px-4 py-4 text-gray-900 dark:text-white font-mono text-sm">
+                    <td className="px-3 py-5"><SessionBadge session={trade.session} /></td>
+                    <td className="px-3 py-5 text-gray-900 dark:text-white font-mono text-sm">
                       {entryRaw ? formatET(entryRaw, 'HH:mm') : '—'}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-5">
                       <ConfirmationChips confirmations={trade.trade_confirmations} />
                     </td>
                     {/* Notes sütunu — max 2 satır (Madde 1) */}
-                    <td className="px-4 py-4 min-w-[220px] max-w-[280px]">
+                    <td className="px-3 py-5 min-w-[220px] max-w-[280px]">
                       {trade.notes ? (
                         <p className="text-xs text-gray-600 dark:text-[#9ca3af] leading-relaxed line-clamp-2">
                           {trade.notes}
@@ -132,7 +132,7 @@ export function TradeTable() {
                       )}
                     </td>
                     {/* Chart Link sütunu */}
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-5">
                       {trade.chart_link ? (
                         <a
                           href={trade.chart_link}
@@ -147,7 +147,7 @@ export function TradeTable() {
                         <span className="text-gray-300 dark:text-white/20">—</span>
                       )}
                     </td>
-                    <td className="px-4 py-4">
+                    <td className="px-3 py-5">
                       <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                         <button
                           onClick={e => openWizard(trade, e)}
