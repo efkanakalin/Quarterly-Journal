@@ -1,13 +1,20 @@
 import { useEffect, useState } from 'react'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useDashboardStore } from '@/stores/useDashboardStore'
-import { filterByDateRange, calcStats, calcCumulativePnl, calcDrawdown, calcWeeklyPnl, calcMonthlyPnl } from '@/lib/stats'
+import {
+  filterByDateRange, calcStats, calcCumulativePnl,
+  calcDrawdown, calcWeeklyPnl, calcMonthlyPnl,
+} from '@/lib/stats'
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker'
 import { SummaryCards } from '@/components/dashboard/SummaryCards'
 import { CumulativePnlChart } from '@/components/dashboard/CumulativePnlChart'
 import { DrawdownChart } from '@/components/dashboard/DrawdownChart'
 import { WeeklyBarChart } from '@/components/dashboard/WeeklyBarChart'
 import { BestWorstCards } from '@/components/dashboard/BestWorstCards'
+import { SessionBreakdown } from '@/components/dashboard/SessionBreakdown'
+import { SessionHeatmap } from '@/components/dashboard/SessionHeatmap'
+import { ConfirmationEffectiveness } from '@/components/dashboard/ConfirmationEffectiveness'
+import { MistakeFrequency } from '@/components/dashboard/MistakeFrequency'
 import { CalendarGrid } from '@/components/shared/CalendarGrid'
 import { DayTradesModal } from '@/components/shared/DayTradesModal'
 import type { TradeWithRelations } from '@/types'
@@ -23,7 +30,7 @@ export function Dashboard() {
     fetchTrades()
   }, [fetchTrades])
 
-  const filtered = filterByDateRange(trades, dateRange)
+  const filtered   = filterByDateRange(trades, dateRange)
   const stats      = calcStats(filtered)
   const cumulative = calcCumulativePnl(filtered)
   const drawdown   = calcDrawdown(filtered)
@@ -33,7 +40,7 @@ export function Dashboard() {
   if (loading) {
     return (
       <div className="space-y-4">
-        {Array.from({ length: 3 }).map((_, i) => (
+        {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="h-24 rounded-xl bg-white/5 animate-pulse" />
         ))}
       </div>
@@ -43,15 +50,15 @@ export function Dashboard() {
   return (
     <div className="space-y-6">
       {/* Top bar */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl font-bold text-white">Dashboard</h1>
         <DateRangePicker />
       </div>
 
-      {/* Row 1 — Summary cards */}
+      {/* Row 1 — 5 Summary cards */}
       <SummaryCards stats={stats} />
 
-      {/* Row 2 — Charts */}
+      {/* Row 2 — 3 Charts */}
       <div className="grid grid-cols-3 gap-4">
         <CumulativePnlChart data={cumulative} />
         <DrawdownChart data={drawdown} />
@@ -67,7 +74,17 @@ export function Dashboard() {
         }}
       />
 
-      {/* Row 4 — Best / Total / Worst */}
+      {/* Row 4 — QT-Native panels */}
+      <SessionBreakdown trades={filtered} />
+
+      <div className="grid grid-cols-2 gap-4">
+        <SessionHeatmap trades={filtered} />
+        <MistakeFrequency trades={filtered} />
+      </div>
+
+      <ConfirmationEffectiveness trades={filtered} />
+
+      {/* Row 5 — Best / Total / Worst */}
       <BestWorstCards trades={filtered} />
 
       <DayTradesModal
