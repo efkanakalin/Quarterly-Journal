@@ -8,7 +8,13 @@ export function BestWorstCards({
   trades }: Props) {
   const S = useS()
   const pnlTrades = trades.filter(t => t.pnl_usd !== null)
-  if (pnlTrades.length === 0) return null
+  if (pnlTrades.length === 0) {
+    return (
+      <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-5 flex items-center justify-center">
+        <p className="text-xs text-gray-400 dark:text-[#9ca3af]">{S.dashboard.noData}</p>
+      </div>
+    )
+  }
 
   const best  = pnlTrades.reduce((a, b) => (b.pnl_usd! > a.pnl_usd! ? b : a))
   const worst = pnlTrades.reduce((a, b) => (b.pnl_usd! < a.pnl_usd! ? b : a))
