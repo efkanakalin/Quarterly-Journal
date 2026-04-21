@@ -3,6 +3,7 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useTradesStore } from '@/stores/useTradesStore'
+import { useS } from '@/lib/i18n'
 import { WizardStep1Confirmations } from './WizardStep1Confirmations'
 import { WizardStep2ChartLink } from './WizardStep2ChartLink'
 import { WizardStep3Outcome } from './WizardStep3Outcome'
@@ -20,6 +21,7 @@ const TOTAL_STEPS = 4
 
 export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
   const { updateTrade } = useTradesStore()
+  const S = useS()
   const [step, setStep] = useState(1)
   const [saving, setSaving] = useState(false)
 
@@ -231,7 +233,7 @@ export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
                 disabled={saving}
                 className="rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50 transition-colors"
               >
-                {saving ? '...' : 'Bitir'}
+                {saving ? '...' : S.journal.finishButton}
               </button>
             )}
           </div>
