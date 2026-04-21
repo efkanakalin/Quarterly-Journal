@@ -3,12 +3,14 @@ import { tr } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 import { PairBadge } from '@/components/journal/PairBadge'
 import { OutcomeBadge } from '@/components/journal/OutcomeBadge'
-import { S } from '@/lib/constants/strings'
+import { useS } from '@/lib/i18n'
 import type { TradeWithRelations } from '@/types'
 
 interface Props { trades: TradeWithRelations[] }
 
-export function RecentPositions({ trades }: Props) {
+export function RecentPositions({
+  trades }: Props) {
+  const S = useS()
   const navigate = useNavigate()
   const recent = [...trades]
     .sort((a, b) => {

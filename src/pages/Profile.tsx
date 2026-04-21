@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { S } from '@/lib/constants/strings'
+import { useS } from '@/lib/i18n'
 
 interface ProfileData {
   username: string
@@ -10,6 +10,7 @@ interface ProfileData {
 }
 
 export function Profile() {
+  const S = useS()
   const user = useAuthStore(s => s.user)
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [username, setUsername] = useState('')

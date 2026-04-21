@@ -1,7 +1,8 @@
 import { Trophy } from 'lucide-react'
-import { S } from '@/lib/constants/strings'
+import { useS } from '@/lib/i18n'
 
 export function ScoreBoard() {
+  const S = useS()
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 text-center">
       <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-yellow-50 dark:bg-yellow-500/10">

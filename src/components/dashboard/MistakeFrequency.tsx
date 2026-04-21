@@ -1,6 +1,6 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { MISTAKE_TYPES } from '@/lib/constants/mistakes'
-import { S } from '@/lib/constants/strings'
+import { useS } from '@/lib/i18n'
 import type { TradeWithRelations } from '@/types'
 
 interface Props { trades: TradeWithRelations[] }
@@ -13,7 +13,9 @@ const SHORT: Record<string, string> = {
   'İntikam İşlemi':             'İntikam',
 }
 
-export function MistakeFrequency({ trades }: Props) {
+export function MistakeFrequency({
+  trades }: Props) {
+  const S = useS()
   const counts: Record<string, number> = {}
   for (const t of trades)
     for (const m of t.trade_mistakes ?? [])

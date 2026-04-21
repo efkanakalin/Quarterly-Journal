@@ -1,10 +1,12 @@
 import { format } from 'date-fns'
-import { S } from '@/lib/constants/strings'
+import { useS } from '@/lib/i18n'
 import type { TradeWithRelations } from '@/types'
 
 interface Props { trades: TradeWithRelations[] }
 
-export function BestWorstCards({ trades }: Props) {
+export function BestWorstCards({
+  trades }: Props) {
+  const S = useS()
   const pnlTrades = trades.filter(t => t.pnl_usd !== null)
   if (pnlTrades.length === 0) return null
 
