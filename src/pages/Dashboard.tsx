@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useDashboardStore } from '@/stores/useDashboardStore'
-import { filterByDateRange, calcStats, calcDrawdown } from '@/lib/stats'
+import { filterByDateRange, calcStats, calcDrawdown, calcCumulativePnl } from '@/lib/stats'
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker'
 import { SummaryCards } from '@/components/dashboard/SummaryCards'
+import { CumulativePnlChart } from '@/components/dashboard/CumulativePnlChart'
 import { PnlChart } from '@/components/dashboard/PnlChart'
 import { DrawdownChart } from '@/components/dashboard/DrawdownChart'
 import { BestWorstCards } from '@/components/dashboard/BestWorstCards'
@@ -27,9 +28,10 @@ export function Dashboard() {
 
   useEffect(() => { fetchTrades() }, [fetchTrades])
 
-  const filtered  = filterByDateRange(trades, dateRange)
-  const stats     = calcStats(filtered)
-  const drawdown  = calcDrawdown(filtered)
+  const filtered   = filterByDateRange(trades, dateRange)
+  const stats      = calcStats(filtered)
+  const drawdown   = calcDrawdown(filtered)
+  const cumulative = calcCumulativePnl(filtered)
 
   if (loading) {
     return (
@@ -52,9 +54,16 @@ export function Dashboard() {
       {/* Row 1 — 5 özet kart */}
       <SummaryCards stats={stats} />
 
-      {/* Row 2 — QT Score (1/3) | Takvim (2/3) — benzer yükseklik */}
+      {/* Row 2 — QT Score (1/3) | Cumulative PnL (1/3) | Daily Bar PnL (1/3) — referans görsel */}
       <div className="grid grid-cols-3 gap-4">
         <QTScore trades={filtered} />
+        <CumulativePnlChart data={cumulative} />
+        <PnlChart trades={filtered} />
+      </div>
+
+      {/* Row 3 — Recent Trades (1/3) | Calendar (2/3) — referans görsel */}
+      <div className="grid grid-cols-3 gap-4">
+        <RecentPositions trades={filtered} />
         <div className="col-span-2">
           <CalendarGrid
             trades={filtered}
@@ -63,31 +72,23 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* Row 3 — PnL (1/2) | Drawdown (1/2) — aynı yükseklik */}
+      {/* Row 4 — Drawdown + Session Breakdown */}
       <div className="grid grid-cols-2 gap-4">
-        <PnlChart trades={filtered} />
         <DrawdownChart data={drawdown} />
-      </div>
-
-      {/* Row 4 — Session Breakdown (1/2) | Session Heatmap (1/2) — aynı yükseklik */}
-      <div className="grid grid-cols-2 gap-4">
         <SessionBreakdown trades={filtered} />
-        <SessionHeatmap trades={filtered} />
       </div>
 
-      {/* Row 5 — Recent Trades (1/3) | Confirmation Effectiveness (2/3) */}
-      <div className="grid grid-cols-3 gap-4">
-        <RecentPositions trades={filtered} />
-        <div className="col-span-2">
-          <ConfirmationEffectiveness trades={filtered} />
-        </div>
-      </div>
-
-      {/* Row 6 — Mistake Frequency (1/2) | Best/Worst (1/2) */}
+      {/* Row 5 — Session Heatmap + Mistake Frequency */}
       <div className="grid grid-cols-2 gap-4">
+        <SessionHeatmap trades={filtered} />
         <MistakeFrequency trades={filtered} />
-        <BestWorstCards trades={filtered} />
       </div>
+
+      {/* Row 6 — Confirmation Effectiveness */}
+      <ConfirmationEffectiveness trades={filtered} />
+
+      {/* Row 7 — Best / Total / Worst */}
+      <BestWorstCards trades={filtered} />
 
       <DayTradesModal
         date={modalDate}
