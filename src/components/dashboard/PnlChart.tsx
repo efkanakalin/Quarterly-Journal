@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { useS } from '@/lib/i18n'
+import { useThemeStore } from '@/stores/useThemeStore'
 import { calcDailyStats, calcWeeklyPnl } from '@/lib/stats'
 import type { TradeWithRelations } from '@/types'
 
@@ -13,6 +14,12 @@ const fmt = (v: number) => `$${v >= 0 ? '' : '-'}${Math.abs(v).toLocaleString('e
 export function PnlChart({ trades }: Props) {
   const [view, setView] = useState<View>('daily')
   const S = useS()
+  const isDark = useThemeStore(s => s.theme === 'dark')
+
+  const tooltipBg     = isDark ? '#1a1a1a' : '#ffffff'
+  const tooltipBorder = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)'
+  const tooltipText   = isDark ? '#ffffff' : '#111827'
+  const tooltipLabel  = isDark ? '#9ca3af' : '#6b7280'
 
   const daily  = calcDailyStats(trades).map(d => ({ label: d.date.slice(5), pnl: d.pnl }))
   const weekly = calcWeeklyPnl(trades)
@@ -78,11 +85,18 @@ export function PnlChart({ trades }: Props) {
                 width={60}
               />
               <Tooltip
-                contentStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, fontSize: 13 }}
-                labelStyle={{ color: '#9ca3af', fontSize: 12 }}
+                contentStyle={{
+                  background: tooltipBg,
+                  border: `1px solid ${tooltipBorder}`,
+                  borderRadius: 8,
+                  fontSize: 13,
+                  color: tooltipText,
+                  boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.08)',
+                }}
+                labelStyle={{ color: tooltipLabel, fontSize: 12, fontWeight: 500 }}
                 itemStyle={{ fontSize: 13, fontWeight: 600 }}
                 formatter={v => [fmt(v as number), 'PnL']}
-                cursor={{ fill: 'rgba(156,163,175,0.1)' }}
+                cursor={{ fill: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)' }}
               />
               <Bar dataKey="pnl" radius={[4, 4, 0, 0]}>
                 {data.map((entry, i) => <Cell key={i} fill={entry.pnl >= 0 ? '#10b981' : '#ef4444'} />)}
