@@ -47,6 +47,8 @@ export const EN = {
     cumulativePnl:  'Cumulative PnL',
     drawdown:       'Drawdown',
     weeklyMonthly:  'PnL',
+    netDailyPnl:    'Net Daily PnL',
+    netWeeklyPnl:   'Net Weekly PnL',
     weekly:         'Weekly',
     monthly:        'Monthly',
     daily:          'Daily',

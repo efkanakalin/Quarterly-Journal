@@ -47,6 +47,8 @@ export const TR = {
     cumulativePnl:  'Kümülatif K/Z',
     drawdown:       'Geri Çekilme',
     weeklyMonthly:  'K/Z',
+    netDailyPnl:    'Net Günlük K/Z',
+    netWeeklyPnl:   'Net Haftalık K/Z',
     weekly:         'Haftalık',
     monthly:        'Aylık',
     daily:          'Günlük',
