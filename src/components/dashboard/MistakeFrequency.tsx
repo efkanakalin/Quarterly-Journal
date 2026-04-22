@@ -1,6 +1,7 @@
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts'
 import { MISTAKE_TYPES } from '@/lib/constants/mistakes'
 import { useS } from '@/lib/i18n'
+import { useThemeStore } from '@/stores/useThemeStore'
 import type { TradeWithRelations } from '@/types'
 
 interface Props { trades: TradeWithRelations[] }
@@ -16,6 +17,12 @@ const SHORT: Record<string, string> = {
 export function MistakeFrequency({
   trades }: Props) {
   const S = useS()
+  const isDark = useThemeStore(s => s.theme === 'dark')
+  const tooltipBg     = isDark ? '#1a1a1a' : '#ffffff'
+  const tooltipBorder = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)'
+  const tooltipText   = isDark ? '#ffffff' : '#111827'
+  const tooltipLabel  = isDark ? '#9ca3af' : '#6b7280'
+
   const counts: Record<string, number> = {}
   for (const t of trades)
     for (const m of t.trade_mistakes ?? [])
@@ -43,11 +50,18 @@ export function MistakeFrequency({
           <XAxis type="number" tick={{ fill: '#9ca3af', fontSize: 10 }} axisLine={false} tickLine={false} />
           <YAxis type="category" dataKey="shortLabel" tick={{ fill: '#9ca3af', fontSize: 10 }} axisLine={false} tickLine={false} width={90} />
           <Tooltip
-            contentStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
+            contentStyle={{
+              background: tooltipBg,
+              border: `1px solid ${tooltipBorder}`,
+              borderRadius: 8,
+              fontSize: 13,
+              color: tooltipText,
+              boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.08)',
+            }}
             labelFormatter={(_, p) => p?.[0]?.payload?.label ?? ''}
             formatter={v => [v, S.stats.count]}
-            labelStyle={{ color: '#9ca3af', fontSize: 11 }}
-            itemStyle={{ color: '#ef4444', fontSize: 12 }}
+            labelStyle={{ color: tooltipLabel, fontSize: 12, fontWeight: 500 }}
+            itemStyle={{ color: '#ef4444', fontSize: 13, fontWeight: 600 }}
           />
           <Bar dataKey="count" radius={[0, 4, 4, 0]}>
             {data.map((_, i) => <Cell key={i} fill="#ef4444" fillOpacity={0.65 + i * 0.07} />)}

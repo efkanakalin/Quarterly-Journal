@@ -1,6 +1,7 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import type { CumulativePoint } from '@/lib/stats'
 import { useS } from '@/lib/i18n'
+import { useThemeStore } from '@/stores/useThemeStore'
 
 interface Props { data: CumulativePoint[] }
 
@@ -8,6 +9,12 @@ const fmt = (v: number) => `$${v >= 0 ? '' : '-'}${Math.abs(v).toLocaleString('e
 
 export function CumulativePnlChart({ data }: Props) {
   const S = useS()
+  const isDark = useThemeStore(s => s.theme === 'dark')
+
+  const tooltipBg     = isDark ? '#1a1a1a' : '#ffffff'
+  const tooltipBorder = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)'
+  const tooltipText   = isDark ? '#ffffff' : '#111827'
+  const tooltipLabel  = isDark ? '#9ca3af' : '#6b7280'
 
   if (data.length === 0) {
     return (
@@ -56,8 +63,15 @@ export function CumulativePnlChart({ data }: Props) {
               width={60}
             />
             <Tooltip
-              contentStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)', borderRadius: 8, fontSize: 13 }}
-              labelStyle={{ color: '#9ca3af', fontSize: 12 }}
+              contentStyle={{
+                background: tooltipBg,
+                border: `1px solid ${tooltipBorder}`,
+                borderRadius: 8,
+                fontSize: 13,
+                color: tooltipText,
+                boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.08)',
+              }}
+              labelStyle={{ color: tooltipLabel, fontSize: 12, fontWeight: 500 }}
               itemStyle={{ color: '#10b981', fontSize: 13, fontWeight: 600 }}
               formatter={v => [fmt(v as number), S.dashboard.cumulativePnl]}
             />

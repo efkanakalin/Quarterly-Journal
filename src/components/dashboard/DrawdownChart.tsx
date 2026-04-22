@@ -1,11 +1,18 @@
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine } from 'recharts'
 import { useS } from '@/lib/i18n'
+import { useThemeStore } from '@/stores/useThemeStore'
 import type { DrawdownPoint } from '@/lib/stats'
 
 interface Props { data: DrawdownPoint[] }
 
 export function DrawdownChart({ data }: Props) {
   const S = useS()
+  const isDark = useThemeStore(s => s.theme === 'dark')
+
+  const tooltipBg     = isDark ? '#1a1a1a' : '#ffffff'
+  const tooltipBorder = isDark ? 'rgba(255,255,255,0.15)' : 'rgba(0,0,0,0.08)'
+  const tooltipText   = isDark ? '#ffffff' : '#111827'
+  const tooltipLabel  = isDark ? '#9ca3af' : '#6b7280'
 
   if (data.length === 0) {
     return (
@@ -36,9 +43,16 @@ export function DrawdownChart({ data }: Props) {
           <YAxis tick={{ fill: '#9ca3af', fontSize: 10 }} axisLine={false} tickLine={false} tickFormatter={v => `$${v}`} width={50} />
           <ReferenceLine y={maxDrawdown} stroke="#ef4444" strokeDasharray="4 4" strokeOpacity={0.5} />
           <Tooltip
-            contentStyle={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8 }}
-            labelStyle={{ color: '#9ca3af', fontSize: 11 }}
-            itemStyle={{ color: '#ef4444', fontSize: 12 }}
+            contentStyle={{
+              background: tooltipBg,
+              border: `1px solid ${tooltipBorder}`,
+              borderRadius: 8,
+              fontSize: 13,
+              color: tooltipText,
+              boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.4)' : '0 4px 12px rgba(0,0,0,0.08)',
+            }}
+            labelStyle={{ color: tooltipLabel, fontSize: 12, fontWeight: 500 }}
+            itemStyle={{ color: '#ef4444', fontSize: 13, fontWeight: 600 }}
             formatter={v => [`$${(v as number).toFixed(2)}`, S.dashboard.drawdown]}
           />
           <Area type="monotone" dataKey="drawdown" stroke="#ef4444" strokeWidth={2} fill="url(#ddGrad)" />
