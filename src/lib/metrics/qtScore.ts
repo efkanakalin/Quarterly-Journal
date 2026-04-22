@@ -15,7 +15,43 @@ export interface QTScoreBreakdown {
 export interface QTScoreResult {
   total: number
   breakdown: QTScoreBreakdown
-  tradeDate: string | null   // which day was scored
+  radar: QTRadarPoint[]
+  tradeDate: string | null
+}
+
+export interface QTRadarPoint {
+  axis: string
+  value: number  // 0-100
+}
+
+/** 8 kriteri 5 radar eksenine normalize eder (0-100) */
+export function buildRadarScores(b: QTScoreBreakdown): QTRadarPoint[] {
+  // 1. Win % — direkt
+  const winPct = Math.min(100, (b.winRate / 25) * 100)
+
+  // 2. Profit Factor — pfScore maks 20
+  const pfPct = (b.profitFactor / 20) * 100
+
+  // 3. Avg Win/Loss (profit stability) — +5→100, 0→50, -6.5→0
+  const stabilityPct = b.profitStability === 5 ? 100 : b.profitStability < 0 ? 0 : 50
+
+  // 4. Recovery Factor — bounce back
+  const recoveryPct = b.bounceBack > 0 ? 100 : 50
+
+  // 5. Consistency — loss control + trade count + asia + journal
+  const lossCtrl   = b.lossCount === 4.5 ? 100 : b.lossCount === -4.5 ? 30 : 0
+  const tradeCtrl  = b.totalTrades > 0 ? 100 : 0
+  const asiaCtrl   = b.asiaSession > 0 ? 100 : 0
+  const journalCtrl = Math.min(100, b.journalDiscipline * 10)
+  const consistencyPct = (lossCtrl + tradeCtrl + asiaCtrl + journalCtrl) / 4
+
+  return [
+    { axis: 'Win %',           value: Math.round(winPct) },
+    { axis: 'Profit Factor',   value: Math.round(pfPct) },
+    { axis: 'Avg Win/Loss',    value: Math.round(stabilityPct) },
+    { axis: 'Recovery Factor', value: Math.round(recoveryPct) },
+    { axis: 'Consistency',     value: Math.round(consistencyPct) },
+  ]
 }
 
 /**
@@ -26,6 +62,13 @@ export function calculateQTScore(trades: TradeWithRelations[]): QTScoreResult {
   const empty: QTScoreResult = {
     total: 0,
     breakdown: { profitFactor: 0, winRate: 0, lossCount: 0, totalTrades: 0, asiaSession: 0, profitStability: 0, bounceBack: 0, journalDiscipline: 0 },
+    radar: [
+      { axis: 'Win %',           value: 0 },
+      { axis: 'Profit Factor',   value: 0 },
+      { axis: 'Avg Win/Loss',    value: 0 },
+      { axis: 'Recovery Factor', value: 0 },
+      { axis: 'Consistency',     value: 0 },
+    ],
     tradeDate: null,
   }
 
@@ -49,13 +92,13 @@ export function calculateQTScore(trades: TradeWithRelations[]): QTScoreResult {
   const prevTrades  = yesterday ? dailyMap[yesterday] : []
 
   const result = scoreDailyTrades(todayTrades, prevTrades)
-  return { ...result, tradeDate: today }
+  return { ...result, radar: buildRadarScores(result.breakdown), tradeDate: today }
 }
 
 function scoreDailyTrades(
   day: TradeWithRelations[],
   prev: TradeWithRelations[]
-): Omit<QTScoreResult, 'tradeDate'> {
+): Omit<QTScoreResult, 'tradeDate' | 'radar'> {
   let score = 0
 
   const wins   = day.filter(t => t.outcome === 'win')
