@@ -1,111 +1,102 @@
+import {
+  RadarChart, Radar, PolarGrid, PolarAngleAxis,
+  ResponsiveContainer, Tooltip,
+} from 'recharts'
 import { calculateQTScore } from '@/lib/metrics/qtScore'
 import { useS } from '@/lib/i18n'
 import type { TradeWithRelations } from '@/types'
 
 interface Props { trades: TradeWithRelations[] }
 
-function scoreColor(score: number) {
-  if (score >= 60) return { text: '#10b981', bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.25)' }
-  if (score >= 35) return { text: '#f59e0b', bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.25)' }
-  return             { text: '#ef4444', bg: 'rgba(239,68,68,0.12)',    border: 'rgba(239,68,68,0.25)' }
+function scoreColor(score: number): string {
+  if (score >= 60) return '#10b981'
+  if (score >= 35) return '#f59e0b'
+  return '#ef4444'
 }
-
-function signColor(v: number) {
-  return v > 0 ? '#10b981' : v < 0 ? '#ef4444' : '#9ca3af'
-}
-
-const CRITERIA = [
-  { key: 'profitFactor',      labelEn: 'Profit Factor',      labelTr: 'Kar Faktörü',      max: 20 },
-  { key: 'winRate',           labelEn: 'Win Rate',           labelTr: 'Kazanma Oranı',    max: 25 },
-  { key: 'lossCount',         labelEn: 'Loss Count',         labelTr: 'Kayıp Sayısı',     max: 4.5 },
-  { key: 'totalTrades',       labelEn: 'Trade Count',        labelTr: 'İşlem Sayısı',     max: 4 },
-  { key: 'asiaSession',       labelEn: 'Asia Session',       labelTr: 'Asya Seansı',      max: 2 },
-  { key: 'profitStability',   labelEn: 'Profit Stability',   labelTr: 'Kâr İstikrarı',   max: 5 },
-  { key: 'bounceBack',        labelEn: 'Bounce Back',        labelTr: 'Bounce Back',      max: 5.7 },
-  { key: 'journalDiscipline', labelEn: 'Journal Discipline', labelTr: 'Journal Disiplini', max: 999 },
-]
 
 export function QTScore({ trades }: Props) {
   const S = useS()
-  const isTr = S.dashboard.qtScore === 'QT Skoru'
   const result = calculateQTScore(trades)
-  const colors = scoreColor(result.total)
-  const pct = Math.min(100, (result.total / 80) * 100)
+  const color  = scoreColor(result.total)
 
   return (
-    <div
-      className="rounded-xl border p-5 space-y-4"
-      style={{ background: colors.bg, borderColor: colors.border }}
-    >
+    <div className="rounded-xl border border-white/10 bg-[#0f1629] p-5 space-y-4">
       {/* Başlık + tarih */}
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: colors.text }}>
+        <p className="text-xs font-semibold uppercase tracking-widest text-blue-400">
           {S.dashboard.qtScore}
         </p>
         {result.tradeDate && (
-          <span className="text-[10px] text-gray-400 dark:text-[#6b7280] font-mono">{result.tradeDate}</span>
+          <span className="text-[10px] text-white/30 font-mono">{result.tradeDate}</span>
         )}
       </div>
 
-      {/* Büyük skor */}
-      <div className="flex items-end gap-3">
-        <span className="text-6xl font-black tabular-nums leading-none" style={{ color: colors.text }}>
+      {/* Büyük skor — "/ 100" YOK */}
+      <div className="flex items-end gap-2">
+        <span className="text-5xl font-black tabular-nums leading-none" style={{ color }}>
           {result.total}
         </span>
-        <div className="mb-1 space-y-1">
-          <span className="text-sm text-gray-400 dark:text-[#9ca3af] font-medium">/ 100</span>
-          <p className="text-[10px] text-gray-400 dark:text-[#9ca3af]">
-            {result.total === 0 && trades.length === 0
-              ? (isTr ? 'Veri yok' : 'No data')
-              : result.total >= 60 ? (isTr ? '✓ İyi disiplin' : '✓ Good discipline')
-              : result.total >= 35 ? (isTr ? '⚠ Gelişim gerekli' : '⚠ Needs improvement')
-              : (isTr ? '✗ Disiplini gözden geçir' : '✗ Review discipline')}
-          </p>
+        <p className="mb-1 text-[10px] text-white/40">
+          {result.total === 0 && trades.length === 0
+            ? (S.dashboard.noData)
+            : result.total >= 60 ? '✓ Good'
+            : result.total >= 35 ? '⚠ Improve'
+            : '✗ Review'}
+        </p>
+      </div>
+
+      {/* Radar chart — referans görsel */}
+      {result.radar.length > 0 && (
+        <div className="h-56">
+          <ResponsiveContainer width="100%" height="100%">
+            <RadarChart data={result.radar} margin={{ top: 16, right: 24, bottom: 16, left: 24 }}>
+              <PolarGrid
+                stroke="rgba(99,130,255,0.2)"
+                gridType="polygon"
+              />
+              <PolarAngleAxis
+                dataKey="axis"
+                tick={({ x, y, payload }) => {
+                  const val = result.radar.find(r => r.axis === payload.value)?.value ?? 0
+                  return (
+                    <text
+                      x={x}
+                      y={y}
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      fill="rgba(255,255,255,0.6)"
+                      fontSize={10}
+                    >
+                      <tspan x={x} dy="-6">{payload.value}</tspan>
+                      <tspan x={x} dy="14" fill="rgba(255,255,255,0.9)" fontWeight="bold">
+                        ({val}.0)
+                      </tspan>
+                    </text>
+                  )
+                }}
+              />
+              <Radar
+                dataKey="value"
+                stroke="#4f7cf7"
+                strokeWidth={2}
+                fill="#3b5fe8"
+                fillOpacity={0.45}
+                dot={{ r: 4, fill: '#7aa3ff', stroke: '#c0d4ff', strokeWidth: 1.5 }}
+              />
+              <Tooltip
+                contentStyle={{
+                  background: '#0f1629',
+                  border: '1px solid rgba(99,130,255,0.3)',
+                  borderRadius: 8,
+                  fontSize: 12,
+                  color: '#fff',
+                }}
+                formatter={(v) => [`${v}`, '']}
+              />
+            </RadarChart>
+          </ResponsiveContainer>
         </div>
-      </div>
-
-      {/* Progress bar */}
-      <div className="h-2 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
-        <div
-          className="h-full rounded-full transition-all duration-700"
-          style={{ width: `${pct}%`, backgroundColor: colors.text }}
-        />
-      </div>
-
-      {/* Kriter listesi */}
-      <div className="space-y-2 pt-1 border-t border-gray-100 dark:border-white/10">
-        {CRITERIA.map(c => {
-          const val = result.breakdown[c.key as keyof typeof result.breakdown]
-          return (
-            <div key={c.key} className="flex items-center justify-between gap-2">
-              <span className="text-[11px] text-gray-500 dark:text-[#9ca3af] truncate flex-1">
-                {isTr ? c.labelTr : c.labelEn}
-              </span>
-              <div className="flex items-center gap-2 shrink-0">
-                <div className="w-16 h-1.5 rounded-full bg-gray-100 dark:bg-white/10 overflow-hidden">
-                  {val !== 0 && (
-                    <div
-                      className="h-full rounded-full"
-                      style={{
-                        width: c.max < 100
-                          ? `${Math.min(100, (Math.abs(val) / c.max) * 100)}%`
-                          : `${Math.min(100, val)}%`,
-                        backgroundColor: val >= 0 ? '#10b981' : '#ef4444',
-                      }}
-                    />
-                  )}
-                </div>
-                <span
-                  className="text-[11px] font-mono font-semibold w-9 text-right"
-                  style={{ color: signColor(val) }}
-                >
-                  {val > 0 ? `+${val}` : val}
-                </span>
-              </div>
-            </div>
-          )
-        })}
-      </div>
+      )}
     </div>
   )
 }
