@@ -226,7 +226,104 @@ export function TradeTable() {
 
   return (
     <>
-      <div className="rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
+      {/* Mobile card view */}
+      <div className="md:hidden space-y-2.5">
+        {trades.map(trade => {
+          const entryRaw = trade.entry_time_et ?? null
+          return (
+            <div
+              key={trade.id}
+              onClick={() => openWizardAt(trade, 1)}
+              className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-3.5 space-y-2.5 active:scale-[0.99] transition-transform cursor-pointer"
+            >
+              {/* Header — pair, outcome, pnl */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 min-w-0">
+                  <PairBadge symbol={trade.symbol} />
+                  <OutcomeBadge outcome={trade.outcome} />
+                </div>
+                <div className="font-mono text-sm font-semibold shrink-0">
+                  {trade.pnl_usd === null ? (
+                    <span className="text-gray-300 dark:text-white/20">—</span>
+                  ) : pnlHidden ? (
+                    <span className="text-gray-400 dark:text-[#6b7280]">***</span>
+                  ) : (
+                    <span className={trade.pnl_usd >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+                      {trade.pnl_usd >= 0 ? '+' : ''}${trade.pnl_usd.toFixed(2)}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              {/* Meta — date, time, session */}
+              <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 dark:text-[#9ca3af]">
+                {entryRaw && (
+                  <>
+                    <span>{formatET(entryRaw, 'MMM d, yyyy')}</span>
+                    <span className="opacity-40">•</span>
+                    <span className="font-mono">{formatET(entryRaw, 'HH:mm')}</span>
+                  </>
+                )}
+                {trade.session && (
+                  <>
+                    <span className="opacity-40">•</span>
+                    <SessionBadge session={trade.session} />
+                  </>
+                )}
+              </div>
+
+              {/* Confirmations */}
+              {trade.trade_confirmations && trade.trade_confirmations.length > 0 && (
+                <ConfirmationChips confirmations={trade.trade_confirmations} />
+              )}
+
+              {/* Notes */}
+              {trade.notes && !notesHidden && (
+                <p className="text-xs text-gray-600 dark:text-[#9ca3af] leading-relaxed line-clamp-2">
+                  {trade.notes}
+                </p>
+              )}
+
+              {/* Footer — chart link + actions */}
+              <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 dark:border-white/5">
+                {trade.chart_link ? (
+                  <a
+                    href={trade.chart_link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={e => e.stopPropagation()}
+                    className="inline-flex items-center gap-1 text-xs text-blue-500 hover:text-blue-600 font-medium"
+                  >
+                    {S.journal.chart} <ExternalLink className="h-3 w-3" />
+                  </a>
+                ) : (
+                  <span />
+                )}
+                <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                  <button
+                    onClick={() => openWizardAt(trade, 1)}
+                    className="rounded-md px-2.5 py-1.5 text-white text-xs"
+                    style={{ backgroundColor: '#415dff' }}
+                    aria-label="Edit"
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </button>
+                  <button
+                    onClick={() => requestDelete(trade.id)}
+                    className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                    aria-label="Delete"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop table view */}
+      <div className="hidden md:block rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden">
         <div className="overflow-y-auto max-h-[960px] scrollbar-light dark:scrollbar-dark">
           <table className="w-full text-sm table-fixed">
             <colgroup>

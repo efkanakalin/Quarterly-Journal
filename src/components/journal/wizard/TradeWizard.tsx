@@ -158,11 +158,11 @@ export function TradeWizard({ trade, open, onClose, onComplete, initialStep = 1 
   if (!open) return null
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-md rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] flex flex-col shadow-xl">
+    <div className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/60 sm:p-4">
+      <div className="w-full sm:max-w-md sm:rounded-xl border-0 sm:border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] flex flex-col shadow-xl max-h-screen sm:max-h-[90vh]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-200 dark:border-white/10">
-          <span className="text-xs text-gray-500 dark:text-[#9ca3af] font-mono">
+        <div className="flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 border-b border-gray-200 dark:border-white/10 shrink-0">
+          <span className="text-xs text-gray-500 dark:text-[#9ca3af] font-mono truncate">
             {trade.symbol} · {trade.outcome?.toUpperCase()} ·{' '}
             {trade.pnl_usd != null
               ? `${trade.pnl_usd >= 0 ? '+' : ''}$${trade.pnl_usd.toFixed(2)}`
@@ -171,14 +171,14 @@ export function TradeWizard({ trade, open, onClose, onComplete, initialStep = 1 
           <button
             onClick={handleClose}
             disabled={saving}
-            className="text-gray-500 dark:text-[#9ca3af] hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
+            className="rounded-md p-2 text-gray-500 dark:text-[#9ca3af] hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50 shrink-0"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Step content */}
-        <div className="px-6 py-5 min-h-[260px]">
+        <div className="px-4 sm:px-6 py-4 sm:py-5 min-h-[260px] flex-1 overflow-y-auto">
           {step === 1 && (
             <WizardStep1Confirmations
               confirmations={confirmations}
@@ -203,7 +203,7 @@ export function TradeWizard({ trade, open, onClose, onComplete, initialStep = 1 
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 pb-5 pt-4 border-t border-gray-200 dark:border-white/10">
+        <div className="flex items-center justify-between px-4 sm:px-6 pb-4 sm:pb-5 pt-3 sm:pt-4 border-t border-gray-200 dark:border-white/10 shrink-0">
           {/* Pagination dots — logo moru */}
           <div className="flex gap-1.5 items-center">
             {Array.from({ length: TOTAL_STEPS }).map((_, i) => {

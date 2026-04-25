@@ -72,14 +72,14 @@ export function Dashboard() {
   return (
     <div className="space-y-5">
       {/* Top bar */}
-      <div className="flex items-center justify-between flex-wrap gap-3">
+      <div className="flex items-start sm:items-center justify-between flex-wrap gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{S.dashboard.title}</h1>
-          <p className="mt-1 text-sm italic font-light text-gray-500 dark:text-[#9ca3af]">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{S.dashboard.title}</h1>
+          <p className="mt-1 text-xs sm:text-sm italic font-light text-gray-500 dark:text-[#9ca3af]">
             {greeting}{username ? `, ${username}` : ''}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <CsvUpload compact />
           <DateRangePicker />
         </div>
@@ -88,17 +88,17 @@ export function Dashboard() {
       {/* Row 1 — 5 özet kart */}
       <SummaryCards stats={stats} />
 
-      {/* Row 2 — QT Score (1/3) | Cumulative PnL (1/3) | Daily Bar PnL (1/3) — referans görsel */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* Row 2 — QT Score | Cumulative PnL | Daily Bar PnL */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <QTScore trades={filtered} />
         <CumulativePnlChart data={cumulative} />
         <PnlChart trades={filtered} />
       </div>
 
-      {/* Row 3 — Recent Trades (1/3) | Calendar (2/3) — referans görsel */}
-      <div className="grid grid-cols-3 gap-4">
+      {/* Row 3 — Recent Trades | Calendar */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <RecentPositions trades={filtered} />
-        <div className="col-span-2">
+        <div className="lg:col-span-2">
           <CalendarGrid
             trades={filtered}
             onDayClick={(date, dayTrades) => { setModalDate(date); setModalTrades(dayTrades) }}
@@ -107,13 +107,13 @@ export function Dashboard() {
       </div>
 
       {/* Row 4 — Drawdown + Session Breakdown */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <DrawdownChart data={drawdown} />
         <SessionBreakdown trades={filtered} />
       </div>
 
       {/* Row 5 — Session Heatmap + Mistake Frequency */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <SessionHeatmap trades={filtered} />
         <MistakeFrequency trades={filtered} />
       </div>

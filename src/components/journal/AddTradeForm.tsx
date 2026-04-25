@@ -141,16 +141,16 @@ export function AddTradeForm({ onClose }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-blue-500/30 bg-white dark:bg-[#1a1a1a] p-4 space-y-4">
+    <div className="rounded-t-xl sm:rounded-xl border border-blue-500/30 bg-white dark:bg-[#1a1a1a] p-4 space-y-4 max-h-[90vh] overflow-y-auto">
       <div className="flex items-center justify-between">
         <span className="text-xs font-semibold text-blue-500 uppercase tracking-wide">{S.journal.addRow}</span>
-        <button tabIndex={-1} onClick={onClose} className="text-gray-400 hover:text-gray-600 dark:hover:text-white transition-colors">
+        <button tabIndex={-1} onClick={onClose} className="rounded-md p-2 text-gray-400 hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-600 dark:hover:text-white transition-colors">
           <X className="h-4 w-4" />
         </button>
       </div>
 
       {/* Pair + Result + Date */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1">
           <label className={LABEL}>{S.journal.pair} <span className="text-red-500">*</span></label>
           <select tabIndex={1} value={symbol} onChange={e => setSymbol(e.target.value)} className={INPUT}>
@@ -182,7 +182,7 @@ export function AddTradeForm({ onClose }: Props) {
       </div>
 
       {/* Session + Time + PNL */}
-      <div className="grid grid-cols-3 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className="space-y-1">
           <label className={LABEL}>{S.journal.session}</label>
           <select tabIndex={4} value={session} onChange={e => setSession(e.target.value as Session)} className={INPUT} style={{ color: session ? SESSION_COLORS[session] : undefined }}>
@@ -201,7 +201,7 @@ export function AddTradeForm({ onClose }: Props) {
       </div>
 
       {/* Chart Link + Notes */}
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div className="space-y-1">
           <label className={LABEL}>📎 Chart Link</label>
           <div className="flex gap-1">
