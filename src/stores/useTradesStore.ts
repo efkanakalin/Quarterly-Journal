@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
+import { deriveOutcome } from '@/lib/derivations/outcome'
 import type { Trade, TradeWithRelations, TradeConfirmation, TradeMistake } from '@/types'
 
 interface TradesState {
@@ -39,7 +40,16 @@ export const useTradesStore = create<TradesState>((set) => ({
       return
     }
 
-    set({ trades: (data ?? []) as TradeWithRelations[], loading: false })
+    // CSV trade'lerinde outcome'u güncel eşikle yeniden türet (0-5$ breakeven kuralı).
+    // Manuel trade'ler kullanıcının seçtiği outcome'u korur.
+    const normalised = (data ?? []).map(t => {
+      if (t.source === 'csv' && typeof t.pnl_usd === 'number') {
+        return { ...t, outcome: deriveOutcome(t.pnl_usd) }
+      }
+      return t
+    }) as TradeWithRelations[]
+    normalised.sort(byEntryTimeDesc)
+    set({ trades: normalised, loading: false })
   },
 
   deleteTrade: async (id: string) => {
@@ -49,8 +59,8 @@ export const useTradesStore = create<TradesState>((set) => ({
   },
 
   updateTrade: (id, updates, confirmations, mistakes) => {
-    set(state => ({
-      trades: state.trades.map(t => {
+    set(state => {
+      const next = state.trades.map(t => {
         if (t.id !== id) return t
         return {
           ...t,
@@ -58,11 +68,22 @@ export const useTradesStore = create<TradesState>((set) => ({
           ...(confirmations !== undefined ? { trade_confirmations: confirmations } : {}),
           ...(mistakes !== undefined ? { trade_mistakes: mistakes } : {}),
         }
-      }),
-    }))
+      })
+      // Re-sort if entry_time_et changed
+      if (updates && 'entry_time_et' in updates) next.sort(byEntryTimeDesc)
+      return { trades: next }
+    })
   },
 
   addTrade: (trade: TradeWithRelations) => {
-    set(state => ({ trades: [trade, ...state.trades] }))
+    set(state => ({
+      trades: [trade, ...state.trades].sort(byEntryTimeDesc),
+    }))
   },
 }))
+
+function byEntryTimeDesc(a: TradeWithRelations, b: TradeWithRelations): number {
+  const ta = a.entry_time_et ? new Date(a.entry_time_et).getTime() : 0
+  const tb = b.entry_time_et ? new Date(b.entry_time_et).getTime() : 0
+  return tb - ta
+}

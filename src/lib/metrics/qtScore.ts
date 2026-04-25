@@ -1,15 +1,18 @@
 import { format } from 'date-fns'
 import type { TradeWithRelations } from '@/types'
 
+// QT JOURNAL — Günlük Disiplin Skoru v1.0
+// Taban puan yok, 0'dan başlar. Günlük değerlendirilir.
+
 export interface QTScoreBreakdown {
-  profitFactor:      number   // max +20
-  winRate:           number   // max +25
-  lossCount:         number   // +4.5 / -4.5 / -6.5
-  totalTrades:       number   // +4 / -4
-  asiaSession:       number   // +2 / -2
-  profitStability:   number   // +5 / -6.5
+  profitFactor:      number   // 0 / 15 / 20 / 25 / 35
+  winRate:           number   // 0-25 (WR% * 0.25)
+  lossCount:         number   // +5 / -1 / -5
+  totalTrades:       number   // +6.2 / -3
+  asiaSession:       number   // +5 / -2
+  profitStability:   number   // +5.1 / -3
   bounceBack:        number   // +5.7 / 0
-  journalDiscipline: number   // filledRows * 3
+  journalDiscipline: number   // filled * 2.6
 }
 
 export interface QTScoreResult {
@@ -26,23 +29,24 @@ export interface QTRadarPoint {
 
 /** 8 kriteri 5 radar eksenine normalize eder (0-100) */
 export function buildRadarScores(b: QTScoreBreakdown): QTRadarPoint[] {
-  // 1. Win % — direkt
+  // 1. Win % — direkt (max 25 puan → 100)
   const winPct = Math.min(100, (b.winRate / 25) * 100)
 
-  // 2. Profit Factor — pfScore maks 20
-  const pfPct = (b.profitFactor / 20) * 100
+  // 2. Profit Factor — max 35 puan → 100
+  const pfPct = (b.profitFactor / 35) * 100
 
-  // 3. Avg Win/Loss (profit stability) — +5→100, 0→50, -6.5→0
-  const stabilityPct = b.profitStability === 5 ? 100 : b.profitStability < 0 ? 0 : 50
+  // 3. Profit Stability — +5.1 → 100, 0 → 50, -3 → 0
+  const stabilityPct =
+    b.profitStability >= 5 ? 100 : b.profitStability < 0 ? 0 : 50
 
-  // 4. Recovery Factor — bounce back
+  // 4. Recovery (Bounce Back) — +5.7 → 100, 0 → 50
   const recoveryPct = b.bounceBack > 0 ? 100 : 50
 
-  // 5. Consistency — loss control + trade count + asia + journal
-  const lossCtrl   = b.lossCount === 4.5 ? 100 : b.lossCount === -4.5 ? 30 : 0
-  const tradeCtrl  = b.totalTrades > 0 ? 100 : 0
-  const asiaCtrl   = b.asiaSession > 0 ? 100 : 0
-  const journalCtrl = Math.min(100, b.journalDiscipline * 10)
+  // 5. Consistency — 4 alt-metriğin ortalaması
+  const lossCtrl    = b.lossCount === 5 ? 100 : b.lossCount === -1 ? 50 : 0
+  const tradeCtrl   = b.totalTrades > 0 ? 100 : 0
+  const asiaCtrl    = b.asiaSession > 0 ? 100 : 0
+  const journalCtrl = Math.min(100, (b.journalDiscipline / 26) * 100) // 10 satır ~ 100
   const consistencyPct = (lossCtrl + tradeCtrl + asiaCtrl + journalCtrl) / 4
 
   return [
@@ -54,10 +58,6 @@ export function buildRadarScores(b: QTScoreBreakdown): QTRadarPoint[] {
   ]
 }
 
-/**
- * Günlük Disiplin Skoru — en son işlem gününe göre hesaplanır.
- * Formül: QT Journal calculation.txt v1.0
- */
 export function calculateQTScore(trades: TradeWithRelations[]): QTScoreResult {
   const empty: QTScoreResult = {
     total: 0,
@@ -83,7 +83,6 @@ export function calculateQTScore(trades: TradeWithRelations[]): QTScoreResult {
     dailyMap[day].push(t)
   }
 
-  // En son işlem günü
   const days = Object.keys(dailyMap).sort().reverse()
   const today = days[0]
   const yesterday = days[1] ?? null
@@ -110,43 +109,44 @@ function scoreDailyTrades(
   // 1. Profit Factor
   const pf = grossLoss === 0 ? (grossProfit > 0 ? 99 : 0) : grossProfit / grossLoss
   let pfScore = 0
-  if      (pf >= 5.0) pfScore = 20
-  else if (pf >= 2.0) pfScore = 15
-  else if (pf >= 1.0) pfScore = 10
-  else if (pf >= 0.5) pfScore = 5
+  if      (pf >= 5.0) pfScore = 35
+  else if (pf >= 2.0) pfScore = 25
+  else if (pf >= 1.0) pfScore = 20
+  else if (pf >= 0.5) pfScore = 15
+  else                pfScore = 0
   score += pfScore
 
-  // 2. Win Rate (maks 25 puan)
+  // 2. Win Rate — maks 25 puan (WR% * 0.25)
   const winRate = rated === 0 ? 0 : (wins.length / rated) * 100
   const wrScore = winRate * 0.25
   score += wrScore
 
   // 3. Loss Count
   let lossScore = 0
-  if      (losses.length <= 2)                    lossScore =  4.5
-  else if (losses.length >= 3 && losses.length < 5) lossScore = -4.5
-  else if (losses.length >= 5)                    lossScore = -6.5
+  if      (losses.length <= 2)                        lossScore =  5
+  else if (losses.length >= 3 && losses.length <= 4)  lossScore = -1
+  else /* >= 5 */                                     lossScore = -5
   score += lossScore
 
-  // 4. Toplam İşlem Sayısı
-  const tradeScore = day.length <= 10 ? 4 : -4
+  // 4. Toplam İşlem Sayısı (Overtrading)
+  const tradeScore = day.length <= 10 ? 6.2 : -3
   score += tradeScore
 
-  // 5. Asya Seansı
-  const hasAsia  = day.some(t => t.session === 'asia')
-  const asiaScore = hasAsia ? -2 : 2
+  // 5. Asya Seansı (disiplin)
+  const hasAsia   = day.some(t => t.session === 'asia')
+  const asiaScore = hasAsia ? -2 : 5
   score += asiaScore
 
-  // 6. Kâr İstikrarı (en iyi işlem / toplam kazanç %)
+  // 6. Kâr İstikrarı (en iyi trade'in toplam kâra oranı)
   let stabilityScore = 0
   if (grossProfit > 0) {
     const bestPnl = Math.max(...day.map(t => t.pnl_usd ?? 0))
     const bestPct = (bestPnl / grossProfit) * 100
-    stabilityScore = bestPct <= 70 ? 5 : -6.5
+    stabilityScore = bestPct <= 70 ? 5.1 : -3
   }
   score += stabilityScore
 
-  // 7. Bounce Back (dün kırmızı ve bugün WR > %50)
+  // 7. Bounce Back — dün kırmızı + bugün WR > %50
   let bounceScore = 0
   if (prev.length > 0) {
     const prevPnl = prev.reduce((s, t) => s + (t.pnl_usd ?? 0), 0)
@@ -154,9 +154,9 @@ function scoreDailyTrades(
   }
   score += bounceScore
 
-  // 8. Journal Disiplini (eksiksiz doldurulmuş satır başına +3)
+  // 8. Journal Disiplini — eksiksiz her satır başına +2.6
   const filled = day.filter(t => t.is_complete).length
-  const journalScore = filled * 3
+  const journalScore = filled * 2.6
   score += journalScore
 
   return {
@@ -169,7 +169,7 @@ function scoreDailyTrades(
       asiaSession:       asiaScore,
       profitStability:   stabilityScore,
       bounceBack:        bounceScore,
-      journalDiscipline: journalScore,
+      journalDiscipline: parseFloat(journalScore.toFixed(2)),
     },
   }
 }

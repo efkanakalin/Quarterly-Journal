@@ -196,10 +196,7 @@ export function AddTradeForm({ onClose }: Props) {
         </div>
         <div className="space-y-1">
           <label className={LABEL}>{S.dashboard.pnl} ($)</label>
-          <div className="flex items-center gap-1">
-            <span className="px-2 py-2 text-sm text-gray-500 dark:text-[#9ca3af] bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-lg">$</span>
-            <input tabIndex={6} type="number" step="0.01" value={pnl} onChange={e => setPnl(e.target.value)} placeholder="37.50" className={INPUT} />
-          </div>
+          <input tabIndex={6} type="number" step="0.01" value={pnl} onChange={e => setPnl(e.target.value)} placeholder="37.50" className={INPUT} />
         </div>
       </div>
 

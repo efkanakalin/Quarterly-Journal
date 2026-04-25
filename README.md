@@ -1,82 +1,179 @@
-# QT Journal
+# Quarterly Journal
 
-**Quarterly Theory (QT) çerçevesinde işlem yapan trader'lar için trade journal uygulaması.**
+A Quarterly Theory–native trade journal. Unlike generic journals, it models
+every trade around the QT framework: Q/D/W cycle position, session, 90-minute
+micro-quarters, confirmation chain, mistake tagging, and a composite
+**QT Score**. Pairs with a live news & economic-calendar panel so you can
+keep context on macro events while reviewing your tape.
 
-Klasik journal'lardan farkı:
-- Trade'i fiyat olayı değil, **zaman koordinatı** olarak modeller (session, session quarter, 90m micro quarter)
-- Konfirmasyon zinciri (TF + Tip) yapısal veri olarak saklanır — SQL ile sorgulanabilir
-- QT-native: Asia/London/NY AM/NY PM session'ları, 15 konfirmasyon tipi, 5 hata tipi
+## Features
+
+- **Journal** — inline-edit trade table, double-click-to-edit cells, per-cell
+  selection ring, PnL / Notes hide toggles.
+- **Dashboard** — cumulative PnL, drawdown, session heatmap, weekly bars,
+  mistake frequency, confirmation effectiveness, radar-shaped QT Score.
+- **Daily Stats** — per-day grouped view with intraday cumulative chart,
+  winner/loser tallies, and a per-day journaling note (localStorage).
+- **CSV import** — Tradovate Performance.csv → normalized trades, with Europe
+  /Istanbul → America/New_York conversion including DST.
+- **News panel** (`/news`) — three zones:
+  - *Live Feed* (Financial Juice RSS, 30-second poll, sentiment-bordered
+    headlines, virtualized list of last 50)
+  - *Economic Calendar* (ForexFactory weekly JSON, 15-minute cache,
+    day-by-day navigator, impact colours, countdown badge on the next
+    high-impact event)
+  - *Economic Data* (Finnhub calendar, 5-minute cache, last 10 released
+    US high/medium events with actual vs forecast vs previous & beat/miss
+    colouring)
+- **Alarms** — synthesized tones via Web Audio; configurable lead-time for
+  high-impact events; desktop notifications; preferences persisted locally.
+- **i18n** — English + Turkish toggle, every user-visible string keyed.
+- **Themes** — class-based dark/light, persisted.
 
 ## Stack
 
-| Katman | Teknoloji |
-|--------|-----------|
-| Frontend | React 18 + Vite + TypeScript |
-| Styling | Tailwind CSS + shadcn/ui |
-| State | Zustand |
-| Backend | Supabase (PostgreSQL + Auth + RLS) |
-| Charts | Recharts |
-| CSV | PapaParse |
-| Date/Time | date-fns + date-fns-tz |
+| Layer       | Tech                                        |
+|-------------|---------------------------------------------|
+| Frontend    | React 19 + Vite 8 + TypeScript 6            |
+| Styling     | Tailwind CSS v4, @base-ui/react primitives  |
+| State       | Zustand (with `persist` middleware)         |
+| Routing     | React Router v7                             |
+| Charts      | Recharts                                    |
+| Virtualize  | @tanstack/react-virtual                     |
+| CSV         | PapaParse                                   |
+| Dates       | date-fns + date-fns-tz                      |
+| Backend     | Supabase (Postgres + RLS + Auth + Edge Fns) |
+| Deploy      | Cloudflare Pages / Netlify (SPA)            |
 
-## Kurulum
-
-### 1. Bağımlılıkları yükle
+## Local setup
 
 ```bash
+git clone <repo>
+cd quarterly-journal
 npm install
-```
-
-### 2. Supabase projesi oluştur
-
-1. [supabase.com](https://supabase.com) → New Project
-2. Project URL ve anon key'i kopyala
-
-### 3. Environment variables
-
-```bash
 cp .env.example .env
-# .env dosyasını düzenle
+# fill in VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY
+npm run dev          # http://localhost:5173
 ```
 
-```env
-VITE_SUPABASE_URL=https://your-project-id.supabase.co
-VITE_SUPABASE_ANON_KEY=your-anon-key-here
+### Supabase setup (one-time)
+
+1. **Project:** create a Supabase project, copy URL & anon key into `.env`.
+2. **Schema:** open the SQL editor, run `supabase/migrations/*.sql` in order.
+3. **Auth:** Authentication → Providers → enable Google; add the OAuth
+   credentials (create them in Google Cloud Console, redirect URI
+   `https://<project-ref>.supabase.co/auth/v1/callback`).
+4. **Edge functions** (for the News panel):
+
+   ```bash
+   supabase login
+   supabase functions deploy news           --project-ref <ref> --no-verify-jwt
+   supabase functions deploy economic-data  --project-ref <ref> --no-verify-jwt
+   supabase functions deploy calendar       --project-ref <ref> --no-verify-jwt
+   supabase secrets set FINNHUB_API_KEY=... --project-ref <ref>
+   ```
+
+   The `--no-verify-jwt` flag is intentional: these three functions are
+   read-only public-data proxies and don't need user auth.
+
+### CSV import
+
+Tradovate → Account Settings → Reports → **Performance** tab → pick a date
+range → Download CSV → in Quarterly Journal's Journal page, click "Import CSV".
+Timestamps arrive in Europe/Istanbul and are converted to America/New_York
+with DST handled correctly.
+
+## Environment variables
+
+Client `.env` (only two — never put server secrets here, anything prefixed
+`VITE_` is exposed to the browser):
+
+```
+VITE_SUPABASE_URL=https://<project-ref>.supabase.co
+VITE_SUPABASE_ANON_KEY=<publishable or jwt anon key>
 ```
 
-### 4. Veritabanı migration
+Supabase secrets (read by edge functions, never shipped to the browser):
 
-Supabase Dashboard → SQL Editor → `supabase/migrations/001_initial_schema.sql` içeriğini yapıştır ve çalıştır.
-
-### 5. Google OAuth kurulumu
-
-1. [Google Cloud Console](https://console.cloud.google.com) → APIs & Services → Credentials → Create OAuth 2.0 Client ID
-2. Application type: **Web application**
-3. Authorized redirect URIs: `https://your-project-id.supabase.co/auth/v1/callback`
-4. Supabase Dashboard → Authentication → Providers → Google → Client ID & Secret gir
-
-### 6. Geliştirme sunucusu
-
-```bash
-npm run dev
-# http://localhost:5173
+```
+FINNHUB_API_KEY=...        # required for /functions/v1/economic-data
+FRED_API_KEY=...           # optional legacy fallback
 ```
 
-## CSV Import
+Set with `supabase secrets set KEY=VALUE --project-ref <ref>`.
 
-Tradovate → Hesap Ayarları (dişli ikon) → Reports → **Performance** sekmesi → Tarih aralığı seç → Download CSV
+## Folder structure
 
-> CSV'deki tüm zaman damgaları Türkiye saatinde (Europe/Istanbul) gelir. Uygulama bunları otomatik olarak **New York saatine (America/New_York)** çevirir — DST (yaz/kış saati geçişi) dahil. Sabit offset kullanılmaz.
+```
+quarterly-journal/
+├── public/                  # Static assets (logo, favicon, _redirects)
+├── src/
+│   ├── components/
+│   │   ├── dashboard/       # Dashboard widgets (charts, cards, heatmap)
+│   │   ├── journal/         # Trade table, wizard, CSV upload, badges
+│   │   │   └── wizard/      # 4-step modal for completing CSV trades
+│   │   ├── layout/          # AppLayout, Sidebar
+│   │   ├── news/            # Live feed, calendar, econ data, alarms
+│   │   ├── shared/          # CalendarGrid, AuthGuard, DayTradesModal
+│   │   └── ui/              # Generic primitives (dialog, select, button…)
+│   ├── lib/
+│   │   ├── api/             # Client wrappers for edge functions
+│   │   ├── constants/       # Symbols, sessions, palettes, confirmations
+│   │   ├── csv/             # Papaparse adapter + CSV fingerprint check
+│   │   ├── derivations/     # Pure fns: outcome, session, quarter, …
+│   │   ├── i18n/            # en.ts, tr.ts + useS() hook
+│   │   ├── metrics/         # qtScore + config
+│   │   ├── news/            # keywords, sentiment, formatting helpers
+│   │   ├── formatET.ts      # ET timestamp formatter
+│   │   ├── stats.ts         # calcStats / drawdown / cumulative / per-day
+│   │   ├── supabase.ts      # Supabase client
+│   │   └── utils.ts         # cn() and small helpers
+│   ├── pages/               # Route-level components
+│   ├── stores/              # Zustand slices (auth, lang, theme, trades,
+│   │                        # dashboard, news, alarm)
+│   ├── types/               # Shared TypeScript types
+│   ├── App.tsx              # <Routes> + auth bootstrap
+│   ├── main.tsx             # ReactDOM entry
+│   └── index.css            # Tailwind + keyframes
+├── supabase/
+│   ├── functions/
+│   │   ├── _shared/cors.ts  # CORS helper shared by all functions
+│   │   ├── news/            # Financial Juice RSS proxy
+│   │   ├── economic-data/   # Finnhub calendar → released events
+│   │   └── calendar/        # ForexFactory weekly → normalized events
+│   └── migrations/          # SQL applied via Supabase dashboard
+├── NEWS_PANEL.md            # Deep-dive on the news panel
+├── .env.example
+└── vite.config.ts
+```
 
-## Deploy (Cloudflare Pages)
+## Scripts
 
-1. GitHub'a push et
-2. Cloudflare Pages → Connect to Git → qt-journal repo
-3. Build settings:
-   - Build command: `npm run build`
-   - Output directory: `dist`
-4. Environment variables: `VITE_SUPABASE_URL` ve `VITE_SUPABASE_ANON_KEY` ekle
+| Command          | What it does                                      |
+|------------------|---------------------------------------------------|
+| `npm run dev`    | Start Vite dev server on :5173 with HMR           |
+| `npm run build`  | `tsc -b` + `vite build` → `dist/`                 |
+| `npm run preview`| Serve the built bundle locally                    |
+| `npm run lint`   | ESLint over `src/`                                |
 
-## Lisans
+## Deploy
 
-MIT — Ücretsiz, açık kaynak
+Any static-SPA host works. Two options:
+
+- **Cloudflare Pages** — connect GitHub repo, build cmd `npm run build`,
+  output dir `dist`. Add the two `VITE_*` env vars.
+- **Netlify** — same build/output; `public/_redirects` already ships the
+  SPA fallback.
+
+Supabase edge functions are deployed separately via the Supabase CLI
+(see the `supabase functions deploy …` commands above).
+
+## Further reading
+
+- `NEWS_PANEL.md` — polling intervals, keyword table locations, how to add
+  a new symbol filter or news source, and tweaks for the forecast/actual
+  comparison logic.
+
+## License
+
+MIT — free and open source.

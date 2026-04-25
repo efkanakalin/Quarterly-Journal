@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, X } from 'lucide-react'
-import { CONFIRMATION_TYPES, CONFIRMATION_COLORS } from '@/lib/constants/confirmations'
+import { CONFIRMATION_TYPES } from '@/lib/constants/confirmations'
+import { CONFIRMATION_PALETTE, BADGE_CLASS } from '@/lib/constants/palette'
 import { TIMEFRAMES, sortByTimeframe } from '@/lib/constants/timeframes'
 import { useS } from '@/lib/i18n'
 import type { ConfirmationType, Timeframe, TradeConfirmation } from '@/types'
@@ -43,9 +44,9 @@ export function WizardStep1Confirmations({ confirmations, onChange }: Props) {
       {confirmations.length > 0 ? (
         <div className="flex flex-wrap gap-2">
           {sortByTimeframe(confirmations).map(c => {
-            const color = CONFIRMATION_COLORS[c.confirmation_type] ?? '#9ca3af'
+            const cls = BADGE_CLASS[CONFIRMATION_PALETTE[c.confirmation_type] ?? 'slate']
             return (
-              <span key={c.id} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium" style={{ backgroundColor: `${color}22`, color }}>
+              <span key={c.id} className={`inline-flex items-center gap-1 rounded-sm px-2 py-1 text-xs font-medium ${cls}`}>
                 {c.timeframe} {c.confirmation_type}
                 <button onClick={() => remove(c.id)} className="ml-1 hover:opacity-70"><X className="h-3 w-3" /></button>
               </span>

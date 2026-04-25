@@ -163,7 +163,7 @@ function parseCsvRow(row: CsvRow): Omit<Trade, 'id' | 'user_id' | 'created_at' |
   if (isNaN(exitUtc.getTime()))  throw new Error(`Geçersiz çıkış zamanı: "${soldRaw}"`)
 
   const direction      = deriveDirection(toIsoLike(boughtRaw), toIsoLike(soldRaw))
-  const outcome        = contractClass ? deriveOutcome(pnl, contractClass) : null
+  const outcome        = deriveOutcome(pnl)
   const session        = deriveSession(entryUtc)
   const sessionQuarter = deriveSessionQuarter(entryUtc, session)
   const microQuarter   = deriveMicroQuarter90m(entryUtc, session)

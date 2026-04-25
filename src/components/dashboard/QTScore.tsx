@@ -9,9 +9,10 @@ import type { TradeWithRelations } from '@/types'
 
 interface Props { trades: TradeWithRelations[] }
 
+// v1.0 eşikleri — toplam puan 87 taban + journal (2.6×trade) → tipik 40-90 aralığı
 function scoreColor(score: number): string {
-  if (score >= 60) return '#10b981'
-  if (score >= 35) return '#f59e0b'
+  if (score >= 70) return '#10b981'
+  if (score >= 40) return '#f59e0b'
   return '#ef4444'
 }
 
@@ -24,8 +25,7 @@ export function QTScore({ trades }: Props) {
 
   // Tema uyumlu renkler
   const gridStroke    = isDark ? 'rgba(99,130,255,0.2)'  : 'rgba(59,89,200,0.18)'
-  const axisLabelColor = isDark ? 'rgba(255,255,255,0.6)' : 'rgba(55,65,81,0.7)'
-  const axisValueColor = isDark ? 'rgba(255,255,255,0.95)' : 'rgba(17,24,39,0.95)'
+  const axisLabelColor = isDark ? 'rgba(255,255,255,0.85)' : 'rgba(31,41,55,0.9)'
   const radarStroke   = isDark ? '#7aa3ff' : '#3b5fe8'
   const radarFill     = isDark ? '#3b5fe8' : '#7aa3ff'
   const dotFill       = isDark ? '#a8c2ff' : '#3b5fe8'
@@ -54,8 +54,8 @@ export function QTScore({ trades }: Props) {
         <p className="mb-1 text-[10px] text-gray-400 dark:text-[#9ca3af]">
           {result.total === 0 && trades.length === 0
             ? S.dashboard.noData
-            : result.total >= 60 ? '✓ Good'
-            : result.total >= 35 ? '⚠ Improve'
+            : result.total >= 70 ? '✓ Good'
+            : result.total >= 40 ? '⚠ Improve'
             : '✗ Review'}
         </p>
       </div>
@@ -67,15 +67,19 @@ export function QTScore({ trades }: Props) {
             <PolarGrid stroke={gridStroke} gridType="polygon" />
             <PolarAngleAxis
               dataKey="axis"
-              tick={({ x, y, payload }) => {
-                const val = result.radar.find(r => r.axis === payload.value)?.value ?? 0
-                return (
-                  <text x={x} y={y} textAnchor="middle" dominantBaseline="middle" fontSize={9}>
-                    <tspan x={x} dy="-4" fill={axisLabelColor}>{payload.value}</tspan>
-                    <tspan x={x} dy="12" fill={axisValueColor} fontWeight="bold">({val})</tspan>
-                  </text>
-                )
-              }}
+              tick={({ x, y, payload }) => (
+                <text
+                  x={x}
+                  y={y}
+                  textAnchor="middle"
+                  dominantBaseline="middle"
+                  fontSize={11}
+                  fontWeight={500}
+                  fill={axisLabelColor}
+                >
+                  {payload.value}
+                </text>
+              )}
             />
             <Radar
               dataKey="value"
@@ -93,7 +97,10 @@ export function QTScore({ trades }: Props) {
                 fontSize: 12,
                 color: tooltipColor,
               }}
-              formatter={(v) => [`${v}`, '']}
+              formatter={(v, _name, props) => [
+                `${v}/100`,
+                (props?.payload as { axis?: string } | undefined)?.axis ?? '',
+              ]}
             />
           </RadarChart>
         </ResponsiveContainer>

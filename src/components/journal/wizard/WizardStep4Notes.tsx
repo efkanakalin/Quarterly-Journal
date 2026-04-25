@@ -1,9 +1,18 @@
 import { useS } from '@/lib/i18n'
+import type { Outcome } from '@/types'
 
-interface Props { value: string; onChange: (v: string) => void }
+interface Props {
+  value: string
+  onChange: (v: string) => void
+  outcome?: Outcome | null
+}
 
-export function WizardStep4Notes({ value, onChange }: Props) {
+export function WizardStep4Notes({ value, onChange, outcome }: Props) {
   const S = useS()
+  const placeholder = outcome === 'win'
+    ? S.wizard.notesPlaceholderWin
+    : S.wizard.notesPlaceholder
+
   return (
     <div className="space-y-5">
       <div>
@@ -13,9 +22,9 @@ export function WizardStep4Notes({ value, onChange }: Props) {
       <textarea
         value={value}
         onChange={e => onChange(e.target.value)}
-        placeholder={S.wizard.notesPlaceholder}
+        placeholder={placeholder}
         rows={6}
-        className="w-full resize-none rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a] px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-blue-500"
+        className="w-full resize-none rounded-md border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0a0a0a] px-3 py-2 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-[#6b7280] focus:outline-none focus:ring-1 focus:ring-blue-500"
       />
     </div>
   )

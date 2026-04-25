@@ -1,9 +1,13 @@
-import type { ContractClass, Outcome } from '@/types'
+import type { Outcome } from '@/types'
 
-export function deriveOutcome(pnl: number, contractClass: ContractClass): Outcome {
-  const threshold = contractClass === 'micro' ? 1 : 2
+// Outcome eşikleri:
+// - PnL > +5$ → WIN
+// - PnL < -5$ → STOP (loss)
+// - -5$ ≤ PnL ≤ +5$ → B/E (breakeven)
+const BREAKEVEN_THRESHOLD = 5
 
-  if (pnl > threshold)   return 'win'
-  if (pnl < -threshold)  return 'loss'
+export function deriveOutcome(pnl: number): Outcome {
+  if (pnl >  BREAKEVEN_THRESHOLD) return 'win'
+  if (pnl < -BREAKEVEN_THRESHOLD) return 'loss'
   return 'breakeven'
 }

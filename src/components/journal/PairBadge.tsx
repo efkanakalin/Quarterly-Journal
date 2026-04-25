@@ -1,17 +1,11 @@
-import { SYMBOL_COLORS } from '@/lib/constants/colors'
-
 interface Props {
   symbol: string | null
 }
 
 export function PairBadge({ symbol }: Props) {
-  if (!symbol) return <span className="text-[#9ca3af]">—</span>
-  const color = SYMBOL_COLORS[symbol] ?? '#9ca3af'
+  if (!symbol) return <span className="text-gray-400 dark:text-[#9ca3af]">—</span>
   return (
-    <span
-      className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-bold"
-      style={{ backgroundColor: `${color}22`, color }}
-    >
+    <span className="text-sm text-gray-900 dark:text-white">
       {symbol}
     </span>
   )
