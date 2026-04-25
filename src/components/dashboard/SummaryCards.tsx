@@ -12,7 +12,7 @@ interface CardProps {
 
 function StatCard({ label, value, sub, valueColor, info }: CardProps) {
   return (
-    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] px-5 py-4 space-y-1">
+    <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] px-4 py-3 sm:px-5 sm:py-4 space-y-1">
       <div className="flex items-center gap-1">
         <p className="text-xs text-gray-500 dark:text-[#9ca3af] font-medium">{label}</p>
         {info && (
@@ -24,7 +24,7 @@ function StatCard({ label, value, sub, valueColor, info }: CardProps) {
           </div>
         )}
       </div>
-      <p className="text-2xl font-bold" style={{ color: valueColor ?? '#111111' }} data-dark-color={valueColor ?? '#ffffff'}>
+      <p className="text-xl sm:text-2xl font-bold truncate" style={{ color: valueColor ?? '#111111' }} data-dark-color={valueColor ?? '#ffffff'}>
         {value}
       </p>
       {sub && <p className="text-xs text-gray-400 dark:text-[#9ca3af]">{sub}</p>}
@@ -45,7 +45,7 @@ export function SummaryCards({
     : stats.profitFactor.toFixed(2)
 
   return (
-    <div className="grid grid-cols-5 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
       <StatCard
         label={S.dashboard.pnl}
         value={`${stats.totalPnl >= 0 ? '+' : ''}$${stats.totalPnl.toFixed(2)}`}

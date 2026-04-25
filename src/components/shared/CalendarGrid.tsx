@@ -13,6 +13,7 @@ interface Props {
 }
 
 const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+const WEEKDAYS_SHORT = ['S', 'M', 'T', 'W', 'T', 'F', 'S']
 
 export function CalendarGrid({ trades, onDayClick }: Props) {
   const [month, setMonth] = useState(new Date())
@@ -43,48 +44,49 @@ export function CalendarGrid({ trades, onDayClick }: Props) {
   return (
     <div className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] overflow-hidden">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-white/10">
-        <div className="flex items-center gap-2">
+      <div className="flex items-center justify-between flex-wrap gap-2 px-3 sm:px-4 py-3 border-b border-gray-100 dark:border-white/10">
+        <div className="flex items-center gap-2 min-w-0">
           <button onClick={() => setMonth(m => subMonths(m, 1))} className="rounded p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
             <ChevronLeft className="h-4 w-4" />
           </button>
-          <span className="text-sm font-bold text-gray-900 dark:text-white">{format(month, 'MMMM yyyy')}</span>
+          <span className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white whitespace-nowrap">{format(month, 'MMMM yyyy')}</span>
           <button onClick={() => setMonth(m => addMonths(m, 1))} className="rounded p-1 text-gray-400 hover:text-gray-700 dark:hover:text-white transition-colors">
             <ChevronRight className="h-4 w-4" />
           </button>
           <button
             onClick={() => setMonth(new Date())}
-            className="ml-1 rounded-md px-2 py-0.5 text-xs border border-gray-200 dark:border-white/10 text-gray-500 dark:text-[#9ca3af] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors"
+            className="ml-1 rounded-md px-2 py-0.5 text-xs border border-gray-200 dark:border-white/10 text-gray-500 dark:text-[#9ca3af] hover:bg-gray-50 dark:hover:bg-white/5 transition-colors hidden sm:inline-flex"
           >
             This month
           </button>
         </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500 dark:text-[#9ca3af]">Monthly stats:</span>
+        <div className="flex items-center gap-2 sm:gap-3">
+          <span className="text-xs text-gray-500 dark:text-[#9ca3af] hidden sm:inline">Monthly stats:</span>
           <span className="text-xs font-bold font-mono px-2 py-0.5 rounded-md" style={{
             backgroundColor: monthlyPnl >= 0 ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)',
             color: monthlyPnl >= 0 ? '#10b981' : '#ef4444',
           }}>
             {monthlyPnl < 0 ? '-' : ''}${Math.abs(monthlyPnl) >= 1000 ? `${(Math.abs(monthlyPnl) / 1000).toFixed(1)}K` : Math.abs(monthlyPnl).toFixed(0)}
           </span>
-          <span className="text-xs font-medium text-gray-500 dark:text-[#9ca3af]">{tradingDays} days</span>
+          <span className="text-xs font-medium text-gray-500 dark:text-[#9ca3af]">{tradingDays}d</span>
         </div>
       </div>
 
       {/* Weekday başlıkları */}
-      <div className="grid grid-cols-[repeat(7,1fr)_88px] px-3 pt-3 pb-1 gap-1.5">
-        {WEEKDAYS.map(d => (
+      <div className="grid grid-cols-[repeat(7,1fr)] sm:grid-cols-[repeat(7,1fr)_88px] px-2 sm:px-3 pt-3 pb-1 gap-1 sm:gap-1.5">
+        {WEEKDAYS.map((d, i) => (
           <div key={d} className="text-center text-xs font-semibold text-gray-400 dark:text-[#9ca3af] py-1">
-            {d}
+            <span className="sm:hidden">{WEEKDAYS_SHORT[i]}</span>
+            <span className="hidden sm:inline">{d}</span>
           </div>
         ))}
-        <div className="text-center text-xs font-semibold text-gray-400 dark:text-[#9ca3af] py-1">
+        <div className="text-center text-xs font-semibold text-gray-400 dark:text-[#9ca3af] py-1 hidden sm:block">
           Week
         </div>
       </div>
 
       {/* Haftalar — her hücre kendi yuvarlak kutusu */}
-      <div className="px-3 pb-3 space-y-1.5">
+      <div className="px-2 sm:px-3 pb-3 space-y-1 sm:space-y-1.5">
         {weeks.map((week, wi) => {
           const weekPnl = week
             .filter(d => isSameMonth(d, month))
@@ -94,7 +96,7 @@ export function CalendarGrid({ trades, onDayClick }: Props) {
             .length
 
           return (
-            <div key={wi} className="grid grid-cols-[repeat(7,1fr)_88px] gap-1.5">
+            <div key={wi} className="grid grid-cols-[repeat(7,1fr)] sm:grid-cols-[repeat(7,1fr)_88px] gap-1 sm:gap-1.5">
               {week.map(day => {
                 const key     = format(day, 'yyyy-MM-dd')
                 const data    = dailyMap[key]
@@ -104,7 +106,7 @@ export function CalendarGrid({ trades, onDayClick }: Props) {
 
                 // Hücre arka plan rengi
                 let cellStyle: React.CSSProperties = {}
-                let cellClass = 'rounded-xl border transition-all min-h-[90px] relative '
+                let cellClass = 'rounded-lg sm:rounded-xl border transition-all min-h-[56px] sm:min-h-[90px] relative '
 
                 if (!inMonth) {
                   cellClass += 'bg-gray-50 dark:bg-white/3 border-gray-100 dark:border-white/5 opacity-40'
@@ -135,7 +137,7 @@ export function CalendarGrid({ trades, onDayClick }: Props) {
                     {inMonth && (
                       <>
                         {/* Tarih — sağ üst */}
-                        <span className={`absolute top-2 right-2.5 text-xs font-medium ${
+                        <span className={`absolute top-1 right-1.5 sm:top-2 sm:right-2.5 text-[10px] sm:text-xs font-medium ${
                           today ? 'text-blue-400' : pnl !== null ? 'text-white/80' : 'text-gray-400 dark:text-[#9ca3af]'
                         }`}>
                           {format(day, 'd')}
@@ -143,13 +145,13 @@ export function CalendarGrid({ trades, onDayClick }: Props) {
 
                         {/* PNL + trade sayısı — orta */}
                         {pnl !== null && (
-                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none">
-                            <span className="text-sm font-bold font-mono leading-none text-white">
+                          <div className="absolute inset-0 flex flex-col items-center justify-center gap-0.5 pointer-events-none px-1">
+                            <span className="text-[11px] sm:text-sm font-bold font-mono leading-none text-white truncate max-w-full">
                               {pnl < 0 ? '-' : ''}${Math.abs(pnl) >= 1000
                                 ? `${(Math.abs(pnl) / 1000).toFixed(1)}K`
                                 : Math.abs(pnl).toFixed(0)}
                             </span>
-                            <span className="text-[10px] text-white/70">
+                            <span className="text-[9px] sm:text-[10px] text-white/70 hidden sm:inline">
                               {data!.count} trade{data!.count !== 1 ? 's' : ''}
                             </span>
                           </div>
@@ -160,8 +162,8 @@ export function CalendarGrid({ trades, onDayClick }: Props) {
                 )
               })}
 
-              {/* Haftalık stats kutusu */}
-              <div className="rounded-xl border border-gray-100 dark:border-white/8 bg-gray-50 dark:bg-white/3 min-h-[90px] flex flex-col items-center justify-center gap-1 px-1">
+              {/* Haftalık stats kutusu — sadece desktop */}
+              <div className="hidden sm:flex rounded-xl border border-gray-100 dark:border-white/8 bg-gray-50 dark:bg-white/3 min-h-[90px] flex-col items-center justify-center gap-1 px-1">
                 <span className="text-[10px] font-semibold text-gray-400 dark:text-[#9ca3af]">Week {wi + 1}</span>
                 {weekTradingDays > 0 ? (
                   <>

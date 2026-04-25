@@ -44,14 +44,14 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
   return (
     <div
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-50 flex items-stretch sm:items-center justify-center bg-black/60 backdrop-blur-sm sm:p-4"
     >
       <div
         onClick={e => e.stopPropagation()}
-        className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#141414] shadow-2xl"
+        className="w-full sm:max-w-2xl max-h-screen sm:max-h-[90vh] overflow-y-auto sm:rounded-2xl border-0 sm:border border-gray-200 dark:border-white/10 bg-white dark:bg-[#141414] shadow-2xl"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 dark:border-white/5">
+        <div className="flex items-center justify-between gap-2 px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-white/5 sticky top-0 bg-white dark:bg-[#141414] z-10">
           <div className="flex items-center gap-3">
             <PairBadge symbol={trade.symbol} />
             <OutcomeBadge outcome={trade.outcome} />
@@ -74,16 +74,16 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
         </div>
 
         {/* Hero — PnL + R + duration */}
-        <div className="px-6 py-6 grid grid-cols-3 gap-4 border-b border-gray-100 dark:border-white/5">
+        <div className="px-4 sm:px-6 py-5 sm:py-6 grid grid-cols-3 gap-3 sm:gap-4 border-b border-gray-100 dark:border-white/5">
           <div>
             <p className="text-[10px] font-medium uppercase tracking-widest text-gray-400 dark:text-[#6b7280]">P&L</p>
-            <p className={`mt-1 text-3xl font-bold font-mono ${pnlColorClass}`}>
+            <p className={`mt-1 text-xl sm:text-3xl font-bold font-mono truncate ${pnlColorClass}`}>
               {pnl !== null ? `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}` : '—'}
             </p>
           </div>
           <div>
             <p className="text-[10px] font-medium uppercase tracking-widest text-gray-400 dark:text-[#6b7280]">R Multiple</p>
-            <p className="mt-1 text-3xl font-bold font-mono text-gray-900 dark:text-white">
+            <p className="mt-1 text-xl sm:text-3xl font-bold font-mono text-gray-900 dark:text-white truncate">
               {trade.r_multiple != null ? `${trade.r_multiple}R` : '—'}
             </p>
           </div>
@@ -91,14 +91,14 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
             <p className="text-[10px] font-medium uppercase tracking-widest text-gray-400 dark:text-[#6b7280] flex items-center gap-1">
               <Clock className="h-3 w-3" /> Duration
             </p>
-            <p className="mt-1 text-3xl font-bold font-mono text-gray-900 dark:text-white">
+            <p className="mt-1 text-xl sm:text-3xl font-bold font-mono text-gray-900 dark:text-white truncate">
               {durationStr}
             </p>
           </div>
         </div>
 
         {/* Timing strip */}
-        <div className="px-6 py-4 grid grid-cols-2 gap-4 border-b border-gray-100 dark:border-white/5">
+        <div className="px-4 sm:px-6 py-4 grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 border-b border-gray-100 dark:border-white/5">
           <InfoItem
             icon={<Calendar className="h-3.5 w-3.5" />}
             label={`${S.journal.date} (ET)`}
@@ -112,7 +112,7 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
         </div>
 
         {/* Metrics grid */}
-        <div className="px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4 border-b border-gray-100 dark:border-white/5">
+        <div className="px-4 sm:px-6 py-4 grid grid-cols-2 md:grid-cols-4 gap-x-4 gap-y-4 border-b border-gray-100 dark:border-white/5">
           <Metric label="Qty"          value={trade.qty ?? '—'} />
           <Metric label="Entry Price"  value={trade.entry_price ?? '—'} />
           <Metric label="Exit Price"   value={trade.exit_price ?? '—'} />
@@ -157,7 +157,7 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
 
         {/* Chart link */}
         {trade.chart_link && (
-          <div className="px-6 py-4 border-t border-gray-100 dark:border-white/5">
+          <div className="px-4 sm:px-6 py-4 border-t border-gray-100 dark:border-white/5">
             <a
               href={trade.chart_link}
               target="_blank"
@@ -195,7 +195,7 @@ function Metric({ label, value }: { label: string; value: React.ReactNode }) {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="px-6 py-4 border-b border-gray-100 dark:border-white/5 last:border-0">
+    <div className="px-4 sm:px-6 py-4 border-b border-gray-100 dark:border-white/5 last:border-0">
       <p className="text-[10px] font-medium uppercase tracking-widest text-gray-400 dark:text-[#6b7280] mb-2">
         {title}
       </p>

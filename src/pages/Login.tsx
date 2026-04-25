@@ -118,7 +118,7 @@ function FaqItem({
     >
       <button
         onClick={onToggle}
-        className={`group relative flex w-full items-center gap-5 rounded-2xl border px-6 py-5 text-left transition-all duration-300 ${
+        className={`group relative flex w-full items-center gap-3 sm:gap-5 rounded-2xl border px-4 sm:px-6 py-4 sm:py-5 text-left transition-all duration-300 ${
           open
             ? 'border-[#415dff]/40 bg-gradient-to-r from-white/[0.06] via-white/[0.03] to-transparent shadow-[0_0_40px_-10px_rgba(65,93,255,0.3)]'
             : 'border-white/10 bg-white/[0.02] hover:border-white/25 hover:bg-white/[0.04]'
@@ -147,7 +147,7 @@ function FaqItem({
         }`}
       >
         <div className="min-h-0">
-          <p className="px-[4.25rem] pr-6 pb-4 text-sm leading-relaxed text-white/65">{a}</p>
+          <p className="px-4 sm:px-[4.25rem] sm:pr-6 pb-4 text-sm leading-relaxed text-white/65">{a}</p>
         </div>
       </div>
     </li>
@@ -220,10 +220,10 @@ export function Login() {
         <div className="relative h-full w-full">
           {/* Başlık — vortex'in üst bölgesinde */}
           <div
-            className="absolute left-1/2 -translate-x-1/2 text-center"
-            style={{ bottom: 'calc(50% + 140px)' }}
+            className="absolute left-1/2 -translate-x-1/2 text-center w-full px-4"
+            style={{ bottom: 'calc(50% + 120px)' }}
           >
-            <h1 className="font-heading text-6xl font-semibold uppercase leading-[0.95] tracking-[0.04em] md:text-7xl lg:text-8xl">
+            <h1 className="font-heading text-4xl font-semibold uppercase leading-[0.95] tracking-[0.04em] sm:text-6xl md:text-7xl lg:text-8xl">
               <span className="block bg-gradient-to-b from-white via-[#d7dcff] to-[#8a9eff] bg-clip-text text-transparent">
                 QUARTERLY
               </span>
@@ -237,7 +237,7 @@ export function Login() {
           <button
             onClick={() => setDialogOpen(true)}
             aria-label="Sign in"
-            className="group absolute left-1/2 top-1/2 grid h-36 w-36 -translate-x-1/2 -translate-y-1/2 place-items-center"
+            className="group absolute left-1/2 top-1/2 grid h-28 w-28 sm:h-36 sm:w-36 -translate-x-1/2 -translate-y-1/2 place-items-center"
           >
             {/* Yavaş dönen mavi dış halka */}
             <span
@@ -255,7 +255,7 @@ export function Login() {
               aria-hidden
             />
             {/* Çekirdek */}
-            <span className="relative grid h-24 w-24 place-items-center rounded-full bg-black ring-1 ring-[#415dff]/80 shadow-[0_0_32px_rgba(65,93,255,0.35)] transition-all duration-300 group-hover:scale-110 group-hover:ring-[#8a9eff] group-hover:shadow-[0_0_56px_rgba(65,93,255,0.6)]">
+            <span className="relative grid h-20 w-20 sm:h-24 sm:w-24 place-items-center rounded-full bg-black ring-1 ring-[#415dff]/80 shadow-[0_0_32px_rgba(65,93,255,0.35)] transition-all duration-300 group-hover:scale-110 group-hover:ring-[#8a9eff] group-hover:shadow-[0_0_56px_rgba(65,93,255,0.6)]">
               <span className="text-[12px] font-medium tracking-[0.28em] text-white/95 uppercase">
                 login
               </span>
@@ -287,7 +287,7 @@ export function Login() {
       {/* ---------- FAQ ---------- */}
       <section
         id="faq-section"
-        className="relative flex min-h-screen items-center justify-center px-6 pt-40 pb-24"
+        className="relative flex min-h-screen items-center justify-center px-4 sm:px-6 pt-20 sm:pt-40 pb-16 sm:pb-24"
       >
         {/* Başlığın çok altında, ince bir altın sızıntı (kenarda değil, iç alanda) */}
         <div

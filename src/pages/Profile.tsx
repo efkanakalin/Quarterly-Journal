@@ -49,18 +49,18 @@ export function Profile() {
   const initial = (profile.display_name || profile.username || '?').charAt(0).toUpperCase()
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
+    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
       {/* Avatar card */}
-      <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-8">
-        <div className="flex items-center gap-5">
+      <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-5 sm:p-8">
+        <div className="flex items-center gap-4 sm:gap-5">
           <div
-            className="flex h-20 w-20 items-center justify-center rounded-full text-3xl font-bold text-white shadow-sm shrink-0"
+            className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full text-2xl sm:text-3xl font-bold text-white shadow-sm shrink-0"
             style={{ backgroundColor: '#415dff' }}
           >
             {initial}
           </div>
           <div className="min-w-0">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white truncate">
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
               {profile.display_name || profile.username}
             </h1>
             <p className="text-sm text-gray-500 dark:text-[#9ca3af] truncate">
@@ -72,7 +72,7 @@ export function Profile() {
 
       {/* Account info */}
       <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-white/10">
+        <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-white/10">
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
             {S.profile.accountInfo}
           </h2>
@@ -115,7 +115,7 @@ interface InfoRowProps {
 
 function InfoRow({ icon, label, value, hint, last }: InfoRowProps) {
   return (
-    <div className={`flex items-start gap-4 px-6 py-4 ${last ? '' : 'border-b border-gray-100 dark:border-white/5'}`}>
+    <div className={`flex items-start gap-4 px-4 sm:px-6 py-4 ${last ? '' : 'border-b border-gray-100 dark:border-white/5'}`}>
       <div className="mt-0.5 text-gray-400 dark:text-[#6b7280] shrink-0">{icon}</div>
       <div className="min-w-0 flex-1">
         <p className="text-xs font-medium text-gray-500 dark:text-[#9ca3af]">{label}</p>

@@ -124,8 +124,8 @@ export function DailyStats() {
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{S.nav.dailyStats}</h1>
+    <div className="space-y-4 sm:space-y-6">
+      <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{S.nav.dailyStats}</h1>
       {days.map(day => <DayCard key={day.date} day={day} />)}
     </div>
   )
@@ -157,9 +157,9 @@ function DayCard({ day }: { day: DayGroup }) {
   return (
     <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] overflow-hidden">
       {/* Top section */}
-      <div className="grid grid-cols-12 gap-4 px-6 py-5 border-b border-gray-100 dark:border-white/5 items-center">
+      <div className="grid grid-cols-12 gap-3 sm:gap-4 px-4 sm:px-6 py-4 sm:py-5 border-b border-gray-100 dark:border-white/5 items-center">
         {/* Date + Net P&L + chart */}
-        <div className="col-span-12 md:col-span-5 flex items-center gap-4">
+        <div className="col-span-12 md:col-span-5 flex items-center gap-3 sm:gap-4">
           <div className="min-w-0">
             <p className="text-sm font-semibold text-gray-900 dark:text-white">{day.label}</p>
             <p className="mt-0.5 text-sm text-gray-500 dark:text-[#9ca3af]">
@@ -169,13 +169,13 @@ function DayCard({ day }: { day: DayGroup }) {
               </span>
             </p>
           </div>
-          <div className="flex-1 h-14 min-w-[140px]">
+          <div className="flex-1 h-12 sm:h-14 min-w-[100px] sm:min-w-[140px]">
             <IntradayChart curve={day.curve} positive={isPos} />
           </div>
         </div>
 
         {/* Metric grid */}
-        <div className="col-span-12 md:col-span-5 grid grid-cols-4 gap-x-5 gap-y-2 text-sm">
+        <div className="col-span-12 md:col-span-5 grid grid-cols-2 sm:grid-cols-4 gap-x-4 sm:gap-x-5 gap-y-2 text-sm">
           <Metric label={S.daily.totalTrades} value={day.trades.length} />
           <Metric label={S.daily.winners}     value={day.winners} />
           <Metric label={S.daily.grossPnl}    value={`$${day.grossPnl.toFixed(2)}`} />
@@ -204,7 +204,7 @@ function DayCard({ day }: { day: DayGroup }) {
 
       {/* Trades table */}
       <div className="overflow-x-auto">
-        <table className="w-full table-fixed text-sm">
+        <table className="w-full min-w-[680px] table-fixed text-sm">
           <colgroup>
             <col className="w-[13%]" />
             <col className="w-[11%]" />
