@@ -1,4 +1,4 @@
-import { CONFIRMATION_COLORS } from '@/lib/constants/confirmations'
+import { CONFIRMATION_PALETTE, BADGE_CLASS } from '@/lib/constants/palette'
 import { sortByTimeframe } from '@/lib/constants/timeframes'
 import type { TradeConfirmation } from '@/types'
 
@@ -12,14 +12,13 @@ export function ConfirmationChips({ confirmations }: Props) {
   const sorted = sortByTimeframe(confirmations)
 
   return (
-    <div className="flex flex-wrap gap-1">
+    <div className="flex flex-wrap justify-center gap-1">
       {sorted.map((c) => {
-        const color = CONFIRMATION_COLORS[c.confirmation_type] ?? '#9ca3af'
+        const cls = BADGE_CLASS[CONFIRMATION_PALETTE[c.confirmation_type] ?? 'slate']
         return (
           <span
             key={c.id}
-            className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium whitespace-nowrap"
-            style={{ backgroundColor: `${color}22`, color }}
+            className={`inline-flex items-center rounded-sm px-2 py-1 text-xs font-medium whitespace-nowrap ${cls}`}
           >
             {c.timeframe} {c.confirmation_type}
           </span>

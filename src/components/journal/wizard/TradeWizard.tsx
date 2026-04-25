@@ -15,14 +15,15 @@ interface Props {
   open: boolean
   onClose: () => void
   onComplete: (tradeId: string) => void
+  initialStep?: number
 }
 
 const TOTAL_STEPS = 4
 
-export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
+export function TradeWizard({ trade, open, onClose, onComplete, initialStep = 1 }: Props) {
   const { updateTrade } = useTradesStore()
   const S = useS()
-  const [step, setStep] = useState(1)
+  const [step, setStep] = useState(initialStep)
   const [saving, setSaving] = useState(false)
 
   const [confirmations, setConfirmations] = useState<TradeConfirmation[]>([])
@@ -33,14 +34,24 @@ export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
 
   useEffect(() => {
     if (open) {
-      setStep(1)
+      setStep(initialStep)
       setConfirmations(trade.trade_confirmations ?? [])
       setChartLink(trade.chart_link ?? '')
       setRMultiple(trade.r_multiple != null ? String(trade.r_multiple) : '')
       setMistakes((trade.trade_mistakes ?? []).map(m => m.mistake_type as MistakeType))
       setNotes(trade.notes ?? '')
     }
-  }, [trade.id, open])
+  }, [trade.id, open, initialStep])
+
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') handleClose()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, step, confirmations, chartLink, rMultiple, mistakes, notes])
 
   const saveStep = async (currentStep: number) => {
     setSaving(true)
@@ -148,10 +159,10 @@ export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="w-full max-w-md rounded-xl border border-white/10 bg-[#1a1a1a] flex flex-col shadow-xl">
+      <div className="w-full max-w-md rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] flex flex-col shadow-xl">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-white/10">
-          <span className="text-xs text-[#9ca3af] font-mono">
+        <div className="flex items-center justify-between px-6 pt-5 pb-4 border-b border-gray-200 dark:border-white/10">
+          <span className="text-xs text-gray-500 dark:text-[#9ca3af] font-mono">
             {trade.symbol} · {trade.outcome?.toUpperCase()} ·{' '}
             {trade.pnl_usd != null
               ? `${trade.pnl_usd >= 0 ? '+' : ''}$${trade.pnl_usd.toFixed(2)}`
@@ -160,7 +171,7 @@ export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
           <button
             onClick={handleClose}
             disabled={saving}
-            className="text-[#9ca3af] hover:text-white transition-colors disabled:opacity-50"
+            className="text-gray-500 dark:text-[#9ca3af] hover:text-gray-900 dark:hover:text-white transition-colors disabled:opacity-50"
           >
             <X className="h-4 w-4" />
           </button>
@@ -187,26 +198,31 @@ export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
             />
           )}
           {step === 4 && (
-            <WizardStep4Notes value={notes} onChange={setNotes} />
+            <WizardStep4Notes value={notes} onChange={setNotes} outcome={trade.outcome} />
           )}
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between px-6 pb-5 pt-4 border-t border-white/10">
-          {/* Pagination dots */}
+        <div className="flex items-center justify-between px-6 pb-5 pt-4 border-t border-gray-200 dark:border-white/10">
+          {/* Pagination dots — logo moru */}
           <div className="flex gap-1.5 items-center">
-            {Array.from({ length: TOTAL_STEPS }).map((_, i) => (
-              <span
-                key={i}
-                className={`h-1.5 rounded-full transition-all duration-200 ${
-                  i + 1 === step
-                    ? 'w-4 bg-blue-500'
-                    : i + 1 < step
-                    ? 'w-1.5 bg-blue-500/40'
-                    : 'w-1.5 bg-white/20'
-                }`}
-              />
-            ))}
+            {Array.from({ length: TOTAL_STEPS }).map((_, i) => {
+              const current = i + 1 === step
+              const past = i + 1 < step
+              return (
+                <span
+                  key={i}
+                  className={`h-1.5 rounded-full transition-all duration-200 ${current ? 'w-4' : 'w-1.5'}`}
+                  style={{
+                    backgroundColor: current
+                      ? '#415dff'
+                      : past
+                        ? 'rgba(65,93,255,0.4)'
+                        : 'rgba(148,148,148,0.25)',
+                  }}
+                />
+              )
+            })}
           </div>
 
           {/* Nav buttons */}
@@ -214,7 +230,7 @@ export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
             <button
               onClick={handlePrev}
               disabled={step === 1 || saving}
-              className="rounded-md p-2 text-[#9ca3af] hover:bg-white/10 hover:text-white disabled:opacity-30 transition-colors"
+              className="rounded-md p-2 text-gray-500 dark:text-[#9ca3af] hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 transition-colors"
             >
               <ChevronLeft className="h-4 w-4" />
             </button>
@@ -223,7 +239,7 @@ export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
               <button
                 onClick={handleNext}
                 disabled={saving}
-                className="rounded-md p-2 text-[#9ca3af] hover:bg-white/10 hover:text-white disabled:opacity-30 transition-colors"
+                className="rounded-md p-2 text-gray-500 dark:text-[#9ca3af] hover:bg-gray-100 dark:hover:bg-white/10 hover:text-gray-900 dark:hover:text-white disabled:opacity-30 transition-colors"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -231,7 +247,10 @@ export function TradeWizard({ trade, open, onClose, onComplete }: Props) {
               <button
                 onClick={handleFinish}
                 disabled={saving}
-                className="rounded-md bg-blue-500 px-4 py-2 text-sm font-medium text-white hover:bg-blue-600 disabled:opacity-50 transition-colors"
+                className="rounded-md px-4 py-2 text-sm font-medium text-white disabled:opacity-50 transition-colors"
+                style={{ backgroundColor: '#415dff' }}
+                onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#2f4ae6')}
+                onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#415dff')}
               >
                 {saving ? '...' : S.journal.finishButton}
               </button>

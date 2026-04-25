@@ -80,7 +80,7 @@ export const S = {
     title:           'Profilim',
     username:        'Kullanıcı Adı',
     createTitle:     'Profil Oluştur',
-    createSubtitle:  'QT Journal\'a hoş geldiniz. Devam etmek için bir kullanıcı adı seçin.',
+    createSubtitle:  'Quarterly Journal\'a hoş geldiniz. Devam etmek için bir kullanıcı adı seçin.',
     usernamePlaceholder: 'örn. efkan_trader',
     usernameHint:    '3-20 karakter, harf, rakam ve _ (alt tire) kullanabilirsiniz.',
     continueButton:  'Devam',

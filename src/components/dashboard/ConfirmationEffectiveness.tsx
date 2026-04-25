@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp } from 'lucide-react'
-import { CONFIRMATION_COLORS } from '@/lib/constants/confirmations'
+import { CONFIRMATION_PALETTE, BADGE_CLASS } from '@/lib/constants/palette'
 import { useS } from '@/lib/i18n'
 import type { TradeWithRelations } from '@/types'
 
@@ -34,7 +34,7 @@ export function ConfirmationEffectiveness({
       count:   v.total,
       winRate: v.total === 0 ? 0 : (v.win / v.total) * 100,
       avgR:    v.rCount === 0 ? null : v.rSum / v.rCount,
-      color:   CONFIRMATION_COLORS[confirmationType as keyof typeof CONFIRMATION_COLORS] ?? '#9ca3af',
+      badgeClass: BADGE_CLASS[CONFIRMATION_PALETTE[confirmationType] ?? 'slate'],
     }
   })
 
@@ -70,10 +70,10 @@ export function ConfirmationEffectiveness({
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100 dark:border-white/10">
-              <th className="text-left pb-2 text-xs text-gray-500 dark:text-[#9ca3af]">Konfirmasyon</th>
+              <th className="text-left pb-2 text-xs text-gray-500 dark:text-[#9ca3af]">{S.dashboard.confluenceHeader}</th>
               {(['count', 'winRate', 'avgR'] as SortKey[]).map(col => (
                 <th key={col} className="text-right pb-2 text-xs text-gray-500 dark:text-[#9ca3af] cursor-pointer hover:text-gray-700 dark:hover:text-white px-3" onClick={() => handleSort(col)}>
-                  {col === 'count' ? 'İşlem' : col === 'winRate' ? 'Kazanma Oranı' : 'Ort. R'}
+                  {col === 'count' ? S.dashboard.countHeader : col === 'winRate' ? S.dashboard.winRateHeader : S.dashboard.avgRHeader}
                   <SortIcon col={col} />
                 </th>
               ))}
@@ -83,7 +83,7 @@ export function ConfirmationEffectiveness({
             {sorted.map(row => (
               <tr key={row.key} className="border-b border-gray-50 dark:border-white/5 last:border-0">
                 <td className="py-2">
-                  <span className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium" style={{ backgroundColor: `${row.color}22`, color: row.color }}>
+                  <span className={`inline-flex items-center rounded-sm px-2 py-1 text-xs font-medium ${row.badgeClass}`}>
                     {row.timeframe} {row.confirmationType}
                   </span>
                 </td>

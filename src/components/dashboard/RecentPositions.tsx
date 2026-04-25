@@ -1,16 +1,33 @@
-import { formatDistanceToNow } from 'date-fns'
-import { tr } from 'date-fns/locale'
 import { useNavigate } from 'react-router-dom'
 import { PairBadge } from '@/components/journal/PairBadge'
-import { OutcomeBadge } from '@/components/journal/OutcomeBadge'
 import { useS } from '@/lib/i18n'
+import { useLangStore } from '@/stores/useLangStore'
 import type { TradeWithRelations } from '@/types'
+
+// Kompakt relative time: "7d ago", "8h ago", "3m ago"
+function compactAgo(date: Date, lang: 'en' | 'tr'): string {
+  const now = Date.now()
+  const diffSec = Math.max(1, Math.floor((now - date.getTime()) / 1000))
+  const suffix = lang === 'tr' ? 'önce' : 'ago'
+  if (diffSec < 60)   return `${diffSec}s ${suffix}`
+  const diffMin = Math.floor(diffSec / 60)
+  if (diffMin < 60)   return `${diffMin}m ${suffix}`
+  const diffHr = Math.floor(diffMin / 60)
+  if (diffHr < 24)    return `${diffHr}h ${suffix}`
+  const diffDay = Math.floor(diffHr / 24)
+  if (diffDay < 30)   return `${diffDay}d ${suffix}`
+  const diffMo = Math.floor(diffDay / 30)
+  if (diffMo < 12)    return `${diffMo}mo ${suffix}`
+  const diffYr = Math.floor(diffMo / 12)
+  return `${diffYr}y ${suffix}`
+}
 
 interface Props { trades: TradeWithRelations[] }
 
 export function RecentPositions({
   trades }: Props) {
   const S = useS()
+  const lang = useLangStore(s => s.lang)
   const navigate = useNavigate()
   const recent = [...trades]
     .sort((a, b) => {
@@ -35,9 +52,7 @@ export function RecentPositions({
         <div>
           {recent.map(trade => {
             const entryTime = trade.entry_time_et ? new Date(trade.entry_time_et) : null
-            const relativeTime = entryTime
-              ? formatDistanceToNow(entryTime, { addSuffix: true, locale: tr })
-              : '—'
+            const relativeTime = entryTime ? compactAgo(entryTime, lang) : '—'
 
             return (
               <div
@@ -47,7 +62,6 @@ export function RecentPositions({
               >
                 <div className="flex items-center gap-2.5">
                   <PairBadge symbol={trade.symbol} />
-                  <OutcomeBadge outcome={trade.outcome} />
                   <span className="text-xs text-gray-400 dark:text-[#9ca3af]">{relativeTime}</span>
                 </div>
                 {trade.pnl_usd !== null && (

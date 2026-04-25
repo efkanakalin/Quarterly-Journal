@@ -52,7 +52,7 @@ export function CreateProfile() {
     <div className="min-h-screen bg-gray-100 dark:bg-[#0a0a0a] flex items-center justify-center px-4">
       <div className="w-full max-w-sm space-y-6">
         <div className="text-center space-y-2">
-          <img src="/logo.svg" alt="QT Journal" className="h-20 w-auto object-contain mx-auto" onError={e => { e.currentTarget.style.display='none' }} />
+          <img src="/quarterly-journal.png" alt="Quarterly Journal" className="h-20 w-auto object-contain mx-auto" onError={e => { e.currentTarget.style.display='none' }} />
           <h1 className="text-xl font-bold text-gray-900 dark:text-white">{S.profile.createTitle}</h1>
           <p className="text-sm text-gray-500 dark:text-[#9ca3af]">{S.profile.createSubtitle}</p>
         </div>
@@ -84,7 +84,12 @@ export function CreateProfile() {
             />
             {error
               ? <p className="text-xs text-red-500">{error}</p>
-              : <p className="text-xs text-gray-400 dark:text-[#6b7280]">{S.profile.usernameHint}</p>
+              : (
+                <div className="space-y-0.5">
+                  <p className="text-xs text-gray-400 dark:text-[#6b7280]">{S.profile.usernameHint}</p>
+                  <p className="text-xs text-amber-600 dark:text-amber-400">{S.profile.usernameLockedHint}</p>
+                </div>
+              )
             }
           </div>
 

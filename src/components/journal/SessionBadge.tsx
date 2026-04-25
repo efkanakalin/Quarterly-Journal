@@ -1,4 +1,4 @@
-import { SESSION_COLORS, SESSION_LABELS } from '@/lib/constants/colors'
+import { SESSION_LABELS } from '@/lib/constants/colors'
 import type { Session } from '@/types'
 
 interface Props {
@@ -6,13 +6,9 @@ interface Props {
 }
 
 export function SessionBadge({ session }: Props) {
-  if (!session) return <span className="text-[#9ca3af]">—</span>
-  const color = SESSION_COLORS[session]
+  if (!session) return <span className="text-gray-400 dark:text-[#9ca3af]">—</span>
   return (
-    <span
-      className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium"
-      style={{ backgroundColor: `${color}22`, color }}
-    >
+    <span className="text-sm font-medium text-gray-700 dark:text-[#d1d5db]">
       {SESSION_LABELS[session]}
     </span>
   )

@@ -1,5 +1,5 @@
 {
-  "name": "qt-journal",
+  "name": "quarterly-journal",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -14,6 +14,7 @@
     "@fontsource-variable/geist": "^5.2.8",
     "@supabase/supabase-js": "^2.104.0",
     "@tailwindcss/vite": "^4.2.3",
+    "@tanstack/react-virtual": "^3.13.24",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
