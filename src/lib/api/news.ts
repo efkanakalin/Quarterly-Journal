@@ -12,9 +12,20 @@ const authHeaders = (): HeadersInit => ({
 })
 
 async function getJson<T>(path: string): Promise<T> {
-  const res = await fetch(`${fnBase()}${path}`, { headers: authHeaders() })
-  if (!res.ok) throw new Error(`${path} -> ${res.status}`)
-  return res.json() as Promise<T>
+  const url = `${fnBase()}${path}`
+  let lastErr: unknown
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await fetch(url, { headers: authHeaders() })
+      if (!res.ok) throw new Error(`${path} -> ${res.status}`)
+      return res.json() as Promise<T>
+    } catch (e) {
+      lastErr = e
+      // Brief backoff, then retry once on transient network/connection errors
+      if (attempt === 0) await new Promise(r => setTimeout(r, 800))
+    }
+  }
+  throw lastErr
 }
 
 // ---- News ----
