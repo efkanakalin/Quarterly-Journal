@@ -114,14 +114,16 @@ export function CalendarGrid({ trades, onDayClick }: Props) {
                   // Boş gün — gri kenarlıklı kutu
                   cellClass += 'bg-white dark:bg-[#222] border-gray-200 dark:border-white/10'
                 } else if (pnl > 0) {
+                  // Site geneliyle uyumlu emerald (#10b981)
                   cellClass += 'border-transparent'
-                  cellStyle = { backgroundColor: '#2d6a4f' }
+                  cellStyle = { backgroundColor: '#10b981' }
                 } else if (pnl < 0) {
+                  // Site geneliyle uyumlu red (#ef4444)
                   cellClass += 'border-transparent'
-                  cellStyle = { backgroundColor: '#7b2020' }
+                  cellStyle = { backgroundColor: '#ef4444' }
                 } else {
                   cellClass += 'border-transparent'
-                  cellStyle = { backgroundColor: '#1e3a5f' }
+                  cellStyle = { backgroundColor: '#3b82f6' }
                 }
 
                 if (today) cellClass += ' ring-2 ring-blue-400 ring-offset-1 ring-offset-white dark:ring-offset-[#1a1a1a]'
