@@ -18,7 +18,7 @@ export function Journal() {
   useEffect(() => { fetchTrades() }, [fetchTrades])
 
   return (
-    <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
       {/* Büyük ortalanmış başlık */}
       <h1 className="text-center text-3xl sm:text-5xl font-bold text-gray-900 dark:text-white pt-2 sm:pt-6">
         {S.journal.title}

@@ -1,15 +1,14 @@
 import { useState } from 'react'
 import { Check, RotateCcw, ChevronDown } from 'lucide-react'
 import { useUserPrefsStore } from '@/stores/useUserPrefsStore'
+import { useS } from '@/lib/i18n'
 import {
   CONFIRMATIONS,
-  CONFIRMATION_GROUP_LABELS,
   CONFIRMATION_COLORS,
   type ConfirmationDef,
 } from '@/lib/constants/confirmations'
 import {
   SYMBOLS_LIST,
-  SYMBOL_CATEGORY_LABELS,
   type SymbolDef,
 } from '@/lib/constants/symbols'
 import { TIMEFRAMES } from '@/lib/constants/timeframes'
@@ -23,13 +22,14 @@ export function CustomizationSection() {
     enabledSymbols, enabledConfirmations, enabledTimeframes,
     toggleSymbol, toggleConfirmation, toggleTimeframe, resetDefaults,
   } = useUserPrefsStore()
+  const S = useS()
 
   const [tab, setTab] = useState<Tab>('symbols')
 
   const TABS: { id: Tab; label: string; count: number; total: number }[] = [
-    { id: 'symbols',       label: 'Pairs',        count: enabledSymbols.length,       total: SYMBOLS_LIST.length },
-    { id: 'confirmations', label: 'Confluences',  count: enabledConfirmations.length, total: CONFIRMATIONS.length },
-    { id: 'timeframes',    label: 'Timeframes',   count: enabledTimeframes.length,    total: TIMEFRAMES.length },
+    { id: 'symbols',       label: S.customization.pairs,      count: enabledSymbols.length,       total: SYMBOLS_LIST.length },
+    { id: 'confirmations', label: S.customization.entries,    count: enabledConfirmations.length, total: CONFIRMATIONS.length },
+    { id: 'timeframes',    label: S.customization.timeframes, count: enabledTimeframes.length,    total: TIMEFRAMES.length },
   ]
 
   return (
@@ -37,19 +37,18 @@ export function CustomizationSection() {
       <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-white/10 flex items-center justify-between gap-3 flex-wrap">
         <div>
           <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-            Özelleştirme
+            {S.customization.title}
           </h2>
           <p className="mt-0.5 text-xs text-gray-500 dark:text-[#9ca3af]">
-            Trade eklerken sadece seçtiklerin görünür.
+            {S.customization.subtitle}
           </p>
         </div>
         <button
           onClick={resetDefaults}
           className="inline-flex items-center gap-1.5 rounded-md border border-gray-200 dark:border-white/10 px-2.5 py-1 text-[11px] font-medium text-gray-600 dark:text-[#9ca3af] hover:bg-gray-50 dark:hover:bg-white/5"
-          title="Reset to defaults"
         >
           <RotateCcw className="h-3 w-3" />
-          Sıfırla
+          {S.customization.reset}
         </button>
       </div>
 
@@ -99,6 +98,7 @@ export function CustomizationSection() {
 // Symbol picker — grouped by category
 // ---------------------------------------------------------------------------
 function SymbolPicker({ enabled, onToggle }: { enabled: string[]; onToggle: (s: string) => void }) {
+  const S = useS()
   const groups = SYMBOLS_LIST.reduce<Record<string, SymbolDef[]>>((acc, s) => {
     (acc[s.category] ??= []).push(s)
     return acc
@@ -107,7 +107,7 @@ function SymbolPicker({ enabled, onToggle }: { enabled: string[]; onToggle: (s: 
   return (
     <div className="space-y-5">
       {(Object.keys(groups) as SymbolDef['category'][]).map(cat => (
-        <Group key={cat} title={SYMBOL_CATEGORY_LABELS[cat]}>
+        <Group key={cat} title={S.customization.symbolGroups[cat]}>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {groups[cat].map(s => {
               const on = enabled.includes(s.code)
@@ -134,6 +134,7 @@ function SymbolPicker({ enabled, onToggle }: { enabled: string[]; onToggle: (s: 
 // Confirmation picker — grouped
 // ---------------------------------------------------------------------------
 function ConfirmationPicker({ enabled, onToggle }: { enabled: ConfirmationType[]; onToggle: (c: ConfirmationType) => void }) {
+  const S = useS()
   const groups = CONFIRMATIONS.reduce<Record<string, ConfirmationDef[]>>((acc, c) => {
     (acc[c.group] ??= []).push(c)
     return acc
@@ -142,7 +143,7 @@ function ConfirmationPicker({ enabled, onToggle }: { enabled: ConfirmationType[]
   return (
     <div className="space-y-5">
       {(Object.keys(groups) as ConfirmationDef['group'][]).map(g => (
-        <Group key={g} title={CONFIRMATION_GROUP_LABELS[g]}>
+        <Group key={g} title={S.customization.groups[g]}>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
             {groups[g].map(c => {
               const on = enabled.includes(c.type)
@@ -154,7 +155,7 @@ function ConfirmationPicker({ enabled, onToggle }: { enabled: ConfirmationType[]
                   color={color}
                   onClick={() => onToggle(c.type)}
                   label={c.type}
-                  sublabel={c.needsTimeframe ? '' : 'no TF'}
+                  sublabel={c.needsTimeframe ? '' : S.customization.noTf}
                 />
               )
             })}

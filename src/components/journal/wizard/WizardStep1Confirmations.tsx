@@ -88,7 +88,7 @@ export function WizardStep1Confirmations({ confirmations, onChange }: Props) {
 
       {availableConfs.length === 0 ? (
         <p className="text-xs text-gray-400 dark:text-[#9ca3af]">
-          Profile → Özelleştirme'den confluence seçin.
+          {S.customization.pickerEmpty}
         </p>
       ) : (
         <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">

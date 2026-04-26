@@ -24,7 +24,7 @@ export function AppLayout() {
   }, [mobileOpen])
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-[#0a0a0a]">
+    <div className="min-h-screen overflow-x-hidden bg-gray-100 dark:bg-[#0a0a0a]">
       {/* Mobile topbar */}
       <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-gray-200 dark:border-white/10 bg-white dark:bg-[#111111] px-4 py-3">
         <button
