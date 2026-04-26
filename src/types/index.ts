@@ -4,7 +4,12 @@ export type SessionQuarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
 export type Direction = 'long' | 'short'
 export type ContractClass = 'micro' | 'mini'
 export type Source = 'csv' | 'manual'
-export type Timeframe = '1M' | '5M' | '15M' | '30M' | '45M' | '90M' | '1H' | '4H' | '6H' | '1D' | '1W'
+export type Timeframe =
+  | '30S' | '45S'
+  | '1M' | '2M' | '3M' | '5M' | '10M' | '15M' | '30M' | '45M' | '90M'
+  | '1H' | '2H' | '3H' | '4H' | '6H'
+  | '1D' | '1W'
+  | '1Mo' | '3Mo' | '6Mo'
 
 export type ConfirmationType =
   // QT primitives
