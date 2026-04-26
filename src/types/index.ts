@@ -9,12 +9,14 @@ export type Timeframe = '1M' | '5M' | '15M' | '30M' | '45M' | '90M' | '1H' | '4H
 export type ConfirmationType =
   // QT primitives
   | 'SSMT' | 'PSP' | 'PRC' | 'SD' | 'SMTF' | 'PG'
-  | 'O/C' | 'DFR' | 'FVG' | 'PO3' | 'MMXM' | 'CVD'
-  | 'LIQ SWEEP' | 'ISSMT' | 'HSSMT'
+  | 'O/C' | 'DFR' | 'PO3' | 'MMXM' | 'CVD'
+  | 'LIQ SWEEP' | 'ISSMT' | 'HSSMT' | 'B2B' | 'TPD'
   // ICT / SMC
   | 'BOS' | 'CHOCH' | 'OB' | 'BREAKER' | 'MITIGATION'
   | 'EQH' | 'EQL' | 'PREMIUM' | 'DISCOUNT' | 'KILLZONE'
-  | 'IFVG' | 'BPR' | 'TURTLE SOUP'
+  | 'FVG' | 'IFVG' | 'BPR' | 'TURTLE SOUP'
+  | 'MSS' | 'CISD' | 'DOL' | 'REJECTION BLOCK' | 'SMT'
+  | 'OHLC' | 'OLHC' | 'PDA' | 'JUDAS SWING' | 'SILVER BULLET'
   // Indicators
   | 'RSI' | 'MACD' | 'EMA' | 'SMA' | 'VWAP'
   | 'BOLLINGER' | 'STOCH' | 'ADX' | 'ATR' | 'PIVOT'
