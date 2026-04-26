@@ -330,6 +330,18 @@ export function Login() {
               />
             ))}
           </ul>
+
+          {/* Footer — privacy policy link */}
+          <div className="mt-16 text-center text-[11px] text-white/30">
+            <a
+              href="/privacy"
+              className="hover:text-white/60 underline underline-offset-2 transition-colors"
+            >
+              Privacy Policy
+            </a>
+            <span className="mx-2 opacity-50">·</span>
+            <span>© {new Date().getFullYear()} Quarterly Journal</span>
+          </div>
         </div>
       </section>
 
