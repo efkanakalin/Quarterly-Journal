@@ -1,5 +1,6 @@
-import { MISTAKE_TYPES } from '@/lib/constants/mistakes'
+import { MISTAKE_TYPES, MISTAKE_LABELS_EN, MISTAKE_LABELS_TR } from '@/lib/constants/mistakes'
 import { useS } from '@/lib/i18n'
+import { useLangStore } from '@/stores/useLangStore'
 import type { MistakeType, Outcome } from '@/types'
 
 interface Props {
@@ -12,6 +13,8 @@ interface Props {
 
 export function WizardStep3Outcome({ outcome, rMultiple, onRMultipleChange, mistakes, onMistakesChange }: Props) {
   const S = useS()
+  const lang = useLangStore(s => s.lang)
+  const labels = lang === 'tr' ? MISTAKE_LABELS_TR : MISTAKE_LABELS_EN
   const toggleMistake = (m: MistakeType) =>
     onMistakesChange(mistakes.includes(m) ? mistakes.filter(x => x !== m) : [...mistakes, m])
 
@@ -40,7 +43,7 @@ export function WizardStep3Outcome({ outcome, rMultiple, onRMultipleChange, mist
             {MISTAKE_TYPES.map(m => (
               <label key={m} className="flex items-center gap-3 rounded-lg border border-gray-100 dark:border-white/10 px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
                 <input type="checkbox" checked={mistakes.includes(m)} onChange={() => toggleMistake(m)} className="h-4 w-4 rounded accent-red-500" />
-                <span className="text-sm text-gray-900 dark:text-white">{m}</span>
+                <span className="text-sm text-gray-900 dark:text-white">{labels[m]}</span>
               </label>
             ))}
           </div>

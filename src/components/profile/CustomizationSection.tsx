@@ -12,15 +12,16 @@ import {
   type SymbolDef,
 } from '@/lib/constants/symbols'
 import { TIMEFRAMES } from '@/lib/constants/timeframes'
+import { JOURNAL_COLUMNS, type JournalColumnId } from '@/lib/constants/journalColumns'
 import { SYMBOL_COLORS } from '@/lib/constants/colors'
 import type { ConfirmationType, Timeframe } from '@/types'
 
-type Tab = 'symbols' | 'confirmations' | 'timeframes'
+type Tab = 'symbols' | 'confirmations' | 'timeframes' | 'columns'
 
 export function CustomizationSection() {
   const {
-    enabledSymbols, enabledConfirmations, enabledTimeframes,
-    toggleSymbol, toggleConfirmation, toggleTimeframe, resetDefaults,
+    enabledSymbols, enabledConfirmations, enabledTimeframes, enabledColumns,
+    toggleSymbol, toggleConfirmation, toggleTimeframe, toggleColumn, resetDefaults,
   } = useUserPrefsStore()
   const S = useS()
 
@@ -30,6 +31,7 @@ export function CustomizationSection() {
     { id: 'symbols',       label: S.customization.pairs,      count: enabledSymbols.length,       total: SYMBOLS_LIST.length },
     { id: 'confirmations', label: S.customization.entries,    count: enabledConfirmations.length, total: CONFIRMATIONS.length },
     { id: 'timeframes',    label: S.customization.timeframes, count: enabledTimeframes.length,    total: TIMEFRAMES.length },
+    { id: 'columns',       label: S.customization.columns,    count: enabledColumns.length,       total: JOURNAL_COLUMNS.length },
   ]
 
   return (
@@ -88,6 +90,9 @@ export function CustomizationSection() {
         )}
         {tab === 'timeframes' && (
           <TimeframePicker enabled={enabledTimeframes} onToggle={toggleTimeframe} />
+        )}
+        {tab === 'columns' && (
+          <ColumnPicker enabled={enabledColumns} onToggle={toggleColumn} />
         )}
       </div>
     </div>
@@ -184,6 +189,32 @@ function TimeframePicker({ enabled, onToggle }: { enabled: Timeframe[]; onToggle
           />
         )
       })}
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Column picker — Journal table column visibility
+// ---------------------------------------------------------------------------
+function ColumnPicker({ enabled, onToggle }: { enabled: JournalColumnId[]; onToggle: (c: JournalColumnId) => void }) {
+  const S = useS()
+  return (
+    <div className="space-y-3">
+      <p className="text-xs text-gray-500 dark:text-[#9ca3af]">{S.customization.columnsHint}</p>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+        {JOURNAL_COLUMNS.map(col => {
+          const on = enabled.includes(col.id)
+          return (
+            <Pill
+              key={col.id}
+              selected={on}
+              color="#415dff"
+              onClick={() => onToggle(col.id)}
+              label={S.customization.columnLabels[col.id]}
+            />
+          )
+        })}
+      </div>
     </div>
   )
 }
