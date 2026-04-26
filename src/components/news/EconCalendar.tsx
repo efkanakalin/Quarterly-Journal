@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useNewsStore } from '@/stores/useNewsStore'
 import { CalendarRow } from './CalendarRow'
 import { CountdownBadge } from './CountdownBadge'
+import { NyClock } from './NyClock'
 import { useS } from '@/lib/i18n'
 
 function ymd(d: Date): string {
@@ -69,9 +70,12 @@ export function EconCalendar() {
     <section className="flex flex-col rounded-2xl border border-gray-200 bg-white dark:border-white/10 dark:bg-[#1a1a1a]">
       <header className="flex flex-col gap-3 border-b border-gray-100 px-5 py-4 dark:border-white/5">
         <div className="flex items-center justify-between gap-3">
-          <h2 className="text-sm font-semibold tracking-tight text-gray-900 dark:text-white">
-            {S.news.calendar}
-          </h2>
+          <div className="flex items-center gap-3 min-w-0">
+            <h2 className="text-sm font-semibold tracking-tight text-gray-900 dark:text-white">
+              {S.news.calendar}
+            </h2>
+            <NyClock />
+          </div>
           {nextHigh && (
             <CountdownBadge
               targetIso={nextHigh.time}

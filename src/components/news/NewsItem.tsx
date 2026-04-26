@@ -5,9 +5,10 @@ import { SYMBOL_LABELS } from '@/lib/news/keywords'
 interface Props {
   item: TNewsItem
   highlight?: boolean
+  flash?: boolean
 }
 
-export function NewsItem({ item, highlight }: Props) {
+export function NewsItem({ item, highlight, flash }: Props) {
   const borderCls =
     item.sentiment === 'positive'
       ? 'border-l-emerald-500/70'
@@ -15,11 +16,15 @@ export function NewsItem({ item, highlight }: Props) {
         ? 'border-l-rose-500/70'
         : 'border-l-transparent'
 
+  const flashCls = flash
+    ? '[animation:qt-news-flash_3.5s_ease-out_forwards]'
+    : highlight
+      ? 'bg-[#415dff]/5 dark:bg-[#415dff]/10 [animation:qt-fadein_500ms_ease-out]'
+      : ''
+
   return (
     <article
-      className={`relative flex gap-3 border-l-2 px-4 py-3 transition-colors ${borderCls} ${
-        highlight ? 'bg-[#415dff]/5 dark:bg-[#415dff]/10 [animation:qt-fadein_500ms_ease-out]' : ''
-      } hover:bg-gray-50 dark:hover:bg-white/[0.03]`}
+      className={`relative flex gap-3 border-l-2 px-4 py-3 transition-colors ${borderCls} ${flashCls} hover:bg-gray-50 dark:hover:bg-white/[0.03]`}
     >
       <time
         dateTime={item.publishedAt}

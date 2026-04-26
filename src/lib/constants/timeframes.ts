@@ -10,7 +10,11 @@ const TF_RANK: Record<Timeframe, number> = {
   '90M': 5, '45M': 6, '30M': 7, '15M': 8, '5M': 9, '1M': 10,
 }
 
-/** Confluences'ı büyük TF'den küçüğe sıralar */
-export function sortByTimeframe<T extends { timeframe: Timeframe }>(items: T[]): T[] {
-  return [...items].sort((a, b) => (TF_RANK[a.timeframe] ?? 99) - (TF_RANK[b.timeframe] ?? 99))
+/** Confluences'ı büyük TF'den küçüğe sıralar. TF yoksa sona koyar. */
+export function sortByTimeframe<T extends { timeframe: Timeframe | null }>(items: T[]): T[] {
+  return [...items].sort((a, b) => {
+    const ra = a.timeframe ? TF_RANK[a.timeframe] ?? 99 : 100
+    const rb = b.timeframe ? TF_RANK[b.timeframe] ?? 99 : 100
+    return ra - rb
+  })
 }

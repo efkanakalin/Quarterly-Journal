@@ -15,6 +15,7 @@ import { deriveOutcome } from '@/lib/derivations/outcome'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useS } from '@/lib/i18n'
 import { SYMBOLS_LIST } from '@/lib/constants/symbols'
+import { useUserPrefsStore } from '@/stores/useUserPrefsStore'
 import { SESSION_LABELS } from '@/lib/constants/colors'
 import type { Outcome, Session, Trade, TradeWithRelations } from '@/types'
 
@@ -29,6 +30,8 @@ const OUTCOME_LABEL: Record<Outcome, string> = { win: 'WIN', loss: 'STOP', break
 
 export function TradeTable() {
   const { trades, loading, deleteTrade, updateTrade } = useTradesStore()
+  const enabledSymbols = useUserPrefsStore(s => s.enabledSymbols)
+  const symbolOptions = SYMBOLS_LIST.filter(s => enabledSymbols.length === 0 || enabledSymbols.includes(s.code))
   const [detailTrade, setDetailTrade] = useState<TradeWithRelations | null>(null)
   const [wizardTrade, setWizardTrade] = useState<TradeWithRelations | null>(null)
   const [wizardStep, setWizardStep] = useState(1)
@@ -395,7 +398,7 @@ export function TradeTable() {
                           onCommit={() => commitEdit(trade)}
                           onCancel={() => setEditing(null)}
                           saving={false}
-                          options={[{ label: '—', value: '' }, ...SYMBOLS_LIST.map(s => ({ label: s.code, value: s.code }))]}
+                          options={[{ label: '—', value: '' }, ...symbolOptions.map(s => ({ label: s.code, value: s.code }))]}
                         />
                       ) : (
                         <PairBadge symbol={trade.symbol} />
