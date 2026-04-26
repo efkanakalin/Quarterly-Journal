@@ -1,13 +1,14 @@
-import { useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Plus, X, Check, ClipboardPaste } from 'lucide-react'
 import { fromZonedTime } from 'date-fns-tz'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { useUserPrefsStore } from '@/stores/useUserPrefsStore'
 import { SYMBOL_COLORS, OUTCOME_COLORS, SESSION_COLORS, SESSION_LABELS } from '@/lib/constants/colors'
-import { CONFIRMATION_TYPES, CONFIRMATION_COLORS } from '@/lib/constants/confirmations'
-import { TIMEFRAMES, sortByTimeframe } from '@/lib/constants/timeframes'
+import { CONFIRMATION_COLORS, CONFIRMATION_NEEDS_TIMEFRAME, CONFIRMATIONS } from '@/lib/constants/confirmations'
+import { sortByTimeframe } from '@/lib/constants/timeframes'
 import { SYMBOLS_LIST } from '@/lib/constants/symbols'
 import { deriveSession, deriveSessionQuarter, deriveMicroQuarter90m } from '@/lib/derivations/session'
 import { deriveWeekOfYear, deriveMonthQuarter, deriveYearQuarter, deriveDayOfWeek } from '@/lib/derivations/quarter'
@@ -16,9 +17,10 @@ import type { Outcome, Session, Timeframe, ConfirmationType, TradeWithRelations 
 
 const SESSIONS = Object.keys(SESSION_LABELS) as Session[]
 const OUTCOMES: Outcome[] = ['win', 'loss', 'breakeven']
+const NO_TF_VALUE = '__NONE__'
 
 interface PendingConf {
-  timeframe: Timeframe
+  timeframe: Timeframe | null
   confirmation_type: ConfirmationType
 }
 
@@ -31,6 +33,18 @@ export function AddTradeForm({ onClose }: Props) {
   const S = useS()
   const { addTrade } = useTradesStore()
   const user = useAuthStore(s => s.user) // FIX: user_id için
+  const enabledSymbols       = useUserPrefsStore(s => s.enabledSymbols)
+  const enabledConfirmations = useUserPrefsStore(s => s.enabledConfirmations)
+  const enabledTimeframes    = useUserPrefsStore(s => s.enabledTimeframes)
+
+  const filteredSymbols = useMemo(
+    () => SYMBOLS_LIST.filter(s => enabledSymbols.includes(s.code)),
+    [enabledSymbols],
+  )
+  const availableConfs = useMemo(
+    () => CONFIRMATIONS.filter(c => enabledConfirmations.includes(c.type)),
+    [enabledConfirmations],
+  )
 
   const [symbol,    setSymbol]    = useState('')
   const [outcome,   setOutcome]   = useState<Outcome | ''>('')
@@ -42,9 +56,23 @@ export function AddTradeForm({ onClose }: Props) {
   const [notes,     setNotes]     = useState('')
 
   const [pendingConfs, setPendingConfs] = useState<PendingConf[]>([])
-  const [confTf,       setConfTf]       = useState<Timeframe>('15M')
-  const [confType,     setConfType]     = useState<ConfirmationType>('SSMT')
+  const [confTf,       setConfTf]       = useState<Timeframe | null>(() => enabledTimeframes[0] ?? '15M')
+  const [confType,     setConfType]     = useState<ConfirmationType>(() => availableConfs[0]?.type ?? 'SSMT')
   const [saving,       setSaving]       = useState(false)
+
+  // Keep confType valid as user toggles prefs
+  useEffect(() => {
+    if (!availableConfs.find(c => c.type === confType)) {
+      setConfType(availableConfs[0]?.type ?? 'SSMT')
+    }
+  }, [availableConfs, confType])
+
+  // Auto-clear TF for confluences that don't need one
+  useEffect(() => {
+    if (CONFIRMATION_NEEDS_TIMEFRAME[confType] === false) setConfTf(null)
+  }, [confType])
+
+  const confNeedsTf = CONFIRMATION_NEEDS_TIMEFRAME[confType] !== false
 
   const OUTCOME_LABELS: Record<Outcome, string> = {
     win: S.outcome.win, loss: S.outcome.loss, breakeven: S.outcome.breakeven,
@@ -155,7 +183,7 @@ export function AddTradeForm({ onClose }: Props) {
           <label className={LABEL}>{S.journal.pair} <span className="text-red-500">*</span></label>
           <select tabIndex={1} value={symbol} onChange={e => setSymbol(e.target.value)} className={INPUT}>
             <option value="">{S.journal.pair === 'Pair' ? 'Select...' : 'Seç...'}</option>
-            {SYMBOLS_LIST.map(s => (
+            {(filteredSymbols.length > 0 ? filteredSymbols : SYMBOLS_LIST).map(s => (
               <option key={s.code} value={s.code} style={{ color: SYMBOL_COLORS[s.code] ?? '#111' }}>{s.code}</option>
             ))}
           </select>
@@ -220,22 +248,31 @@ export function AddTradeForm({ onClose }: Props) {
       {/* Confluences — sadece + ile ekleme (Madde 4) */}
       <div className="space-y-2">
         <label className={LABEL}>{S.journal.confluence}</label>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap">
           <select
             tabIndex={9}
-            value={confTf}
-            onChange={e => setConfTf(e.target.value as Timeframe)}
-            className={INPUT + ' !w-auto'}
+            value={confTf ?? NO_TF_VALUE}
+            onChange={e => {
+              const v = e.target.value
+              setConfTf(v === NO_TF_VALUE ? null : (v as Timeframe))
+            }}
+            disabled={!confNeedsTf}
+            className={INPUT + ' !w-auto' + (confNeedsTf ? '' : ' opacity-40 cursor-not-allowed')}
           >
-            {TIMEFRAMES.map(tf => <option key={tf} value={tf}>{tf}</option>)}
+            <option value={NO_TF_VALUE}>—</option>
+            {enabledTimeframes.map(tf => <option key={tf} value={tf}>{tf}</option>)}
           </select>
           <select
             tabIndex={10}
             value={confType}
             onChange={e => setConfType(e.target.value as ConfirmationType)}
-            className={INPUT + ' flex-1'}
+            className={INPUT + ' flex-1 min-w-0'}
           >
-            {CONFIRMATION_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+            {(availableConfs.length > 0 ? availableConfs : CONFIRMATIONS).map(c => (
+              <option key={c.type} value={c.type}>
+                {c.type}{c.needsTimeframe ? '' : ' (no TF)'}
+              </option>
+            ))}
           </select>
           {/* Madde 4: + butonu renkli */}
           <button
@@ -254,7 +291,7 @@ export function AddTradeForm({ onClose }: Props) {
               const color = CONFIRMATION_COLORS[c.confirmation_type] ?? '#9ca3af'
               return (
                 <span key={sortedIdx} className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium" style={{ backgroundColor: `${color}22`, color }}>
-                  {c.timeframe} {c.confirmation_type}
+                  {c.timeframe ? `${c.timeframe} ` : ''}{c.confirmation_type}
                   <button tabIndex={-1} onClick={() => setPendingConfs(p => p.filter((_, i) => i !== origIdx))} className="ml-1 hover:opacity-70">
                     <X className="h-3 w-3" />
                   </button>

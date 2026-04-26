@@ -186,3 +186,10 @@ body {
   from { opacity: 0; transform: translateY(-4px); }
   to   { opacity: 1; transform: translateY(0);    }
 }
+
+/* Yeni gelen haberlerin satırı için kısa kırmızı flash + fade */
+@keyframes qt-news-flash {
+  0%   { background-color: rgba(244, 63, 94, 0.28); }
+  20%  { background-color: rgba(244, 63, 94, 0.22); }
+  100% { background-color: transparent; }
+}

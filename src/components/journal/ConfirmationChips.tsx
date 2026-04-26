@@ -20,7 +20,7 @@ export function ConfirmationChips({ confirmations }: Props) {
             key={c.id}
             className={`inline-flex items-center rounded-sm px-2 py-1 text-xs font-medium whitespace-nowrap ${cls}`}
           >
-            {c.timeframe} {c.confirmation_type}
+            {c.timeframe ? `${c.timeframe} ` : ''}{c.confirmation_type}
           </span>
         )
       })}

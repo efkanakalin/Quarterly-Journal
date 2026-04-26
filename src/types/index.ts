@@ -7,9 +7,24 @@ export type Source = 'csv' | 'manual'
 export type Timeframe = '1M' | '5M' | '15M' | '30M' | '45M' | '90M' | '1H' | '4H' | '6H' | '1D' | '1W'
 
 export type ConfirmationType =
+  // QT primitives
   | 'SSMT' | 'PSP' | 'PRC' | 'SD' | 'SMTF' | 'PG'
   | 'O/C' | 'DFR' | 'FVG' | 'PO3' | 'MMXM' | 'CVD'
   | 'LIQ SWEEP' | 'ISSMT' | 'HSSMT'
+  // ICT / SMC
+  | 'BOS' | 'CHOCH' | 'OB' | 'BREAKER' | 'MITIGATION'
+  | 'EQH' | 'EQL' | 'PREMIUM' | 'DISCOUNT' | 'KILLZONE'
+  | 'IFVG' | 'BPR' | 'TURTLE SOUP'
+  // Indicators
+  | 'RSI' | 'MACD' | 'EMA' | 'SMA' | 'VWAP'
+  | 'BOLLINGER' | 'STOCH' | 'ADX' | 'ATR' | 'PIVOT'
+  // Volume / Order Flow
+  | 'OBV' | 'DELTA' | 'FOOTPRINT' | 'OI' | 'ABSORPTION'
+  // Patterns
+  | 'DOUBLE TOP' | 'DOUBLE BOTTOM' | 'H&S' | 'TRIANGLE'
+  | 'WEDGE' | 'FLAG' | 'PENNANT' | 'PINBAR' | 'ENGULFING' | 'DOJI'
+  // Structure
+  | 'TRENDLINE' | 'SUPPORT' | 'RESISTANCE' | 'FIBONACCI'
 
 export type MistakeType =
   | 'Bias/Narrative Tersi İşlem'
@@ -63,7 +78,7 @@ export interface TradeConfirmation {
   id: string
   trade_id: string
   confirmation_type: ConfirmationType
-  timeframe: Timeframe
+  timeframe: Timeframe | null
   created_at: string
 }
 

@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useLangStore } from '@/stores/useLangStore'
 import { useS } from '@/lib/i18n'
+import { CustomizationSection } from '@/components/profile/CustomizationSection'
 
 interface ProfileData {
   username:     string
@@ -101,6 +102,9 @@ export function Profile() {
           last
         />
       </div>
+
+      {/* Özelleştirme */}
+      <CustomizationSection />
     </div>
   )
 }

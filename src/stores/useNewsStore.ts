@@ -17,6 +17,9 @@ interface NewsState {
   unread:  number
   markAllSeen: () => void
 
+  /** IDs that just arrived in the latest poll — drive the red-flash animation. */
+  flashIds: Record<string, true>
+
   showLowImpact: boolean
   setShowLowImpact: (v: boolean) => void
 
@@ -42,6 +45,7 @@ export const useNewsStore = create<NewsState>()(
 
       seenIds: {},
       unread:  0,
+      flashIds: {},
       markAllSeen: () => {
         const { items, seenIds } = get()
         const next = { ...seenIds }
@@ -85,10 +89,26 @@ export const useNewsStore = create<NewsState>()(
               .slice(0, 50)
 
             // Unread = any item not yet marked seen
-            const { seenIds } = get()
+            const { seenIds, flashIds } = get()
             const unread = merged.filter(i => !seenIds[i.id]).length
 
-            set({ items: merged, unread, error: null })
+            // Add new arrivals to flashIds (skip on very first load to avoid flashing all 50)
+            const isFirstLoad = prev.length === 0
+            const nextFlash = { ...flashIds }
+            if (!isFirstLoad) {
+              for (const n of newOnes) nextFlash[n.id] = true
+              // Auto-clear each flash after the animation finishes
+              for (const n of newOnes) {
+                setTimeout(() => {
+                  set(s => {
+                    const { [n.id]: _, ...rest } = s.flashIds
+                    return { flashIds: rest }
+                  })
+                }, 4000)
+              }
+            }
+
+            set({ items: merged, unread, flashIds: nextFlash, error: null })
           } catch (e) {
             set({ error: String(e) })
           }

@@ -9,6 +9,7 @@ export function NewsFeed() {
   const items         = useNewsStore(s => s.items)
   const markAllSeen   = useNewsStore(s => s.markAllSeen)
   const seenIds       = useNewsStore(s => s.seenIds)
+  const flashIds      = useNewsStore(s => s.flashIds)
   const error         = useNewsStore(s => s.error)
   const S = useS()
 
@@ -71,7 +72,7 @@ export function NewsFeed() {
                     transform: `translateY(${v.start}px)`,
                   }}
                 >
-                  <NewsItem item={it} highlight={!seenIds[it.id]} />
+                  <NewsItem item={it} highlight={!seenIds[it.id]} flash={!!flashIds[it.id]} />
                 </div>
               )
             })}
