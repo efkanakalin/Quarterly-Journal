@@ -12,6 +12,7 @@ import { ScoreBoard } from '@/pages/ScoreBoard'
 import { Profile } from '@/pages/Profile'
 import { CreateProfile } from '@/pages/CreateProfile'
 import { News } from '@/pages/News'
+import { Privacy } from '@/pages/Privacy'
 
 function App() {
   const setSession = useAuthStore(s => s.setSession)
@@ -31,6 +32,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login"          element={<Login />} />
+      <Route path="/privacy"        element={<Privacy />} />
       <Route path="/create-profile" element={<CreateProfile />} />
 
       <Route
