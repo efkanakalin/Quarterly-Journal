@@ -39,6 +39,7 @@ export type MistakeType =
   | 'Yetersiz Konfirme'
   | 'FOMO'
   | 'İntikam İşlemi'
+  | 'Diğer'
 
 export interface Trade {
   id: string
