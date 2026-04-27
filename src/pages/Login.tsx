@@ -1,420 +1,358 @@
 import { useEffect, useRef, useState } from 'react'
-import { ChevronDown } from 'lucide-react'
+import { ChevronDown, Eye, EyeOff } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
 
-const FAQS = [
-  {
-    q: 'What makes Quarterly Journal different from other trading journals?',
-    a: 'Quarterly Journal is purpose-built for the Quarterly Theory methodology. Unlike generic journals, it tracks Q/D/W cycles, analyzes by session, and scores trades based on the specific confirmations you took — so every field you fill in actually maps to the framework you trade.',
-  },
-  {
-    q: 'Which confirmations and metrics can I track?',
-    a: 'You can tag every trade with QT primitives such as liquidity sweeps, market-structure shifts, FVG, OTE, session opens and displacement. Each position carries its outcome (win/loss/breakeven), R-multiple, session and pair — and the dashboard rolls it up into a single QT Score.',
-  },
-  {
-    q: 'Where is my data stored, and is it secure?',
-    a: 'All your trades live in Supabase, encrypted at rest and protected by row-level security. Only you can read your own rows — not even we can. You can export everything to CSV, or wipe your account entirely, at any time.',
-  },
-  {
-    q: 'Is it free? Will it ever be paid?',
-    a: 'Right now it is completely free and built as an open tool for the QT community. Even if we add advanced analytics modules later, the core — journal and dashboard — will always stay free. Feedback is more than welcome.',
-  },
-]
-
-/* ---------- Scroll-reveal hook ---------- */
+/* ─── Scroll-reveal ─────────────────────────────────────── */
 function useReveal<T extends HTMLElement>() {
-  const ref = useRef<T | null>(null)
+  const ref  = useRef<T | null>(null)
   const [shown, setShown] = useState(false)
-
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const io = new IntersectionObserver(
-      entries => {
-        entries.forEach(e => {
-          if (e.isIntersecting) {
-            setShown(true)
-            io.disconnect()
-          }
-        })
-      },
-      { threshold: 0.2 },
-    )
+    const io = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) { setShown(true); io.disconnect() }
+    }, { threshold: 0.15 })
     io.observe(el)
     return () => io.disconnect()
   }, [])
-
   return { ref, shown }
 }
 
-/* ---------- Decorative vortex (kodla çizildi, statik) ---------- */
-function Vortex() {
-  const count = 40
+/* ─── FAQ ───────────────────────────────────────────────── */
+const FAQS = [
+  {
+    q: 'What is Quarterly Journal?',
+    a: 'Quarterly Journal is a trading journal purpose-built for the Quarterly Theory methodology. Every field — session, quarter, confluence, R-multiple — maps directly to the framework you trade, so your data actually means something.',
+  },
+  {
+    q: 'Which confirmations and setups can I track?',
+    a: 'You can tag every trade with QT primitives (SSMT, PSP, PRC, SD, PO3, MMXM…) plus ICT concepts (BOS, CHOCH, OB, FVG, MSS, CISD…), indicators, volume tools, and classic patterns — over 60 types in total. The list is fully customisable: only show what you actually trade.',
+  },
+  {
+    q: 'Which brokers and platforms are supported?',
+    a: 'Any broker that gives you a Tradovate-style Performance CSV export can be imported automatically. You can also add trades manually, so there is no hard dependency on any single platform.',
+  },
+  {
+    q: 'Where is my data stored? Is it secure?',
+    a: 'All trades live in Supabase, encrypted at rest and protected by row-level security — only you can read your own rows. Not even we have access to your data.',
+  },
+  {
+    q: 'What does the QT Score mean?',
+    a: 'QT Score is a single radar chart that grades your process across five dimensions: discipline, win rate, profit factor, consistency and R-multiple. It gives you a quick snapshot of where your edge is solid and where you need work.',
+  },
+  {
+    q: 'Can I customise what I see in the journal?',
+    a: 'Yes. From your profile you can choose which pairs, confluences, timeframes and table columns are visible. If you don\'t trade London, hide the London session. If you don\'t track CVD, remove it. The app adapts to your workflow.',
+  },
+  {
+    q: 'Is it free?',
+    a: 'Completely. The core journal, dashboard, news feed and all analytics are free with no usage limits. There are no plans to put the core behind a paywall.',
+  },
+]
+
+/* ─── Google logo SVG ────────────────────────────────────── */
+function GoogleLogo() {
   return (
-    <svg viewBox="-220 -220 440 440" className="h-full w-full">
-      <defs>
-        <radialGradient id="vortex-fade" cx="50%" cy="50%" r="50%">
-          <stop offset="15%" stopColor="white" stopOpacity="0" />
-          <stop offset="55%" stopColor="white" stopOpacity="1" />
-          <stop offset="100%" stopColor="white" stopOpacity="0" />
-        </radialGradient>
-        <mask id="vortex-mask">
-          <rect x="-220" y="-220" width="440" height="440" fill="url(#vortex-fade)" />
-        </mask>
-      </defs>
-      <g mask="url(#vortex-mask)">
-        {Array.from({ length: count }).map((_, i) => {
-          const angle = (i * 360) / count
-          const isAccent = i % 8 === 0
-          return (
-            <ellipse
-              key={i}
-              cx="0"
-              cy="0"
-              rx="200"
-              ry="90"
-              transform={`rotate(${angle})`}
-              fill="none"
-              stroke={isAccent ? 'rgba(65,93,255,0.35)' : 'rgba(255,255,255,0.11)'}
-              strokeWidth={isAccent ? 0.6 : 0.4}
-            />
-          )
-        })}
-      </g>
+    <svg className="h-[18px] w-[18px] shrink-0" viewBox="0 0 24 24" aria-hidden>
+      <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+      <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+      <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" />
+      <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
     </svg>
   )
 }
 
-/* ---------- FAQ item ---------- */
-function FaqItem({
-  index,
-  q,
-  a,
-  open,
-  onToggle,
-}: {
-  index: number
-  q: string
-  a: string
-  open: boolean
-  onToggle: () => void
+/* ─── Auth form ─────────────────────────────────────────── */
+type AuthMode = 'signin' | 'signup' | 'reset'
+
+function AuthCard() {
+  const { signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword } = useAuthStore()
+  const [mode, setMode]       = useState<AuthMode>('signin')
+  const [email, setEmail]     = useState('')
+  const [password, setPass]   = useState('')
+  const [showPass, setShowP]  = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError]     = useState('')
+  const [info, setInfo]       = useState('')
+
+  const reset = () => { setError(''); setInfo('') }
+
+  const handleEmail = async (e: React.FormEvent) => {
+    e.preventDefault()
+    reset()
+    if (!email) { setError('Email is required.'); return }
+    setLoading(true)
+    try {
+      if (mode === 'reset') {
+        await resetPassword(email)
+        setInfo('Check your inbox — we sent a password reset link.')
+        setMode('signin')
+      } else if (mode === 'signup') {
+        const { needsConfirmation } = await signUpWithEmail(email, password)
+        if (needsConfirmation) {
+          setInfo('Almost there! Check your email to confirm your account.')
+        }
+      } else {
+        await signInWithEmail(email, password)
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Something went wrong.'
+      setError(msg.replace('Invalid login credentials', 'Incorrect email or password.'))
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleGoogle = async () => {
+    reset()
+    try { await signInWithGoogle() }
+    catch { setError('Google sign-in failed. Try again.') }
+  }
+
+  const INPUT = `w-full rounded-lg border border-slate-200 bg-white px-4 py-2.5 text-sm text-slate-900
+    placeholder:text-slate-400 focus:border-[#415dff] focus:outline-none focus:ring-1 focus:ring-[#415dff]/40
+    transition disabled:opacity-50`
+
+  return (
+    <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg shadow-slate-200/80 border border-slate-100 p-7 space-y-5">
+      {/* Tabs */}
+      <div className="flex rounded-lg border border-slate-200 bg-slate-50 p-0.5 gap-0.5">
+        {(['signin', 'signup'] as AuthMode[]).map(m => (
+          <button
+            key={m}
+            onClick={() => { setMode(m); reset() }}
+            className={`flex-1 rounded-md py-1.5 text-xs font-semibold transition-all ${
+              mode === m
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            {m === 'signin' ? 'Sign In' : 'Create Account'}
+          </button>
+        ))}
+      </div>
+
+      {/* Info / error */}
+      {info  && <p className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700">{info}</p>}
+      {error && <p className="rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-600">{error}</p>}
+
+      {/* Email form */}
+      <form onSubmit={handleEmail} className="space-y-3">
+        <input
+          type="email"
+          placeholder="Email address"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          className={INPUT}
+          disabled={loading}
+          autoComplete="email"
+        />
+        {mode !== 'reset' && (
+          <div className="relative">
+            <input
+              type={showPass ? 'text' : 'password'}
+              placeholder="Password"
+              value={password}
+              onChange={e => setPass(e.target.value)}
+              className={INPUT + ' pr-10'}
+              disabled={loading}
+              autoComplete={mode === 'signup' ? 'new-password' : 'current-password'}
+            />
+            <button
+              type="button"
+              onClick={() => setShowP(p => !p)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+              tabIndex={-1}
+            >
+              {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
+          </div>
+        )}
+
+        {mode === 'signin' && (
+          <div className="text-right">
+            <button
+              type="button"
+              onClick={() => { setMode('reset'); reset() }}
+              className="text-[11px] text-slate-400 hover:text-[#415dff] transition-colors"
+            >
+              Forgot password?
+            </button>
+          </div>
+        )}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-lg bg-[#415dff] py-2.5 text-sm font-semibold text-white hover:bg-[#2f4ae6] active:scale-[0.98] transition disabled:opacity-60"
+        >
+          {loading ? '...' : mode === 'reset' ? 'Send Reset Link' : mode === 'signup' ? 'Create Account' : 'Sign In'}
+        </button>
+      </form>
+
+      {/* Divider */}
+      <div className="flex items-center gap-3">
+        <span className="flex-1 h-px bg-slate-100" />
+        <span className="text-[11px] font-medium text-slate-400">or</span>
+        <span className="flex-1 h-px bg-slate-100" />
+      </div>
+
+      {/* Google */}
+      <button
+        onClick={handleGoogle}
+        className="w-full flex items-center justify-center gap-3 rounded-lg border border-slate-200 bg-white py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 active:scale-[0.98] transition shadow-sm"
+      >
+        <GoogleLogo />
+        Continue with Google
+      </button>
+
+      <p className="text-center text-[10px] text-slate-400 leading-relaxed">
+        By continuing you agree to our{' '}
+        <a href="/privacy" className="underline hover:text-slate-600">Privacy Policy</a>.
+      </p>
+    </div>
+  )
+}
+
+/* ─── FAQ Item ───────────────────────────────────────────── */
+function FaqItem({ q, a, index, open, onToggle }: {
+  q: string; a: string; index: number; open: boolean; onToggle: () => void
 }) {
   const { ref, shown } = useReveal<HTMLLIElement>()
-
   return (
     <li
       ref={ref}
-      style={{ transitionDelay: shown ? `${index * 90}ms` : '0ms' }}
-      className={`transition-all duration-700 ease-out ${
-        shown ? 'translate-y-0 opacity-100' : 'translate-y-10 opacity-0'
-      }`}
+      style={{ transitionDelay: shown ? `${index * 60}ms` : '0ms' }}
+      className={`transition-all duration-500 ease-out ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
     >
       <button
         onClick={onToggle}
-        className={`group relative flex w-full items-center gap-3 sm:gap-5 rounded-2xl border px-4 sm:px-6 py-4 sm:py-5 text-left transition-all duration-300 ${
+        className={`w-full flex items-center justify-between gap-4 text-left px-5 py-4 rounded-xl border transition-all duration-200 ${
           open
-            ? 'border-[#415dff]/40 bg-gradient-to-r from-white/[0.06] via-white/[0.03] to-transparent shadow-[0_0_40px_-10px_rgba(65,93,255,0.3)]'
-            : 'border-white/10 bg-white/[0.02] hover:border-white/25 hover:bg-white/[0.04]'
+            ? 'border-[#415dff]/25 bg-[#415dff]/[0.04] shadow-sm'
+            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
         }`}
       >
-        <span
-          className={`grid h-8 w-8 shrink-0 place-items-center rounded-full border text-[11px] font-semibold tracking-wider transition-colors duration-300 ${
-            open
-              ? 'border-[#8a9eff]/50 bg-[#415dff]/15 text-[#8a9eff]'
-              : 'border-white/15 bg-white/[0.03] text-white/60 group-hover:text-white/80'
-          }`}
-        >
-          {String(index + 1).padStart(2, '0')}
-        </span>
-        <span className="flex-1 text-[15px] font-medium text-white md:text-base">{q}</span>
+        <span className={`text-sm font-semibold transition-colors ${open ? 'text-[#415dff]' : 'text-slate-800'}`}>{q}</span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 transition-all duration-300 ${
-            open ? 'rotate-180 text-[#8a9eff]' : 'text-white/50 group-hover:text-white/80'
-          }`}
+          className={`h-4 w-4 shrink-0 transition-all duration-200 ${open ? 'rotate-180 text-[#415dff]' : 'text-slate-400'}`}
         />
       </button>
-
-      <div
-        className={`grid overflow-hidden transition-[grid-template-rows,opacity] duration-500 ease-out ${
-          open ? 'mt-2 grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
-        }`}
-      >
+      <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100 mt-1' : 'grid-rows-[0fr] opacity-0'}`}>
         <div className="min-h-0">
-          <p className="px-4 sm:px-[4.25rem] sm:pr-6 pb-4 text-sm leading-relaxed text-white/65">{a}</p>
+          <p className="px-5 pb-4 pt-2 text-sm text-slate-600 leading-relaxed">{a}</p>
         </div>
       </div>
     </li>
   )
 }
 
-/* ---------- Page ---------- */
+/* ─── Page ───────────────────────────────────────────────── */
 export function Login() {
-  const signInWithGoogle = useAuthStore(s => s.signInWithGoogle)
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [openFaq, setOpenFaq] = useState<number | null>(0)
-  const heading = useReveal<HTMLDivElement>()
+  const [openFaq, setOpenFaq] = useState<number | null>(null)
+  const { ref: headRef, shown: headShown } = useReveal<HTMLDivElement>()
+  const { ref: formRef, shown: formShown } = useReveal<HTMLDivElement>()
 
-  const scrollToFaq = () => {
-    document.getElementById('faq-section')?.scrollIntoView({ behavior: 'smooth' })
-  }
+  const scrollToForm = () => document.getElementById('auth')?.scrollIntoView({ behavior: 'smooth' })
 
   return (
-    <div className="min-h-screen bg-black text-white antialiased">
-      {/* ---------- HERO ---------- */}
-      <section className="relative h-screen w-full overflow-hidden">
-        {/* Zemin: koyu radial */}
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, #0b0b0d 0%, #050506 55%, #000 100%)',
-          }}
-          aria-hidden
+    <div className="min-h-screen bg-[#f5f6fa] text-slate-900 antialiased">
+
+      {/* ── Navbar ─────────────────────────────────────── */}
+      <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-100">
+        <img
+          src="/landing-logo.png"
+          alt="Quarterly Journal"
+          className="h-8 w-auto object-contain"
+          onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
         />
-
-        {/* İnce nokta dokusu */}
-        <div
-          className="absolute inset-0 opacity-50"
-          style={{
-            backgroundImage:
-              'radial-gradient(rgba(255,255,255,0.055) 1px, transparent 1px)',
-            backgroundSize: '28px 28px',
-            maskImage:
-              'radial-gradient(ellipse at center, black 40%, transparent 85%)',
-            WebkitMaskImage:
-              'radial-gradient(ellipse at center, black 40%, transparent 85%)',
-          }}
-          aria-hidden
-        />
-
-        {/* Mavi merkez halesi */}
-        <div
-          className="pointer-events-none absolute left-1/2 top-1/2 h-[640px] w-[640px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
-          style={{
-            background:
-              'radial-gradient(circle, rgba(65,93,255,0.18), rgba(65,93,255,0.05) 45%, transparent 70%)',
-          }}
-          aria-hidden
-        />
-
-        {/* Vortex (statik) */}
-        <div
-          className="pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
-          style={{
-            height: 'min(92vh, 92vw)',
-            width: 'min(92vh, 92vw)',
-          }}
-          aria-hidden
-        >
-          <Vortex />
-        </div>
-
-        {/* İçerik */}
-        <div className="relative h-full w-full">
-          {/* Başlık — vortex'in üst bölgesinde */}
-          <div
-            className="absolute left-1/2 -translate-x-1/2 text-center w-full px-4"
-            style={{ bottom: 'calc(50% + 120px)' }}
-          >
-            <h1 className="font-heading text-4xl font-semibold uppercase leading-[0.95] tracking-[0.04em] sm:text-6xl md:text-7xl lg:text-8xl">
-              <span className="block bg-gradient-to-b from-white via-[#d7dcff] to-[#8a9eff] bg-clip-text text-transparent">
-                QUARTERLY
-              </span>
-              <span className="block bg-gradient-to-b from-white via-[#d7dcff] to-[#8a9eff] bg-clip-text text-transparent">
-                JOURNAL
-              </span>
-            </h1>
-          </div>
-
-          {/* Login butonu — vortex'in gözü */}
-          <button
-            onClick={() => setDialogOpen(true)}
-            aria-label="Sign in"
-            className="group absolute left-1/2 top-1/2 grid h-28 w-28 sm:h-36 sm:w-36 -translate-x-1/2 -translate-y-1/2 place-items-center"
-          >
-            {/* Yavaş dönen mavi dış halka */}
-            <span
-              className="pointer-events-none absolute inset-0 rounded-full border border-[#415dff]/55 [animation:qt-spin_18s_linear_infinite]"
-              aria-hidden
-            />
-            {/* Ters yönde ince ikinci halka */}
-            <span
-              className="pointer-events-none absolute inset-[8px] rounded-full border border-[#8a9eff]/35 [animation:qt-spin_12s_linear_infinite_reverse]"
-              aria-hidden
-            />
-            {/* Pulse */}
-            <span
-              className="pointer-events-none absolute inset-0 rounded-full border border-[#8a9eff]/40 [animation:qt-pulse_2.8s_ease-out_infinite]"
-              aria-hidden
-            />
-            {/* Çekirdek */}
-            <span className="relative grid h-20 w-20 sm:h-24 sm:w-24 place-items-center rounded-full bg-black ring-1 ring-[#415dff]/80 shadow-[0_0_32px_rgba(65,93,255,0.35)] transition-all duration-300 group-hover:scale-110 group-hover:ring-[#8a9eff] group-hover:shadow-[0_0_56px_rgba(65,93,255,0.6)]">
-              <span className="text-[12px] font-medium tracking-[0.28em] text-white/95 uppercase">
-                login
-              </span>
-            </span>
-          </button>
-        </div>
-
-        {/* Kenar vinyette */}
-        <div
-          className="pointer-events-none absolute inset-0"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.55) 100%)',
-          }}
-          aria-hidden
-        />
-
-        {/* Scroll ipucu */}
         <button
-          onClick={scrollToFaq}
-          className="absolute bottom-8 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-white/45 transition-colors hover:text-[#8a9eff]"
-          aria-label="Scroll down"
+          onClick={scrollToForm}
+          className="rounded-lg border border-slate-200 bg-white px-4 py-1.5 text-sm font-medium text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition shadow-sm"
         >
-          <span className="text-[10px] font-medium tracking-[0.3em] uppercase">Scroll</span>
+          Log in
+        </button>
+      </nav>
+
+      {/* ── Hero ───────────────────────────────────────── */}
+      <section className="flex flex-col items-center text-center px-6 pt-24 pb-20">
+        {/* Badge */}
+        <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-[#415dff]/20 bg-[#415dff]/[0.07] px-4 py-1.5">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#415dff]" />
+          <span className="text-xs font-semibold text-[#415dff] tracking-wide">Built for Quarterly Theory Traders</span>
+        </div>
+
+        {/* Heading */}
+        <div
+          ref={headRef}
+          className={`transition-all duration-700 ease-out ${headShown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+        >
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] max-w-3xl">
+            A{' '}
+            <span className="relative inline-block">
+              <span className="relative z-10 text-[#415dff]">Trading Journal</span>
+              <span
+                className="absolute inset-x-0 -bottom-1 h-2.5 rounded-full opacity-20"
+                style={{ background: 'linear-gradient(90deg, #415dff, #8a9eff)' }}
+                aria-hidden
+              />
+            </span>
+            <br />
+            to Master Your Process
+          </h1>
+          <p className="mt-5 text-base sm:text-lg text-slate-500 max-w-xl mx-auto leading-relaxed">
+            Track every trade, measure your confluences, and build a data-driven edge — all within the Quarterly Theory framework.
+          </p>
+        </div>
+
+        {/* Auth card */}
+        <div
+          id="auth"
+          ref={formRef}
+          className={`mt-14 w-full max-w-sm transition-all duration-700 delay-150 ease-out ${formShown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
+        >
+          <AuthCard />
+        </div>
+
+        {/* Scroll hint */}
+        <button
+          onClick={() => document.getElementById('faq')?.scrollIntoView({ behavior: 'smooth' })}
+          className="mt-16 flex flex-col items-center gap-1.5 text-slate-400 hover:text-slate-600 transition-colors"
+        >
+          <span className="text-[10px] font-medium tracking-[0.25em] uppercase">FAQ</span>
           <ChevronDown className="h-4 w-4 [animation:qt-bounce_2s_ease-in-out_infinite]" />
         </button>
       </section>
 
-      {/* ---------- FAQ ---------- */}
-      <section
-        id="faq-section"
-        className="relative flex min-h-screen items-center justify-center px-4 sm:px-6 pt-20 sm:pt-40 pb-16 sm:pb-24"
-      >
-        {/* Başlığın çok altında, ince bir altın sızıntı (kenarda değil, iç alanda) */}
-        <div
-          className="pointer-events-none absolute left-1/2 top-1/3 h-[420px] w-[680px] max-w-[90%] -translate-x-1/2 -translate-y-1/2 blur-3xl"
-          style={{
-            background:
-              'radial-gradient(ellipse at center, rgba(65,93,255,0.08), transparent 70%)',
-          }}
-          aria-hidden
-        />
-
-        <div className="relative z-10 mx-auto w-full max-w-4xl">
-          <div
-            ref={heading.ref}
-            className={`mb-12 text-center transition-all duration-700 ease-out ${
-              heading.shown ? 'translate-y-0 opacity-100' : 'translate-y-6 opacity-0'
-            }`}
-          >
-            <p className="mb-3 text-[11px] font-medium tracking-[0.4em] text-[#8a9eff]/80 uppercase">
-              Frequently Asked
-            </p>
-            <h2 className="font-heading text-3xl font-semibold tracking-tight text-white md:text-4xl">
-              How does Quarterly Journal work?
-            </h2>
-            <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-white/50">
-              A journal designed from scratch for Quarterly Theory traders. Here are the
-              questions we hear most.
-            </p>
-          </div>
-
-          <ul className="flex flex-col gap-3">
-            {FAQS.map((faq, i) => (
-              <FaqItem
-                key={i}
-                index={i}
-                q={faq.q}
-                a={faq.a}
-                open={openFaq === i}
-                onToggle={() => setOpenFaq(openFaq === i ? null : i)}
-              />
-            ))}
-          </ul>
-
-          {/* Footer — privacy policy link */}
-          <div className="mt-16 text-center text-[11px] text-white/30">
-            <a
-              href="/privacy"
-              className="hover:text-white/60 underline underline-offset-2 transition-colors"
-            >
-              Privacy Policy
-            </a>
-            <span className="mx-2 opacity-50">·</span>
-            <span>© {new Date().getFullYear()} Quarterly Journal</span>
-          </div>
+      {/* ── FAQ ────────────────────────────────────────── */}
+      <section id="faq" className="px-6 pb-24 max-w-2xl mx-auto">
+        <div className="mb-10 text-center">
+          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+            Frequently asked questions
+          </h2>
+          <p className="mt-2 text-sm text-slate-500">Everything you need to know before you start.</p>
         </div>
+
+        <ul className="space-y-2">
+          {FAQS.map((faq, i) => (
+            <FaqItem
+              key={i}
+              index={i}
+              q={faq.q}
+              a={faq.a}
+              open={openFaq === i}
+              onToggle={() => setOpenFaq(openFaq === i ? null : i)}
+            />
+          ))}
+        </ul>
       </section>
 
-      {/* ---------- Login Dialog ---------- */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent
-          showCloseButton={false}
-          className="overflow-hidden border border-white/10 bg-[#0b0b0d] p-0 text-white shadow-[0_30px_90px_-20px_rgba(0,0,0,0.9)] sm:max-w-md"
-        >
-          {/* Üstte ince altın aksan çizgi */}
-          <div className="h-px w-full bg-gradient-to-r from-transparent via-[#415dff]/70 to-transparent" />
-
-          {/* Yumuşak radial altın parıltı */}
-          <div
-            className="pointer-events-none absolute left-1/2 top-0 h-56 w-[140%] -translate-x-1/2 -translate-y-1/2 blur-3xl"
-            style={{
-              background:
-                'radial-gradient(ellipse at center, rgba(65,93,255,0.15), transparent 70%)',
-            }}
-            aria-hidden
-          />
-
-          <div className="relative px-8 pt-10 pb-8">
-            {/* Marka mührü */}
-            <div className="mx-auto mb-6 grid h-14 w-14 place-items-center rounded-full border border-[#415dff]/40 bg-black/60 shadow-[0_0_24px_rgba(65,93,255,0.22)]">
-              <span className="font-heading text-xl font-semibold tracking-tight text-[#8a9eff]">
-                QT
-              </span>
-            </div>
-
-            <DialogHeader className="items-center gap-1">
-              <DialogTitle className="font-heading text-center text-xl font-semibold tracking-tight text-white">
-                Welcome back
-              </DialogTitle>
-              <DialogDescription className="text-center text-[13px] leading-relaxed text-white/50">
-                Sign in to continue to your journal.
-              </DialogDescription>
-            </DialogHeader>
-
-            <button
-              onClick={() => signInWithGoogle().catch(console.error)}
-              className="group mt-7 flex w-full items-center justify-center gap-3 rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-sm font-medium text-white transition-all duration-200 hover:border-white/30 hover:bg-white/[0.07] hover:shadow-[0_0_24px_rgba(255,255,255,0.06)]"
-            >
-              <svg className="h-[18px] w-[18px]" viewBox="0 0 24 24" aria-hidden>
-                <path
-                  fill="#EA4335"
-                  d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-                />
-                <path
-                  fill="#4285F4"
-                  d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                />
-                <path
-                  fill="#FBBC05"
-                  d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-                />
-                <path
-                  fill="#34A853"
-                  d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                />
-              </svg>
-              <span>Continue with Google</span>
-            </button>
-
-            {/* İnce ayırıcı ve etiket */}
-            <div className="mt-7 flex items-center gap-3 text-[10px] uppercase tracking-[0.3em] text-white/30">
-              <span className="h-px flex-1 bg-white/10" />
-              <span>Secure sign-in</span>
-              <span className="h-px flex-1 bg-white/10" />
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* ── Footer ─────────────────────────────────────── */}
+      <footer className="border-t border-slate-200 bg-white py-6 px-6 text-center text-xs text-slate-400">
+        <a href="/privacy" className="hover:text-slate-600 underline underline-offset-2 transition-colors">Privacy Policy</a>
+        <span className="mx-3 opacity-50">·</span>
+        <span>© {new Date().getFullYear()} Quarterly Journal</span>
+      </footer>
     </div>
   )
 }
