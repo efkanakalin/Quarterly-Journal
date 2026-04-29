@@ -8,12 +8,19 @@ const STATE_KEY   = 'qt-tradovate-oauth-state'
 
 export const TRADOVATE_OAUTH_STATE_KEY = STATE_KEY
 
+/**
+ * Frontend deploy'unda Tradovate entegrasyonu için gerekli env'lerin
+ * (worker URL + client id) tanımlanıp tanımlanmadığını döner. UI bu
+ * bayrağa bakarak Connect butonunu disable edebilir ya da kullanıcıya
+ * "henüz yapılandırılmadı" mesajı gösterebilir.
+ */
+export function isTradovateConfigured(): boolean {
+  return Boolean(WORKER_URL && CLIENT_ID)
+}
+
 function ensureEnv(): { workerUrl: string; clientId: string } {
-  if (!WORKER_URL) {
-    throw new Error('VITE_TRADOVATE_WORKER_URL is not configured.')
-  }
-  if (!CLIENT_ID) {
-    throw new Error('VITE_TRADOVATE_CLIENT_ID is not configured.')
+  if (!WORKER_URL || !CLIENT_ID) {
+    throw new Error('tradovate_not_configured')
   }
   return { workerUrl: WORKER_URL, clientId: CLIENT_ID }
 }

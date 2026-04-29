@@ -56,6 +56,69 @@ export const TR = {
     relTimeMinutes:      (n: number) => `${n} dakika önce`,
     relTimeHours:        (n: number) => `${n} saat önce`,
     relTimeDays:         (n: number) => `${n} gün önce`,
+
+    detailHowToConnect:  'Nasıl bağlanılır',
+    detailWhatYouGet:    'Sana ne kazandırır',
+    detailRequirements:  'Gereksinimler',
+    detailNotConfigured: 'Bu entegrasyon mevcut deployment için henüz yapılandırılmadı. Geliştirici gerekli env değişkenlerini set ettiğinde buton aktif olacak — bu sürede mevcut trade\'lerin güvende.',
+    detailComingSoon:    'Bu entegrasyon yol haritasında. Aşağıdaki akış, yayınlandığında nasıl çalışacağını açıklar.',
+    detailConnect:       'Bağlan',
+    detailClose:         'Kapat',
+    notConfiguredToast:  'Tradovate entegrasyonu bu deployment için yapılandırılmamış.',
+
+    tradovateBlurb:      'Tradovate canlı ve demo hesaplarındaki fill\'lerini otomatik senkronlar. Round-trip\'ler kendiliğinden algılanır; QT alanları (entries, mistakes, R) elle girilir.',
+    tradovateGet:        [
+      'Canlı + demo hesap otomatik senkronu',
+      'Fill bazında round-trip algılama (VWAP ortalama)',
+      'Duplikasyon korumalı import (yeniden senkron asla çiftlemez)',
+    ],
+    tradovateReq:        ['Tradovate trader hesabı (canlı veya demo)'],
+    tradovateSteps:      [
+      'Bağlan\'a tıkla — Tradovate\'in resmi giriş sayfasına yönlendirileceksin.',
+      'Tradovate kullanıcı bilgilerinle giriş yap ve QT Journal için salt-okuma erişimini onayla.',
+      'Senkronlamak istediğin hesapları seç (birden fazla seçebilirsin; demo hesaplar DEMO etiketi ile işaretlidir).',
+      'Bitti — ilk senkronda son 30 gün fill\'lerin gelir, sonraki "Şimdi Senkronla" tıklamaları sadece yeni veriyi çeker.',
+    ],
+
+    mt4Blurb:            'MetaTrader 4 ve 5 doğrudan tarayıcı API\'si sunmaz. Entegrasyon platformun History export çıktısını → otomatik CSV import\'a bağlayacak.',
+    mt4Get:              [
+      'MT4/MT5 terminalinden kapanmış pozisyon geçmişi',
+      'Sembol, lot, kâr ve süre QT trade alanlarına haritalanır',
+    ],
+    mt4Req:              ['MT4 veya MT5 terminali yüklü bir bilgisayar'],
+    mt4Steps:            [
+      'MT4/MT5\'te Terminal panelini aç (Ctrl+T) → History sekmesi → sağ tık → Save as Detailed Report (HTML) ya da All History (CSV).',
+      'Çıktı dosyasını bilgisayarına kaydet.',
+      'QT Journal\'ın Journal sayfasına sürükle-bırak → Import (importer MT formatını da tanıyacak şekilde genişletilecek).',
+      'Düzenli export\'ları kendin yap — masaüstü yardımcısı çıkana kadar bu adım manuel kalacak.',
+    ],
+
+    binanceBlurb:        'Spot ve USD-M Futures trade geçmişi salt-okuma API key ile çekilir. Çekme ve trade yetkileri KAPALI tutulur — fonlarına dokunulamaz.',
+    binanceGet:          [
+      'Spot + Futures fill geçmişi',
+      'Funding fee dahil realized PnL',
+      '15 dakikalık inkremental senkron',
+    ],
+    binanceReq:          ['API erişimi açık bir Binance hesabı'],
+    binanceSteps:        [
+      'Binance\'e giriş yap → Profile → API Management → Create API key.',
+      'Adı "QT Journal" yap, 2FA doğrulamasını tamamla.',
+      'Yeni anahtarın yetkilerinde SADECE "Enable Reading" işaretli olsun (Spot/Futures Trade ve Withdrawals KAPALI).',
+      'API key + Secret\'i QT Journal\'a yapıştır — kendi satırına şifrelenerek kaydedilir.',
+    ],
+
+    ibkrBlurb:           'Interactive Brokers entegrasyonu Client Portal Web API session auth kullanır. Bir kez giriş yaparsın, QT Journal periyodik olarak gerçekleşmiş trade\'lerini çeker.',
+    ibkrGet:             [
+      'Tüm IBKR hesaplarındaki gerçekleşmiş trade geçmişi',
+      'Çoklu para birimli PnL (her bacak kendi para birimiyle etiketli)',
+    ],
+    ibkrReq:             ['Client Portal Web API\'si etkin IBKR Pro hesabı'],
+    ibkrSteps:           [
+      'Client Portal\'da Settings → User Settings → API → Client Portal Web API\'yi etkinleştir.',
+      'QT Journal\'da Bağlan\'a tıkla — popup ile IBKR OAuth + 2FA başlar.',
+      '2FA sonrası IBKR seni session token ile QT Journal\'a yönlendirir.',
+      'Trade geçmişi 30 dakikada bir senkron olur; IBKR\'dan çıkış yapana kadar session otomatik yenilenir.',
+    ],
   },
   news: {
     subtitle:     'Canlı başlıklar, makro veriler ve yaklaşan olaylar.',
