@@ -9,9 +9,9 @@ export interface BrokerCatalogEntry {
 
 export const BROKER_CATALOG: readonly BrokerCatalogEntry[] = [
   { slug: 'tradovate', name: 'Tradovate',           logo: '/brokers/tradovate.svg', available: true  },
-  { slug: 'mt4',       name: 'MetaTrader 4/5',      logo: '/brokers/mt4.svg',       available: false },
-  { slug: 'binance',   name: 'Binance',             logo: '/brokers/binance.svg',   available: false },
-  { slug: 'ibkr',      name: 'Interactive Brokers', logo: '/brokers/ibkr.svg',      available: false },
+  { slug: 'mt4',       name: 'MetaTrader 4/5',      logo: '/brokers/mt4.jpeg',      available: false },
+  { slug: 'binance',   name: 'Binance',             logo: '/brokers/binance.png',   available: false },
+  { slug: 'ibkr',      name: 'Interactive Brokers', logo: '/brokers/ibkr.png',      available: false },
 ] as const
 
 export interface TradovateAccount {

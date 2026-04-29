@@ -56,6 +56,69 @@ export const EN = {
     relTimeMinutes:      (n: number) => `${n} minute${n !== 1 ? 's' : ''} ago`,
     relTimeHours:        (n: number) => `${n} hour${n !== 1 ? 's' : ''} ago`,
     relTimeDays:         (n: number) => `${n} day${n !== 1 ? 's' : ''} ago`,
+
+    detailHowToConnect:  'How to connect',
+    detailWhatYouGet:    'What you get',
+    detailRequirements:  'Requirements',
+    detailNotConfigured: 'This integration is not configured for the current deployment yet. Once the deployment owner sets the required env variables, this button will go live — your existing trades stay safe in the meantime.',
+    detailComingSoon:    'This integration is on the roadmap. The flow below describes how it will work when shipped.',
+    detailConnect:       'Connect',
+    detailClose:         'Close',
+    notConfiguredToast:  'Tradovate integration is not configured for this deployment.',
+
+    tradovateBlurb:      'Auto-syncs your filled orders from Tradovate live and demo accounts. Round-trips are detected automatically; QT-specific fields (confirmations, mistakes, R-multiple) stay manual.',
+    tradovateGet:        [
+      'Live & demo account auto-sync',
+      'Fill-by-fill round-trip detection with VWAP averaging',
+      'Duplicate-safe imports (re-syncing never doubles trades)',
+    ],
+    tradovateReq:        ['A Tradovate trader login (live or demo)'],
+    tradovateSteps:      [
+      'Click Connect — you will be redirected to Tradovate\'s official login page.',
+      'Sign in with your Tradovate credentials and approve the read-only access for QT Journal.',
+      'Pick which accounts you want to mirror (you can choose more than one, demo accounts are tagged DEMO).',
+      'You\'re done — the last 30 days of fills are imported on first sync, and every Sync Now afterwards is incremental.',
+    ],
+
+    mt4Blurb:            'MetaTrader 4 and 5 do not expose a direct browser API. Integration is planned via the platform\'s native History export → automatic CSV ingestion in QT Journal.',
+    mt4Get:              [
+      'Closed-position history from MT4/MT5 terminal',
+      'Symbol, lot, profit & duration mapped to QT trade fields',
+    ],
+    mt4Req:              ['MT4 or MT5 terminal installed on a desktop'],
+    mt4Steps:            [
+      'In MT4/MT5 open the Terminal panel (Ctrl+T) → History tab → right-click → Save as Detailed Report (HTML) or All History (CSV).',
+      'Save the export to your computer.',
+      'Drag-and-drop the file into QT Journal\'s Journal page → Import (the importer will be extended to recognize the MT format).',
+      'Schedule periodic exports — for now this stays a manual step until the desktop helper ships.',
+    ],
+
+    binanceBlurb:        'Spot and USD-M Futures trade history pulled via a read-only API key. Withdrawal and trading permissions stay disabled — your funds cannot be moved.',
+    binanceGet:          [
+      'Spot + Futures fill history',
+      'Realized PnL with funding fee accounting',
+      '15-minute incremental sync',
+    ],
+    binanceReq:          ['Binance account with API access enabled'],
+    binanceSteps:        [
+      'Sign in to Binance → Profile → API Management → Create API key.',
+      'Label it "QT Journal" and complete the 2FA challenge.',
+      'In the new key\'s permissions, ENABLE only "Enable Reading" (leave Spot/Futures Trade and Withdrawals disabled).',
+      'Paste the API key and Secret into QT Journal — they are encrypted before being stored on your row.',
+    ],
+
+    ibkrBlurb:           'Interactive Brokers integration uses the Client Portal Web API session-based auth. You log in once, and QT Journal periodically pulls your executed trades.',
+    ibkrGet:             [
+      'Executed trade history across all your IBKR accounts',
+      'Multi-currency PnL (each leg tagged with its native currency)',
+    ],
+    ibkrReq:             ['IBKR Pro account with Client Portal Web API enabled'],
+    ibkrSteps:           [
+      'In Client Portal, open Settings → User Settings → API → enable Client Portal Web API.',
+      'Click Connect in QT Journal — a popup will start the IBKR OAuth + 2FA challenge.',
+      'After 2FA, IBKR redirects back to QT Journal with a session token.',
+      'Trade history begins syncing every 30 minutes; the session is auto-renewed until you log out from IBKR.',
+    ],
   },
   news: {
     subtitle:     'Live headlines, macro releases and the week ahead.',

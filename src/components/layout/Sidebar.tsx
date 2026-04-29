@@ -36,9 +36,9 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   const NAV_ITEMS = [
     { to: '/dashboard',   icon: BarChart2,  label: S.nav.dashboard },
     { to: '/journal',     icon: BookOpen,   label: S.nav.journal },
-    { to: '/brokers',     icon: Plug,       label: S.nav.brokers },
     { to: '/daily-stats', icon: TrendingUp, label: S.nav.dailyStats },
     { to: '/news',        icon: Newspaper,  label: S.nav.news, badge: unreadNews },
+    { to: '/brokers',     icon: Plug,       label: S.nav.brokers },
   ] as const
 
   const handleSignOut = async () => {

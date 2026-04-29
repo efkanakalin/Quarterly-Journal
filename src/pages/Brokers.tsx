@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useS } from '@/lib/i18n'
-import { BROKER_CATALOG } from '@/lib/brokers/types'
-import { startTradovateConnect } from '@/lib/brokers/tradovate'
+import { BROKER_CATALOG, type BrokerCatalogEntry } from '@/lib/brokers/types'
+import { startTradovateConnect, isTradovateConfigured } from '@/lib/brokers/tradovate'
 import { syncTradovateConnection } from '@/lib/brokers/tradovateSync'
 import { useBrokerConnectionsStore } from '@/stores/useBrokerConnectionsStore'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { BrokerCard } from '@/components/brokers/BrokerCard'
 import { ConnectionCard } from '@/components/brokers/ConnectionCard'
+import { BrokerDetailSheet } from '@/components/brokers/BrokerDetailSheet'
 import type { BrokerSlug } from '@/types'
 
 export function Brokers() {
@@ -18,17 +19,38 @@ export function Brokers() {
   const addTrade = useTradesStore(s => s.addTrade)
   const [syncingId, setSyncingId] = useState<string | null>(null)
   const [connecting, setConnecting] = useState(false)
+  const [activeBroker, setActiveBroker] = useState<BrokerCatalogEntry | null>(null)
+
+  const tradovateReady = isTradovateConfigured()
 
   useEffect(() => { fetchConnections() }, [fetchConnections])
 
+  // Bir broker kartına tıklayınca detay sheet'i açılır; bağlantı oradan başlar.
+  const handleSelect = (slug: BrokerSlug) => {
+    const entry = BROKER_CATALOG.find(b => b.slug === slug)
+    if (entry) setActiveBroker(entry)
+  }
+
   const handleConnect = async (slug: BrokerSlug) => {
-    if (slug !== 'tradovate' || !user) return
+    if (!user) return
+    if (slug !== 'tradovate') {
+      toast.message(S.brokers.comingSoonToast)
+      return
+    }
+    if (!tradovateReady) {
+      toast.error(S.brokers.notConfiguredToast)
+      return
+    }
     setConnecting(true)
     try {
       await startTradovateConnect()
     } catch (err) {
       console.error(err)
-      toast.error(err instanceof Error ? err.message : S.brokers.serviceUnavailable)
+      const raw = err instanceof Error ? err.message : ''
+      const msg = raw === 'tradovate_not_configured'
+        ? S.brokers.notConfiguredToast
+        : raw || S.brokers.serviceUnavailable
+      toast.error(msg)
       setConnecting(false)
     }
   }
@@ -47,7 +69,11 @@ export function Brokers() {
     } catch (err) {
       console.error(err)
       const raw = err instanceof Error ? err.message : undefined
-      const description = raw === 'rate_limited' ? S.brokers.rateLimited : raw
+      const description = raw === 'rate_limited'
+        ? S.brokers.rateLimited
+        : raw === 'tradovate_not_configured'
+        ? S.brokers.notConfiguredToast
+        : raw
       toast.error(S.brokers.syncFailedToast, { description })
     } finally {
       setSyncingId(null)
@@ -65,6 +91,10 @@ export function Brokers() {
 
   const handleReconnect = async (slug: BrokerSlug) => {
     if (slug !== 'tradovate') return
+    if (!tradovateReady) {
+      toast.error(S.brokers.notConfiguredToast)
+      return
+    }
     setConnecting(true)
     try {
       await startTradovateConnect()
@@ -124,12 +154,20 @@ export function Brokers() {
             <BrokerCard
               key={broker.slug}
               broker={broker}
-              onConnect={handleConnect}
-              busy={connecting && broker.slug === 'tradovate'}
+              onSelect={handleSelect}
             />
           ))}
         </div>
       </section>
+
+      <BrokerDetailSheet
+        broker={activeBroker}
+        open={activeBroker !== null}
+        onOpenChange={open => { if (!open) setActiveBroker(null) }}
+        onConnect={handleConnect}
+        connecting={connecting && activeBroker?.slug === 'tradovate'}
+        configured={activeBroker?.slug === 'tradovate' ? tradovateReady : false}
+      />
     </div>
   )
 }
