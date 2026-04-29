@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useS } from '@/lib/i18n'
 import { Button } from '@/components/ui/button'
 import {
@@ -22,6 +22,10 @@ interface Props {
 export function AccountSelectModal({ open, onOpenChange, accounts, loading, onConfirm }: Props) {
   const S = useS()
   const [selected, setSelected] = useState<Set<string>>(new Set())
+
+  useEffect(() => {
+    if (!open) setSelected(new Set())
+  }, [open])
 
   const toggle = (id: string) => {
     setSelected(prev => {
@@ -48,7 +52,7 @@ export function AccountSelectModal({ open, onOpenChange, accounts, loading, onCo
 
         <div className="max-h-[60vh] space-y-2 overflow-y-auto">
           {accounts.length === 0 && !loading && (
-            <p className="text-sm text-gray-500 dark:text-[#9ca3af]">No accounts found.</p>
+            <p className="text-sm text-gray-500 dark:text-[#9ca3af]">{S.brokers.noAccountsFound}</p>
           )}
           {accounts.map(a => {
             const id = String(a.id)
