@@ -16,6 +16,12 @@ keep context on macro events while reviewing your tape.
   winner/loser tallies, and a per-day journaling note (localStorage).
 - **CSV import** — Tradovate Performance.csv → normalized trades, with Europe
   /Istanbul → America/New_York conversion including DST.
+- **Broker auto-sync** — Brokers page (`/brokers`) connects a Tradovate
+  account via OAuth and pulls new fills incrementally. All Tradovate
+  traffic goes through a tiny Cloudflare Worker (`cloudflare-worker/`)
+  that verifies the user's Supabase JWT before proxying — Tradovate's
+  API does not allow browser CORS, and `client_secret` never reaches
+  the client. MT4/5, Binance, IBKR are stubbed as Coming Soon.
 - **News panel** (`/news`) — three zones:
   - *Live Feed* (Financial Juice RSS, 30-second poll, sentiment-bordered
     headlines, virtualized list of last 50)
@@ -75,6 +81,27 @@ npm run dev          # http://localhost:5173
 
    The `--no-verify-jwt` flag is intentional: these three functions are
    read-only public-data proxies and don't need user auth.
+
+### Tradovate auto-sync (optional)
+
+Brokers page'in Tradovate bağlantısını çalıştırmak için Cloudflare Worker
+proxy'yi deploy etmek gerekir — Tradovate browser CORS'u kapalı tutar.
+
+1. **OAuth app** — Tradovate hesabınızda OAuth client ID/secret oluşturun
+   ve redirect URI'yi `https://<your-host>/brokers/tradovate/callback`
+   olarak girin.
+2. **Worker deploy** — `cloudflare-worker/README.md` adımlarını izleyin
+   (`wrangler secret put`'larla `TRADOVATE_CLIENT_ID`,
+   `TRADOVATE_CLIENT_SECRET`, `SUPABASE_JWT_SECRET` set edilir).
+3. **Frontend `.env`** — worker URL'sini ve client ID'yi ekleyin:
+
+   ```
+   VITE_TRADOVATE_WORKER_URL=https://qt-journal-tradovate-proxy.<acct>.workers.dev
+   VITE_TRADOVATE_CLIENT_ID=<your-tradovate-client-id>
+   ```
+
+4. **Migration** — `supabase/migrations/005_broker_connections.sql`
+   uygulanmış olmalı; tablo `broker_connections`'tır ve RLS user-scoped.
 
 ### CSV import
 
