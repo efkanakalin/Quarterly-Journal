@@ -3,7 +3,27 @@ export type Session = 'asia' | 'london' | 'ny_am' | 'ny_pm'
 export type SessionQuarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
 export type Direction = 'long' | 'short'
 export type ContractClass = 'micro' | 'mini'
-export type Source = 'csv' | 'manual'
+export type Source = 'csv' | 'manual' | 'tradovate_api'
+
+export type BrokerSlug = 'tradovate' | 'mt4' | 'binance' | 'ibkr'
+export type SyncStatus = 'success' | 'failed' | 'token_expired'
+
+export interface BrokerConnection {
+  id: string
+  user_id: string
+  broker: BrokerSlug
+  account_id: string
+  account_label: string | null
+  is_demo: boolean
+  access_token: string | null
+  refresh_token: string | null
+  token_expires_at: string | null
+  last_synced_at: string | null
+  last_sync_status: SyncStatus | null
+  last_sync_error: string | null
+  created_at: string
+  updated_at: string
+}
 export type Timeframe =
   | '30S' | '45S'
   | '1M' | '2M' | '3M' | '5M' | '10M' | '15M' | '30M' | '45M' | '90M'
