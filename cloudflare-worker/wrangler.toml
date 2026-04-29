@@ -1,0 +1,16 @@
+name = "qt-journal-tradovate-proxy"
+main = "src/index.ts"
+compatibility_date = "2025-04-01"
+compatibility_flags = ["nodejs_compat"]
+
+# Production secrets (set via `wrangler secret put`):
+#   TRADOVATE_CLIENT_ID
+#   TRADOVATE_CLIENT_SECRET
+#   SUPABASE_URL
+#   SUPABASE_JWT_SECRET   # Supabase project settings → API → JWT Secret
+#
+# Optional vars:
+[vars]
+TRADOVATE_API_BASE = "https://live.tradovateapi.com/v1"
+TRADOVATE_DEMO_API_BASE = "https://demo.tradovateapi.com/v1"
+ALLOWED_ORIGIN = "https://quarterlyjournal.org"
