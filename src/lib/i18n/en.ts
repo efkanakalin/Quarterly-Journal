@@ -37,6 +37,7 @@ export const EN = {
     accountsFetchFailed: 'Could not fetch your Tradovate accounts.',
     accountSelectTitle:  'Select accounts to connect',
     accountSelectHint:   'You can connect more than one account from the same Tradovate login.',
+    noAccountsFound:     'No accounts found on this Tradovate login.',
     connectButton:       'Connect Selected',
     cancelButton:        'Cancel',
     syncSuccess:         (imported: number, skipped: number) =>

@@ -37,6 +37,7 @@ export const TR = {
     accountsFetchFailed: 'Tradovate hesapların alınamadı.',
     accountSelectTitle:  'Bağlanacak hesapları seç',
     accountSelectHint:   'Aynı Tradovate girişinden birden fazla hesap bağlayabilirsin.',
+    noAccountsFound:     'Bu Tradovate girişine bağlı hesap bulunamadı.',
     connectButton:       'Seçilenleri Bağla',
     cancelButton:        'İptal',
     syncSuccess:         (imported: number, skipped: number) =>
