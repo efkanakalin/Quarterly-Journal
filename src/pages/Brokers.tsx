@@ -46,9 +46,9 @@ export function Brokers() {
       }
     } catch (err) {
       console.error(err)
-      toast.error(S.brokers.syncFailedToast, {
-        description: err instanceof Error ? err.message : undefined,
-      })
+      const raw = err instanceof Error ? err.message : undefined
+      const description = raw === 'rate_limited' ? S.brokers.rateLimited : raw
+      toast.error(S.brokers.syncFailedToast, { description })
     } finally {
       setSyncingId(null)
     }

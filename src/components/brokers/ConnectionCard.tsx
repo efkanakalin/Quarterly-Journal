@@ -30,6 +30,9 @@ export function ConnectionCard({ connection, syncing, onSync, onReconnect, onDis
   const meta = BROKER_CATALOG.find(b => b.slug === connection.broker)
   const tokenExpired = connection.last_sync_status === 'token_expired'
   const failed = connection.last_sync_status === 'failed'
+  const errorLabel = connection.last_sync_error === 'rate_limited'
+    ? S.brokers.rateLimited
+    : connection.last_sync_error
 
   const statusLabel = tokenExpired
     ? S.brokers.statusTokenExpired
@@ -79,10 +82,10 @@ export function ConnectionCard({ connection, syncing, onSync, onReconnect, onDis
                 {S.brokers.lastSynced} {formatRelativeTime(connection.last_synced_at, S)}
               </span>
             </div>
-            {failed && connection.last_sync_error && (
+            {failed && errorLabel && (
               <p className="mt-1.5 flex items-start gap-1 text-[11px] text-rose-600 dark:text-rose-300">
                 <AlertTriangle className="mt-[1px] h-3 w-3 shrink-0" />
-                <span className="break-words">{connection.last_sync_error}</span>
+                <span className="break-words">{errorLabel}</span>
               </p>
             )}
           </div>

@@ -30,14 +30,19 @@ export async function syncTradovateConnection(
   }
 
   // 1) Token expiry kontrolü — 5 dk threshold.
+  // Tradovate'te ayrı refresh token yoktur: /renewaccesstoken mevcut access
+  // token ile çağrılır ve yeni access token döner. Bu nedenle yenileme sonrası
+  // hem access_token hem refresh_token kolonu YENİ token olarak güncellenir;
+  // bir sonraki yenileme bu yeni token üstünden gider.
   const expiresAt = token_expires_at ? new Date(token_expires_at).getTime() : 0
   const fiveMinFromNow = Date.now() + 5 * 60 * 1000
   if (!token_expires_at || expiresAt <= fiveMinFromNow) {
     try {
       const refreshed = await refreshAccessToken(refresh_token)
       access_token      = refreshed.accessToken
+      refresh_token     = refreshed.accessToken
       token_expires_at  = refreshed.expirationTime
-      const upd = await persistTokens(connection.id, refreshed.accessToken, refresh_token, refreshed.expirationTime)
+      const upd = await persistTokens(connection.id, refreshed.accessToken, refreshed.accessToken, refreshed.expirationTime)
       patchConnection(connection.id, upd)
     } catch {
       const failed = await markConnection(connection.id, {
