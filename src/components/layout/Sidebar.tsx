@@ -38,7 +38,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     { to: '/journal',     icon: BookOpen,   label: S.nav.journal },
     { to: '/daily-stats', icon: TrendingUp, label: S.nav.dailyStats },
     { to: '/news',        icon: Newspaper,  label: S.nav.news, badge: unreadNews },
-    { to: '/brokers',     icon: Plug,       label: S.nav.brokers },
+    { to: '/brokers',     icon: Plug,       label: S.nav.brokers, beta: true },
   ] as const
 
   const handleSignOut = async () => {
@@ -93,6 +93,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
           {NAV_ITEMS.map((item) => {
             const Icon = item.icon
             const badge = 'badge' in item ? (item as { badge?: number }).badge ?? 0 : 0
+            const beta  = 'beta' in item ? Boolean((item as { beta?: boolean }).beta) : false
             return (
               <NavLink
                 key={item.to}
@@ -107,6 +108,11 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
               >
                 <Icon className="h-4 w-4 shrink-0" />
                 <span>{item.label}</span>
+                {beta && (
+                  <span className="ml-auto rounded-md bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-amber-700 dark:bg-amber-400/15 dark:text-amber-300">
+                    BETA
+                  </span>
+                )}
                 {badge > 0 && <UnreadBadge count={badge} />}
               </NavLink>
             )
