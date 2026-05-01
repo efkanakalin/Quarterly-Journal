@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { tr, enUS } from 'date-fns/locale'
-import { AtSign, Mail, CalendarDays, User as UserIcon } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import { AtSign, Mail, CalendarDays, User as UserIcon, ShieldCheck } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useLangStore } from '@/stores/useLangStore'
@@ -19,6 +20,7 @@ export function Profile() {
   const lang = useLangStore(s => s.lang)
   const locale = lang === 'tr' ? tr : enUS
   const user = useAuthStore(s => s.user)
+  const role = useAuthStore(s => s.role)
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -102,6 +104,21 @@ export function Profile() {
           last
         />
       </div>
+
+      {/* Admin shortcut — yalnız role=admin için görünür */}
+      {role === 'admin' && (
+        <Link
+          to="/admin"
+          className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 sm:px-6 py-4 transition-colors hover:bg-amber-100 dark:border-amber-400/30 dark:bg-amber-400/10 dark:hover:bg-amber-400/15"
+        >
+          <ShieldCheck className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-300" />
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">{S.nav.admin}</p>
+            <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-200/80">{S.admin.subtitle}</p>
+          </div>
+          <span className="text-xs font-medium text-amber-700 dark:text-amber-200">→</span>
+        </Link>
+      )}
 
       {/* Özelleştirme */}
       <CustomizationSection />
