@@ -14,7 +14,6 @@ import { CreateProfile } from '@/pages/CreateProfile'
 import { News } from '@/pages/News'
 import { Privacy } from '@/pages/Privacy'
 import { Brokers } from '@/pages/Brokers'
-import { BrokerCallback } from '@/pages/BrokerCallback'
 
 function App() {
   const setSession = useAuthStore(s => s.setSession)
@@ -47,7 +46,6 @@ function App() {
         <Route path="/journal"     element={<Journal />} />
         <Route path="/dashboard"   element={<Dashboard />} />
         <Route path="/brokers"     element={<Brokers />} />
-        <Route path="/brokers/tradovate/callback" element={<BrokerCallback />} />
         <Route path="/daily-stats" element={<DailyStats />} />
         <Route path="/scoreboard"  element={<ScoreBoard />} />
         <Route path="/news"        element={<News />} />

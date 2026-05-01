@@ -66,6 +66,23 @@ export const TR = {
     detailClose:         'Kapat',
     notConfiguredToast:  'Tradovate entegrasyonu bu deployment için yapılandırılmamış.',
 
+    connectModalTitle:    'Tradovate\'i Bağla',
+    connectModalSubtitle: 'Tradovate\'ten bir API token al ve aşağıya yapıştır; bağlanmak istediğin hesap numarasını da gir.',
+    connectStep1:         'Tradovate\'e giriş yap, bir API access token üret ve hesap numaranı Tradovate trader arayüzünün sağ üst köşesinden bul.',
+    connectOpenTradovate: 'Tradovate\'i Aç',
+    connectTokenLabel:    'API Token',
+    connectTokenHint:     'Salt-okunur access token. Tradovate şifren bizde görünmez.',
+    connectAccountLabel:  'Hesap Numarası / ID',
+    connectAccountHint:   'Tradovate panelinin sağ üst köşesinde görebilirsin.',
+    connectFromDateLabel: 'Şu tarihten itibaren senkronla (opsiyonel)',
+    connectFromDateHint:  'Tradovate yaklaşık son 30 günü saklar; daha eski tarihler API limitiyle sessizce kırpılır.',
+    connectClearDate:     'Temizle',
+    connectCreateButton:  'Bağlantıyı Oluştur',
+    connectErrTokenEmpty:    'Lütfen bir API token yapıştır.',
+    connectErrAccountEmpty:  'Lütfen hesap numaranı gir.',
+    connectErrAccountNotFound: 'Bu hesap numarası verilen token altında bulunamadı. Numarayı ve token\'ın bu hesaba erişiminin olduğunu kontrol et.',
+    connectErrInvalidToken:  'Tradovate token\'ı reddetti. Süresi dolmuş veya yanlış yapıştırılmış olabilir.',
+
     tradovateBlurb:      'Tradovate canlı ve demo hesaplarındaki fill\'lerini otomatik senkronlar. Round-trip\'ler kendiliğinden algılanır; QT alanları (entries, mistakes, R) elle girilir.',
     tradovateGet:        [
       'Canlı + demo hesap otomatik senkronu',
@@ -74,10 +91,10 @@ export const TR = {
     ],
     tradovateReq:        ['Tradovate trader hesabı (canlı veya demo)'],
     tradovateSteps:      [
-      'Bağlan\'a tıkla — Tradovate\'in resmi giriş sayfasına yönlendirileceksin.',
-      'Tradovate kullanıcı bilgilerinle giriş yap ve QT Journal için salt-okuma erişimini onayla.',
-      'Senkronlamak istediğin hesapları seç (birden fazla seçebilirsin; demo hesaplar DEMO etiketi ile işaretlidir).',
-      'Bitti — ilk senkronda son 30 gün fill\'lerin gelir, sonraki "Şimdi Senkronla" tıklamaları sadece yeni veriyi çeker.',
+      'Bağlan\'a tıkla — küçük bir diyalog açılacak; üç alan ve Tradovate\'e çıkan bir link içerir.',
+      'O link üzerinden Tradovate\'e giriş yap ve salt-okunur bir API access token üret; token\'ı kopyala.',
+      'Token\'ı diyaloga yapıştır; Tradovate trader arayüzünün sağ üst köşesindeki hesap numaranı gir.',
+      '"Bağlantıyı Oluştur" tıkla — fill\'lerin alınır; sonraki "Şimdi Senkronla" sadece yeni veriyi çeker.',
     ],
 
     mt4Blurb:            'MetaTrader 4 ve 5 doğrudan tarayıcı API\'si sunmaz. Entegrasyon platformun History export çıktısını → otomatik CSV import\'a bağlayacak.',

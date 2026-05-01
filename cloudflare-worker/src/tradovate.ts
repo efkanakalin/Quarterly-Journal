@@ -13,8 +13,6 @@
  */
 
 export interface Env {
-  TRADOVATE_CLIENT_ID:     string
-  TRADOVATE_CLIENT_SECRET: string
   TRADOVATE_API_BASE:      string
   TRADOVATE_DEMO_API_BASE: string
   SUPABASE_JWT_SECRET:     string
@@ -61,12 +59,6 @@ async function tradovateFetch<T>(
   return body as T
 }
 
-export interface ExchangeCodeBody {
-  grant_type:   'authorization_code'
-  code:         string
-  redirect_uri: string
-}
-
 export interface TradovateTokenResponse {
   accessToken:    string
   expirationTime: string
@@ -76,22 +68,6 @@ export interface TradovateTokenResponse {
   name?: string
   hasLive?: boolean
   hasFunded?: boolean
-}
-
-export async function exchangeAuthCode(
-  env: Env,
-  body: ExchangeCodeBody,
-): Promise<TradovateTokenResponse> {
-  return tradovateFetch<TradovateTokenResponse>(env.TRADOVATE_API_BASE, '/auth/oauthtoken', {
-    method: 'POST',
-    body: JSON.stringify({
-      grant_type:    body.grant_type,
-      code:          body.code,
-      redirect_uri:  body.redirect_uri,
-      client_id:     env.TRADOVATE_CLIENT_ID,
-      client_secret: env.TRADOVATE_CLIENT_SECRET,
-    }),
-  })
 }
 
 /**
