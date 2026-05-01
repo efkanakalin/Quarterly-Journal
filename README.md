@@ -86,21 +86,18 @@ npm run dev          # http://localhost:5173
 
 Brokers page'in Tradovate bağlantısını çalıştırmak için Cloudflare Worker
 proxy'yi deploy etmek gerekir — Tradovate browser CORS'u kapalı tutar.
+Akış manuel-token: kullanıcı Tradovate'ten kendi access token'ını alıp UI'ya
+yapıştırır; OAuth client kaydı gerekmez.
 
-1. **OAuth app** — Tradovate hesabınızda OAuth client ID/secret oluşturun
-   ve redirect URI'yi `https://<your-host>/brokers/tradovate/callback`
-   olarak girin.
-2. **Worker deploy** — `cloudflare-worker/README.md` adımlarını izleyin
-   (`wrangler secret put`'larla `TRADOVATE_CLIENT_ID`,
-   `TRADOVATE_CLIENT_SECRET`, `SUPABASE_JWT_SECRET` set edilir).
-3. **Frontend `.env`** — worker URL'sini ve client ID'yi ekleyin:
+1. **Worker deploy** — `cloudflare-worker/README.md` adımlarını izleyin
+   (sadece `wrangler secret put SUPABASE_JWT_SECRET`).
+2. **Frontend `.env`** — worker URL'sini ekleyin:
 
    ```
    VITE_TRADOVATE_WORKER_URL=https://qt-journal-tradovate-proxy.<acct>.workers.dev
-   VITE_TRADOVATE_CLIENT_ID=<your-tradovate-client-id>
    ```
 
-4. **Migration** — `supabase/migrations/005_broker_connections.sql`
+3. **Migration** — `supabase/migrations/005_broker_connections.sql`
    uygulanmış olmalı; tablo `broker_connections`'tır ve RLS user-scoped.
 
 ### CSV import

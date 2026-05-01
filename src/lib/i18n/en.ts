@@ -66,6 +66,23 @@ export const EN = {
     detailClose:         'Close',
     notConfiguredToast:  'Tradovate integration is not configured for this deployment.',
 
+    connectModalTitle:    'Connect Tradovate',
+    connectModalSubtitle: 'Get an API token from Tradovate, then paste it here along with the account number you want to mirror.',
+    connectStep1:         'Sign in to Tradovate, generate an API access token, and find your account number on the top-right of the Tradovate trader UI.',
+    connectOpenTradovate: 'Open Tradovate',
+    connectTokenLabel:    'API Token',
+    connectTokenHint:     'Read-only access token. We never see your Tradovate password.',
+    connectAccountLabel:  'Account Number / ID',
+    connectAccountHint:   'You can find this in the top-right corner of your Tradovate dashboard.',
+    connectFromDateLabel: 'Sync from date (optional)',
+    connectFromDateHint:  'Tradovate keeps the last ~30 days of fills available; older dates will silently fall to the API limit.',
+    connectClearDate:     'Clear',
+    connectCreateButton:  'Create Connection',
+    connectErrTokenEmpty:    'Please paste an API token.',
+    connectErrAccountEmpty:  'Please enter the account number.',
+    connectErrAccountNotFound: 'This account number was not found under the given token. Double-check the number and that the token has access to it.',
+    connectErrInvalidToken:  'Tradovate rejected the token. It may be expired or pasted incorrectly.',
+
     tradovateBlurb:      'Auto-syncs your filled orders from Tradovate live and demo accounts. Round-trips are detected automatically; QT-specific fields (confirmations, mistakes, R-multiple) stay manual.',
     tradovateGet:        [
       'Live & demo account auto-sync',
@@ -74,10 +91,10 @@ export const EN = {
     ],
     tradovateReq:        ['A Tradovate trader login (live or demo)'],
     tradovateSteps:      [
-      'Click Connect — you will be redirected to Tradovate\'s official login page.',
-      'Sign in with your Tradovate credentials and approve the read-only access for QT Journal.',
-      'Pick which accounts you want to mirror (you can choose more than one, demo accounts are tagged DEMO).',
-      'You\'re done — the last 30 days of fills are imported on first sync, and every Sync Now afterwards is incremental.',
+      'Click Connect — a small dialog will open with three fields and a link out to Tradovate.',
+      'Use that link to sign in to Tradovate and generate a read-only API access token; copy the token.',
+      'Paste the token into the dialog and enter the account number you see in the top-right of the Tradovate trader UI.',
+      'Click "Create Connection" — your fills are imported, and Sync Now afterwards is incremental.',
     ],
 
     mt4Blurb:            'MetaTrader 4 and 5 do not expose a direct browser API. Integration is planned via the platform\'s native History export → automatic CSV ingestion in QT Journal.',

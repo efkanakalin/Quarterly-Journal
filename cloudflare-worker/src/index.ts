@@ -7,7 +7,6 @@
  * doğrular ve sadece geçerli kullanıcılar için Tradovate'e proxy yapar.
  *
  * Routes:
- *   POST /tradovate/exchange-code   { code, redirect_uri }              → token
  *   POST /tradovate/refresh-token   { refresh_token }                   → token
  *   POST /tradovate/accounts        { tradovate_access_token }          → Account[]
  *   POST /tradovate/fills           { tradovate_access_token,
@@ -15,10 +14,13 @@
  *
  * Tüm endpointler POST'tur — bu, JWT'nin yanlışlıkla URL/log'a sızmasını
  * azaltır ve gizli body alanlarına izin verir.
+ *
+ * NOT: OAuth client_id/secret artık kullanılmıyor. Kullanıcı Tradovate'ten
+ * kendi access token'ını manuel olarak alıp UI'ya yapıştırıyor; worker
+ * sadece CORS proxy görevi görüyor.
  */
 import { verifySupabaseJwt } from './jwt'
 import {
-  exchangeAuthCode,
   renewAccessToken,
   listAccounts,
   listFills,
@@ -61,17 +63,6 @@ export default {
 
     try {
       switch (url.pathname) {
-        case '/tradovate/exchange-code': {
-          const code        = requireString(body, 'code')
-          const redirectUri = requireString(body, 'redirect_uri')
-          const tk = await exchangeAuthCode(env, {
-            grant_type: 'authorization_code',
-            code,
-            redirect_uri: redirectUri,
-          })
-          return corsResponse(env, tk, 200)
-        }
-
         case '/tradovate/refresh-token': {
           const refreshToken = requireString(body, 'refresh_token')
           const tk = await renewAccessToken(env, refreshToken)

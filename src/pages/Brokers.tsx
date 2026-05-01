@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { useS } from '@/lib/i18n'
 import { BROKER_CATALOG, type BrokerCatalogEntry } from '@/lib/brokers/types'
-import { startTradovateConnect, isTradovateConfigured } from '@/lib/brokers/tradovate'
+import { isTradovateConfigured } from '@/lib/brokers/tradovate'
 import { syncTradovateConnection } from '@/lib/brokers/tradovateSync'
 import { useBrokerConnectionsStore } from '@/stores/useBrokerConnectionsStore'
 import { useTradesStore } from '@/stores/useTradesStore'
@@ -10,7 +10,8 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { BrokerCard } from '@/components/brokers/BrokerCard'
 import { ConnectionCard } from '@/components/brokers/ConnectionCard'
 import { BrokerDetailSheet } from '@/components/brokers/BrokerDetailSheet'
-import type { BrokerSlug } from '@/types'
+import { TradovateConnectModal } from '@/components/brokers/TradovateConnectModal'
+import type { BrokerConnection, BrokerSlug } from '@/types'
 
 export function Brokers() {
   const S = useS()
@@ -18,40 +19,48 @@ export function Brokers() {
   const { connections, loading, fetchConnections, removeConnection, patchConnection } = useBrokerConnectionsStore()
   const addTrade = useTradesStore(s => s.addTrade)
   const [syncingId, setSyncingId] = useState<string | null>(null)
-  const [connecting, setConnecting] = useState(false)
   const [activeBroker, setActiveBroker] = useState<BrokerCatalogEntry | null>(null)
+  const [tradovateModalOpen, setTradovateModalOpen] = useState(false)
 
   const tradovateReady = isTradovateConfigured()
 
   useEffect(() => { fetchConnections() }, [fetchConnections])
 
-  // Bir broker kartına tıklayınca detay sheet'i açılır; bağlantı oradan başlar.
   const handleSelect = (slug: BrokerSlug) => {
     const entry = BROKER_CATALOG.find(b => b.slug === slug)
     if (entry) setActiveBroker(entry)
   }
 
-  const handleConnect = async (slug: BrokerSlug) => {
-    if (!user) return
+  // Detail sheet'in Connect butonu — aktif Tradovate ise modal'ı aç,
+  // diğerleri henüz "Coming Soon" olduğu için toast.
+  const handleConnect = (slug: BrokerSlug) => {
     if (slug !== 'tradovate') {
       toast.message(S.brokers.comingSoonToast)
       return
     }
+    if (!user) return
     if (!tradovateReady) {
       toast.error(S.brokers.notConfiguredToast)
       return
     }
-    setConnecting(true)
+    setActiveBroker(null)
+    setTradovateModalOpen(true)
+  }
+
+  const handleConnected = async (conn: BrokerConnection) => {
+    if (!user) return
+    toast.success(S.brokers.statusActive)
+    // İlk senkron — modal kapandıktan sonra arka planda.
     try {
-      await startTradovateConnect()
+      const result = await syncTradovateConnection(conn, user.id, addTrade, patchConnection)
+      if (result.imported > 0 || result.skipped > 0) {
+        toast.success(S.brokers.syncSuccess(result.imported, result.skipped))
+      }
     } catch (err) {
       console.error(err)
-      const raw = err instanceof Error ? err.message : ''
-      const msg = raw === 'tradovate_not_configured'
-        ? S.brokers.notConfiguredToast
-        : raw || S.brokers.serviceUnavailable
-      toast.error(msg)
-      setConnecting(false)
+      const raw = err instanceof Error ? err.message : undefined
+      const description = raw === 'rate_limited' ? S.brokers.rateLimited : raw
+      toast.error(S.brokers.syncFailedToast, { description })
     }
   }
 
@@ -89,20 +98,11 @@ export function Brokers() {
     }
   }
 
-  const handleReconnect = async (slug: BrokerSlug) => {
+  // Reconnect = yeniden manuel token modal'ı (Tradovate token süresi dolduğunda).
+  const handleReconnect = (slug: BrokerSlug) => {
     if (slug !== 'tradovate') return
-    if (!tradovateReady) {
-      toast.error(S.brokers.notConfiguredToast)
-      return
-    }
-    setConnecting(true)
-    try {
-      await startTradovateConnect()
-    } catch (err) {
-      console.error(err)
-      toast.error(err instanceof Error ? err.message : S.brokers.serviceUnavailable)
-      setConnecting(false)
-    }
+    if (!tradovateReady) { toast.error(S.brokers.notConfiguredToast); return }
+    setTradovateModalOpen(true)
   }
 
   return (
@@ -165,8 +165,14 @@ export function Brokers() {
         open={activeBroker !== null}
         onOpenChange={open => { if (!open) setActiveBroker(null) }}
         onConnect={handleConnect}
-        connecting={connecting && activeBroker?.slug === 'tradovate'}
+        connecting={false}
         configured={activeBroker?.slug === 'tradovate' ? tradovateReady : false}
+      />
+
+      <TradovateConnectModal
+        open={tradovateModalOpen}
+        onOpenChange={setTradovateModalOpen}
+        onConnected={handleConnected}
       />
     </div>
   )

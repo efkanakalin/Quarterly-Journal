@@ -9,11 +9,11 @@ yapar.
 
 ## Endpoints
 
-Tüm endpoint'ler `POST` ve auth zorunlu.
+Tüm endpoint'ler `POST` ve auth zorunlu. OAuth `exchange-code` artık yok —
+kullanıcı access token'ı Tradovate'ten manuel alıp UI'ya yapıştırıyor.
 
 | Path                          | Body                                                   | Returns                              |
 |-------------------------------|--------------------------------------------------------|--------------------------------------|
-| `/tradovate/exchange-code`    | `{ code, redirect_uri }`                               | TradovateTokenResponse               |
 | `/tradovate/refresh-token`    | `{ refresh_token }`                                    | TradovateTokenResponse               |
 | `/tradovate/accounts`         | `{ tradovate_access_token }`                           | TradovateAccount[]                   |
 | `/tradovate/fills`            | `{ tradovate_access_token, account_id, from, to }`     | `{ fills, contracts }`               |
@@ -29,16 +29,14 @@ TRADOVATE_DEMO_API_BASE  = "https://demo.tradovateapi.com/v1"
 ALLOWED_ORIGIN           = "https://quarterlyjournal.org"
 ```
 
-Secret olarak set edilmesi gerekenler:
+Secret olarak set edilmesi gereken TEK değer:
 
 ```bash
-wrangler secret put TRADOVATE_CLIENT_ID
-wrangler secret put TRADOVATE_CLIENT_SECRET
 wrangler secret put SUPABASE_JWT_SECRET   # Supabase: Settings → API → JWT Secret
 ```
 
-`SUPABASE_URL` envoke şu an kullanılmıyor — Worker Supabase'e doğrudan
-bağlanmaz, sadece JWT'yi imza üzerinden doğrular.
+OAuth `client_id/secret` artık gereksiz — manuel-token akışı kullanılıyor.
+Worker Supabase'e doğrudan bağlanmaz, sadece JWT'yi imza üzerinden doğrular.
 
 ## Local development
 
@@ -49,11 +47,9 @@ wrangler login                 # bir kerelik
 npm run dev                    # localhost:8787
 ```
 
-Local çalıştırırken secret'ları `.dev.vars` dosyasından okur:
+Local çalıştırırken secret'ı `.dev.vars` dosyasından okur:
 
 ```
-TRADOVATE_CLIENT_ID=...
-TRADOVATE_CLIENT_SECRET=...
 SUPABASE_JWT_SECRET=...
 ```
 

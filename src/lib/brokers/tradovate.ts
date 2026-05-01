@@ -1,52 +1,25 @@
 import { supabase } from '@/lib/supabase'
-import type { TradovateAccount, TradovateTokenResponse } from './types'
+import type { TradovateAccount } from './types'
 
-const WORKER_URL  = (import.meta.env.VITE_TRADOVATE_WORKER_URL as string | undefined)?.replace(/\/$/, '')
-const CLIENT_ID   = import.meta.env.VITE_TRADOVATE_CLIENT_ID as string | undefined
-const REDIRECT_URI = `${window.location.origin}/brokers/tradovate/callback`
-const STATE_KEY   = 'qt-tradovate-oauth-state'
-
-export const TRADOVATE_OAUTH_STATE_KEY = STATE_KEY
+const WORKER_URL = (import.meta.env.VITE_TRADOVATE_WORKER_URL as string | undefined)?.replace(/\/$/, '')
 
 /**
- * Frontend deploy'unda Tradovate entegrasyonu için gerekli env'lerin
- * (worker URL + client id) tanımlanıp tanımlanmadığını döner. UI bu
- * bayrağa bakarak Connect butonunu disable edebilir ya da kullanıcıya
- * "henüz yapılandırılmadı" mesajı gösterebilir.
+ * Tradovate entegrasyonu için sadece tek bir env zorunlu: worker URL.
+ * Client_id/secret yok — kullanıcı Tradovate'ten kendi access token'ını
+ * alıp manuel olarak yapıştırıyor; worker bu token'ı sadece CORS için
+ * proxy'liyor.
  */
 export function isTradovateConfigured(): boolean {
-  return Boolean(WORKER_URL && CLIENT_ID)
+  return Boolean(WORKER_URL)
 }
 
-function ensureEnv(): { workerUrl: string; clientId: string } {
-  if (!WORKER_URL || !CLIENT_ID) {
-    throw new Error('tradovate_not_configured')
-  }
-  return { workerUrl: WORKER_URL, clientId: CLIENT_ID }
-}
-
-/**
- * OAuth code flow başlatır: state üret → localStorage'a yaz → Tradovate
- * authorization sayfasına full-page redirect.
- */
-export async function startTradovateConnect(): Promise<void> {
-  const { clientId } = ensureEnv()
-  const state = crypto.randomUUID()
-  window.localStorage.setItem(STATE_KEY, state)
-
-  const params = new URLSearchParams({
-    response_type: 'code',
-    client_id:     clientId,
-    redirect_uri:  REDIRECT_URI,
-    state,
-  })
-
-  // Tradovate'in resmi authorization endpoint'i.
-  window.location.assign(`https://trader.tradovate.com/oauth?${params.toString()}`)
+function ensureWorker(): string {
+  if (!WORKER_URL) throw new Error('tradovate_not_configured')
+  return WORKER_URL
 }
 
 async function workerFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const { workerUrl } = ensureEnv()
+  const workerUrl = ensureWorker()
   const { data } = await supabase.auth.getSession()
   const accessToken = data.session?.access_token
   if (!accessToken) throw new Error('Not authenticated')
@@ -64,31 +37,24 @@ async function workerFetch<T>(path: string, init?: RequestInit): Promise<T> {
     let errBody: { error?: string } = {}
     try { errBody = await res.json() } catch { /* keep empty */ }
     if (res.status === 429) throw new Error('rate_limited')
+    if (res.status === 401) throw new Error('invalid_token')
     throw new Error(errBody.error ?? `Worker error ${res.status}`)
   }
 
   return res.json() as Promise<T>
 }
 
-export interface ExchangeCodeArgs {
-  code: string
-}
-
-export async function exchangeCode(args: ExchangeCodeArgs): Promise<TradovateTokenResponse> {
-  return workerFetch<TradovateTokenResponse>('/tradovate/exchange-code', {
+/**
+ * Mevcut Tradovate access token'ını yenileyerek yeni bir token döner.
+ * Tradovate'te ayrı refresh token YOKTUR: /renewaccesstoken çağrısı
+ * mevcut access token ile yapılır ve yeni access token döner. Bu nedenle
+ * persist tarafında hem access_token hem refresh_token kolonu yenilenmiş
+ * token olur.
+ */
+export async function refreshAccessToken(currentAccessToken: string) {
+  return workerFetch<{ accessToken: string; expirationTime: string }>('/tradovate/refresh-token', {
     method: 'POST',
-    body: JSON.stringify({
-      grant_type:   'authorization_code',
-      code:         args.code,
-      redirect_uri: REDIRECT_URI,
-    }),
-  })
-}
-
-export async function refreshAccessToken(refreshToken: string): Promise<TradovateTokenResponse> {
-  return workerFetch<TradovateTokenResponse>('/tradovate/refresh-token', {
-    method: 'POST',
-    body: JSON.stringify({ refresh_token: refreshToken }),
+    body: JSON.stringify({ refresh_token: currentAccessToken }),
   })
 }
 
@@ -116,4 +82,14 @@ export async function fetchFills(args: FetchFillsArgs) {
       to: args.to,
     }),
   })
+}
+
+/**
+ * Tradovate ortamı için access token'ın geçerlilik süresi doğrudan
+ * /renewaccesstoken sonucunda dönen `expirationTime` alanından alınır;
+ * fallback olarak şimdiden 75 dakika sonrası kullanılır (Tradovate
+ * access token ömrü ~80 dk; 5 dk buffer).
+ */
+export function defaultTokenExpiry(): string {
+  return new Date(Date.now() + 75 * 60 * 1000).toISOString()
 }
