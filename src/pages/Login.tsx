@@ -263,7 +263,7 @@ export function Login() {
         <img
           src="/landing-logo.png"
           alt="Quarterly Journal"
-          className="h-16 w-auto object-contain"
+          className="h-12 w-auto object-contain"
           onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
         />
         <button
