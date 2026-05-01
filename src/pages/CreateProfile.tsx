@@ -62,11 +62,11 @@ export function CreateProfile() {
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5">
               <label className={LABEL}>{S.profile.firstName} <span className="text-red-500">*</span></label>
-              <input type="text" value={firstName} onChange={e => { setFirstName(e.target.value); setError('') }} placeholder="Efkan" className={INPUT} />
+              <input type="text" value={firstName} onChange={e => { setFirstName(e.target.value); setError('') }} className={INPUT} autoComplete="given-name" />
             </div>
             <div className="space-y-1.5">
               <label className={LABEL}>{S.profile.lastName} <span className="text-red-500">*</span></label>
-              <input type="text" value={lastName} onChange={e => { setLastName(e.target.value); setError('') }} placeholder="Akalın" className={INPUT} />
+              <input type="text" value={lastName} onChange={e => { setLastName(e.target.value); setError('') }} className={INPUT} autoComplete="family-name" />
             </div>
           </div>
 
