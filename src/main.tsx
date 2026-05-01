@@ -10,6 +10,13 @@ const root = createRoot(document.getElementById('root')!)
 if (MISSING_SUPABASE_ENV) {
   // Build sırasında veya deploy ortamında VITE_SUPABASE_URL /
   // VITE_SUPABASE_ANON_KEY eksikse beyaz ekran yerine net mesaj göster.
+  const codePill: React.CSSProperties = {
+    background: 'rgba(255,255,255,0.06)',
+    padding: '1px 6px',
+    borderRadius: 4,
+    fontSize: 12,
+    fontFamily: 'ui-monospace, SFMono-Regular, monospace',
+  }
   root.render(
     <div style={{
       minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -23,8 +30,8 @@ if (MISSING_SUPABASE_ENV) {
           Configuration error
         </h1>
         <p style={{ margin: '0 0 16px', fontSize: 14, lineHeight: 1.6 }}>
-          {/* The deployment is missing <code style={codeStyle}>VITE_SUPABASE_URL</code> or{' '} */}
-          {/* <code style={codeStyle}>VITE_SUPABASE_ANON_KEY</code>. Without these the app cannot */}
+          The deployment is missing <span style={codePill}>VITE_SUPABASE_URL</span> or{' '}
+          <span style={codePill}>VITE_SUPABASE_ANON_KEY</span>. Without these the app cannot
           reach its database.
         </p>
         <p style={{ margin: 0, fontSize: 13, color: '#9ca3af', lineHeight: 1.6 }}>
@@ -44,7 +51,3 @@ if (MISSING_SUPABASE_ENV) {
     </StrictMode>,
   )
 }
-
-// const codeStyle: React.CSSProperties = {
-//   background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4, fontSize: 12,
-// }
