@@ -14,6 +14,7 @@ import { TradeWizard } from './wizard/TradeWizard'
 import { supabase } from '@/lib/supabase'
 import { deriveOutcome } from '@/lib/derivations/outcome'
 import { useTradesStore } from '@/stores/useTradesStore'
+import { useIsReadOnly } from '@/stores/useViewerStore'
 import { useS } from '@/lib/i18n'
 import { SYMBOLS_LIST } from '@/lib/constants/symbols'
 import { JOURNAL_COLUMNS, normalizedColumnWidths, type JournalColumnId } from '@/lib/constants/journalColumns'
@@ -32,6 +33,7 @@ const OUTCOME_LABEL: Record<Outcome, string> = { win: 'WIN', loss: 'STOP', break
 
 export function TradeTable() {
   const { trades, loading, deleteTrade, updateTrade } = useTradesStore()
+  const readOnly = useIsReadOnly()
   const enabledSymbols = useUserPrefsStore(s => s.enabledSymbols)
   const enabledColumns = useUserPrefsStore(s => s.enabledColumns)
   const symbolOptions = SYMBOLS_LIST.filter(s => enabledSymbols.length === 0 || enabledSymbols.includes(s.code))
@@ -193,11 +195,13 @@ export function TradeTable() {
     selected?.id === tradeId && selected.field === field && !isEditing(tradeId, field)
 
   const handleCellClick = (trade: TradeWithRelations, field: EditField) => {
+    if (readOnly) return
     if (isEditing(trade.id, field)) return
     setSelected({ id: trade.id, field })
   }
 
   const handleCellDoubleClick = (trade: TradeWithRelations, field: EditField) => {
+    if (readOnly) return
     setSelected(null)
     startEdit(trade, field)
   }
@@ -243,8 +247,10 @@ export function TradeTable() {
           return (
             <div
               key={trade.id}
-              onClick={() => openWizardAt(trade, 1)}
-              className="rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-3.5 space-y-2.5 active:scale-[0.99] transition-transform cursor-pointer"
+              onClick={() => { if (!readOnly) openWizardAt(trade, 1) }}
+              className={`rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-3.5 space-y-2.5 transition-transform ${
+                readOnly ? '' : 'active:scale-[0.99] cursor-pointer'
+              }`}
             >
               {/* Header — pair, outcome, pnl */}
               <div className="flex items-center justify-between gap-2">
@@ -309,23 +315,25 @@ export function TradeTable() {
                 ) : (
                   <span />
                 )}
-                <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                  <button
-                    onClick={() => openWizardAt(trade, 1)}
-                    className="rounded-md px-2.5 py-1.5 text-white text-xs"
-                    style={{ backgroundColor: '#415dff' }}
-                    aria-label="Edit"
-                  >
-                    <Pencil className="h-3.5 w-3.5" />
-                  </button>
-                  <button
-                    onClick={() => requestDelete(trade.id)}
-                    className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                    aria-label="Delete"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </div>
+                {!readOnly && (
+                  <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                    <button
+                      onClick={() => openWizardAt(trade, 1)}
+                      className="rounded-md px-2.5 py-1.5 text-white text-xs"
+                      style={{ backgroundColor: '#415dff' }}
+                      aria-label="Edit"
+                    >
+                      <Pencil className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => requestDelete(trade.id)}
+                      className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           )
@@ -549,7 +557,7 @@ export function TradeTable() {
                     {colVisible('confluence') && (
                       <td
                         className={`${cellBase} text-center`}
-                        onClick={() => openWizardAt(trade, 1)}
+                        onClick={() => { if (!readOnly) openWizardAt(trade, 1) }}
                       >
                         <ConfirmationChips confirmations={trade.trade_confirmations} />
                       </td>
@@ -623,25 +631,29 @@ export function TradeTable() {
 
                     {colVisible('actions') && (
                       <td className="px-3">
-                        <div className="flex items-center justify-center gap-2" onClick={e => e.stopPropagation()}>
-                          <button
-                            onClick={() => openWizardAt(trade, 1)}
-                            className="inline-flex items-center justify-center rounded-md px-2.5 py-2 text-white shadow-sm transition-colors"
-                            style={{ backgroundColor: '#415dff' }}
-                            onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#2f4ae6')}
-                            onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#415dff')}
-                            title="Edit (full)"
-                          >
-                            <Pencil className="h-4 w-4" />
-                          </button>
-                          <button
-                            onClick={() => requestDelete(trade.id)}
-                            className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                            title="Delete"
-                          >
-                            <Trash2 className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+                        {readOnly ? (
+                          <span className="block text-center text-[11px] text-gray-300 dark:text-[#3a3a3a]">—</span>
+                        ) : (
+                          <div className="flex items-center justify-center gap-2" onClick={e => e.stopPropagation()}>
+                            <button
+                              onClick={() => openWizardAt(trade, 1)}
+                              className="inline-flex items-center justify-center rounded-md px-2.5 py-2 text-white shadow-sm transition-colors"
+                              style={{ backgroundColor: '#415dff' }}
+                              onMouseEnter={e => (e.currentTarget.style.backgroundColor = '#2f4ae6')}
+                              onMouseLeave={e => (e.currentTarget.style.backgroundColor = '#415dff')}
+                              title="Edit (full)"
+                            >
+                              <Pencil className="h-4 w-4" />
+                            </button>
+                            <button
+                              onClick={() => requestDelete(trade.id)}
+                              className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                              title="Delete"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        )}
                       </td>
                     )}
                   </tr>

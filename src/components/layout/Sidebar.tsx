@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   BookOpen, BarChart2, TrendingUp,
-  User, LogOut, Sun, Moon, Newspaper, X, Plug,
+  User, LogOut, Sun, Moon, Newspaper, X, Plug, ShieldCheck,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useThemeStore } from '@/stores/useThemeStore'
@@ -33,12 +33,16 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
     }
   }, [location.pathname, onMobileClose])
 
+  const role = useAuthStore(s => s.role)
   const NAV_ITEMS = [
-    { to: '/dashboard',   icon: BarChart2,  label: S.nav.dashboard },
-    { to: '/journal',     icon: BookOpen,   label: S.nav.journal },
-    { to: '/daily-stats', icon: TrendingUp, label: S.nav.dailyStats },
-    { to: '/news',        icon: Newspaper,  label: S.nav.news, badge: unreadNews },
-    { to: '/brokers',     icon: Plug,       label: S.nav.brokers, beta: true },
+    { to: '/dashboard',   icon: BarChart2,    label: S.nav.dashboard },
+    { to: '/journal',     icon: BookOpen,     label: S.nav.journal },
+    { to: '/daily-stats', icon: TrendingUp,   label: S.nav.dailyStats },
+    { to: '/news',        icon: Newspaper,    label: S.nav.news, badge: unreadNews },
+    { to: '/brokers',     icon: Plug,         label: S.nav.brokers, beta: true },
+    ...(role === 'admin'
+      ? [{ to: '/admin', icon: ShieldCheck, label: S.nav.admin }]
+      : []),
   ] as const
 
   const handleSignOut = async () => {

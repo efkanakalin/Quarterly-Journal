@@ -2,9 +2,12 @@ import { create } from 'zustand'
 import type { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase'
 
+export type UserRole = 'user' | 'admin'
+
 interface AuthState {
   user: User | null
   session: Session | null
+  role: UserRole | null
   loading: boolean
   signInWithGoogle: () => Promise<void>
   signInWithEmail: (email: string, password: string) => Promise<void>
@@ -17,6 +20,7 @@ interface AuthState {
 export const useAuthStore = create<AuthState>((set) => ({
   user:    null,
   session: null,
+  role:    null,
   loading: true,
 
   signInWithGoogle: async () => {
@@ -39,7 +43,6 @@ export const useAuthStore = create<AuthState>((set) => ({
       options: { emailRedirectTo: `${window.location.origin}/dashboard` },
     })
     if (error) throw error
-    // If session is null, email confirmation is required
     return { needsConfirmation: !data.session }
   },
 
@@ -52,10 +55,23 @@ export const useAuthStore = create<AuthState>((set) => ({
 
   signOut: async () => {
     await supabase.auth.signOut()
-    set({ user: null, session: null })
+    set({ user: null, session: null, role: null })
   },
 
   setSession: (session) => {
-    set({ session, user: session?.user ?? null, loading: false })
+    const user = session?.user ?? null
+    set({ session, user, loading: false })
+
+    // Profile.role'ü arka planda çek; null oturumda role'ü temizle.
+    if (!user) { set({ role: null }); return }
+    void supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .maybeSingle()
+      .then(({ data }) => {
+        const r = data?.role
+        set({ role: r === 'admin' ? 'admin' : 'user' })
+      })
   },
 }))

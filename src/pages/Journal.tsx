@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Plus } from 'lucide-react'
 import { useTradesStore } from '@/stores/useTradesStore'
+import { useIsReadOnly } from '@/stores/useViewerStore'
 import { CsvUpload } from '@/components/journal/CsvUpload'
 import { TradeTable } from '@/components/journal/TradeTable'
 import { CalendarView } from '@/components/journal/CalendarView'
@@ -13,6 +14,7 @@ export function Journal() {
   const fetchTrades = useTradesStore(s => s.fetchTrades)
   const [tab, setTab] = useState<Tab>('list')
   const [addingRow, setAddingRow] = useState(false)
+  const readOnly = useIsReadOnly()
   const S = useS()
 
   useEffect(() => { fetchTrades() }, [fetchTrades])
@@ -26,15 +28,17 @@ export function Journal() {
 
       {/* Kontroller — listenin hemen üstünde */}
       <div className="flex items-center justify-end gap-2 flex-wrap pt-2 sm:pt-4">
-        <CsvUpload compact />
+        {!readOnly && <CsvUpload compact />}
 
-        <button
-          onClick={() => setAddingRow(true)}
-          className="flex items-center gap-2 rounded-lg border border-[#415dff]/40 bg-[#415dff]/10 px-3 py-2 text-xs font-semibold text-[#415dff] dark:text-[#8a9eff] hover:bg-[#415dff]/15 dark:hover:bg-[#415dff]/20 active:scale-95 transition"
-        >
-          <Plus className="h-3.5 w-3.5" />
-          {S.journal.addRow}
-        </button>
+        {!readOnly && (
+          <button
+            onClick={() => setAddingRow(true)}
+            className="flex items-center gap-2 rounded-lg border border-[#415dff]/40 bg-[#415dff]/10 px-3 py-2 text-xs font-semibold text-[#415dff] dark:text-[#8a9eff] hover:bg-[#415dff]/15 dark:hover:bg-[#415dff]/20 active:scale-95 transition"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            {S.journal.addRow}
+          </button>
+        )}
 
         <div className="flex gap-1 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-1">
           {(['list', 'calendar'] as Tab[]).map(t => (
