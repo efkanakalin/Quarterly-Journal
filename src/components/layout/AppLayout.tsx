@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Outlet } from 'react-router-dom'
 import { Menu } from 'lucide-react'
 import { Sidebar } from './Sidebar'
+import { AdminViewBanner } from './AdminViewBanner'
 import { Toaster } from '@/components/ui/sonner'
 import { useNewsStore } from '@/stores/useNewsStore'
 
@@ -45,6 +46,7 @@ export function AppLayout() {
       <Sidebar mobileOpen={mobileOpen} onMobileClose={() => setMobileOpen(false)} />
 
       <main className="md:ml-60 min-h-screen">
+        <AdminViewBanner />
         <div className="max-w-screen-xl mx-auto px-4 py-4 sm:px-6 sm:py-6">
           <Outlet />
         </div>

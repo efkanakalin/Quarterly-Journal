@@ -7,6 +7,7 @@ import { syncTradovateConnection } from '@/lib/brokers/tradovateSync'
 import { useBrokerConnectionsStore } from '@/stores/useBrokerConnectionsStore'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { useIsReadOnly, useViewerStore } from '@/stores/useViewerStore'
 import { BrokerCard } from '@/components/brokers/BrokerCard'
 import { ConnectionCard } from '@/components/brokers/ConnectionCard'
 import { BrokerDetailSheet } from '@/components/brokers/BrokerDetailSheet'
@@ -16,6 +17,8 @@ import type { BrokerConnection, BrokerSlug } from '@/types'
 export function Brokers() {
   const S = useS()
   const user = useAuthStore(s => s.user)
+  const readOnly = useIsReadOnly()
+  const viewingLabel = useViewerStore(s => s.viewingUserLabel)
   const { connections, loading, fetchConnections, removeConnection, patchConnection } = useBrokerConnectionsStore()
   const addTrade = useTradesStore(s => s.addTrade)
   const [syncingId, setSyncingId] = useState<string | null>(null)
@@ -103,6 +106,17 @@ export function Brokers() {
     if (slug !== 'tradovate') return
     if (!tradovateReady) { toast.error(S.brokers.notConfiguredToast); return }
     setTradovateModalOpen(true)
+  }
+
+  if (readOnly) {
+    return (
+      <div className="space-y-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white">{S.brokers.title}</h1>
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-400/30 dark:bg-amber-400/10 dark:text-amber-200">
+          {S.admin.bannerViewing(viewingLabel ?? '—')}
+        </div>
+      </div>
+    )
   }
 
   return (

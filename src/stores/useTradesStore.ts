@@ -1,6 +1,8 @@
 import { create } from 'zustand'
 import { supabase } from '@/lib/supabase'
 import { deriveOutcome } from '@/lib/derivations/outcome'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { useViewerStore } from '@/stores/useViewerStore'
 import type { Trade, TradeWithRelations, TradeConfirmation, TradeMistake } from '@/types'
 
 interface TradesState {
@@ -25,6 +27,15 @@ export const useTradesStore = create<TradesState>((set) => ({
   error: null,
 
   fetchTrades: async () => {
+    // Hedef kullanıcı: admin başka birini görüntülüyorsa o, aksi halde
+    // giriş yapmış olan kullanıcının kendisi. Admin RLS'te tüm trade'leri
+    // okuyabildiği için EXPLICIT user_id filtresi şart — yoksa admin
+    // kendi journal'ında tüm kullanıcıların trade'lerini görür.
+    const viewerId = useViewerStore.getState().viewingUserId
+    const selfId   = useAuthStore.getState().user?.id ?? null
+    const targetId = viewerId ?? selfId
+    if (!targetId) { set({ trades: [], loading: false }); return }
+
     set({ loading: true, error: null })
     const { data, error } = await supabase
       .from('trades')
@@ -33,6 +44,7 @@ export const useTradesStore = create<TradesState>((set) => ({
         trade_confirmations(*),
         trade_mistakes(*)
       `)
+      .eq('user_id', targetId)
       .order('entry_time_et', { ascending: false })
 
     if (error) {
