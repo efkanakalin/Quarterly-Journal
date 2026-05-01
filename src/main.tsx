@@ -23,8 +23,8 @@ if (MISSING_SUPABASE_ENV) {
           Configuration error
         </h1>
         <p style={{ margin: '0 0 16px', fontSize: 14, lineHeight: 1.6 }}>
-          The deployment is missing <code style={codeStyle}>VITE_SUPABASE_URL</code> or{' '}
-          <code style={codeStyle}>VITE_SUPABASE_ANON_KEY</code>. Without these the app cannot
+          {/* The deployment is missing <code style={codeStyle}>VITE_SUPABASE_URL</code> or{' '} */}
+          {/* <code style={codeStyle}>VITE_SUPABASE_ANON_KEY</code>. Without these the app cannot */}
           reach its database.
         </p>
         <p style={{ margin: 0, fontSize: 13, color: '#9ca3af', lineHeight: 1.6 }}>
@@ -45,6 +45,6 @@ if (MISSING_SUPABASE_ENV) {
   )
 }
 
-const codeStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4, fontSize: 12,
-}
+// const codeStyle: React.CSSProperties = {
+//   background: 'rgba(255,255,255,0.06)', padding: '1px 6px', borderRadius: 4, fontSize: 12,
+// }
