@@ -65,7 +65,7 @@ export function AppLayout() {
 
       <main className={`min-h-screen transition-[margin] duration-200 ${collapsed ? 'md:ml-0' : 'md:ml-60'}`}>
         <AdminViewBanner />
-        <div className="max-w-screen-xl mx-auto px-4 py-4 sm:px-6 sm:py-6">
+        <div className="max-w-screen-2xl mx-auto px-4 py-4 sm:px-6 sm:py-6">
           <Outlet />
         </div>
       </main>
