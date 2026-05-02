@@ -304,7 +304,7 @@ export function Login() {
         <img
           src="/qt-full.png"
           alt="Quarterly Journal"
-          className="h-12 w-auto object-contain"
+          className="h-20 w-auto object-contain"
           onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
         />
         <button
