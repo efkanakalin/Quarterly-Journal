@@ -11,16 +11,16 @@ interface ColumnDef {
 }
 
 export const JOURNAL_COLUMNS: ColumnDef[] = [
-  { id: 'pair',       width: 9  },
-  { id: 'result',     width: 9  },
-  { id: 'pnl',        width: 10 },
-  { id: 'date',       width: 10 },
-  { id: 'session',    width: 9  },
-  { id: 'time',       width: 9  },
-  { id: 'confluence', width: 17 },
-  { id: 'notes',      width: 15 },
+  { id: 'pair',       width: 7  },
+  { id: 'result',     width: 7  },
+  { id: 'pnl',        width: 8  },
+  { id: 'date',       width: 8  },
+  { id: 'session',    width: 7  },
+  { id: 'time',       width: 7  },
+  { id: 'confluence', width: 13 },
+  { id: 'notes',      width: 30 },
   { id: 'chart',      width: 7  },
-  { id: 'actions',    width: 5  },
+  { id: 'actions',    width: 6  },
 ]
 
 export const DEFAULT_ENABLED_COLUMNS: JournalColumnId[] =

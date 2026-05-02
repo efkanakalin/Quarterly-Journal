@@ -220,7 +220,7 @@ export const EN = {
     leadMinutes:  'Notify minutes before',
   },
   journal: {
-    title:        'Traded Logs',
+    title:        'Trade List',
     listView:     'List',
     calendar:     'Calendar',
     addRow:       'Add Trade',

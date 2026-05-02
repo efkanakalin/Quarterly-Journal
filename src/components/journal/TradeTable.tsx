@@ -1,14 +1,13 @@
-import { Fragment, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { fromZonedTime } from 'date-fns-tz'
 import { formatET } from '@/lib/formatET'
-import { Pencil, Trash2, ExternalLink, Eye, EyeOff, Check, X, ChevronRight } from 'lucide-react'
+import { Pencil, Trash2, ExternalLink, Eye, EyeOff, Check, X, Maximize2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { PairBadge } from './PairBadge'
 import { OutcomeBadge } from './OutcomeBadge'
 import { SessionBadge } from './SessionBadge'
 import { ConfirmationChips } from './ConfirmationChips'
 import { TradeDetailPanel } from './TradeDetailPanel'
-import { TradeSummaryBar } from './TradeSummaryBar'
 import { DeleteTradeDialog } from './DeleteTradeDialog'
 import { TradeWizard } from './wizard/TradeWizard'
 import { supabase } from '@/lib/supabase'
@@ -41,7 +40,6 @@ export function TradeTable() {
   const visibleColIds = JOURNAL_COLUMNS.map(c => c.id).filter(colVisible)
   const colWidths = normalizedColumnWidths(visibleColIds)
   const [detailTrade, setDetailTrade] = useState<TradeWithRelations | null>(null)
-  const [expandedId, setExpandedId] = useState<string | null>(null)
   const [wizardTrade, setWizardTrade] = useState<TradeWithRelations | null>(null)
   const [wizardStep, setWizardStep] = useState(1)
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null)
@@ -345,7 +343,7 @@ export function TradeTable() {
         <div className="overflow-y-auto overflow-x-hidden max-h-[960px] scrollbar-light dark:scrollbar-dark">
           <table className="w-full text-sm table-fixed">
             <colgroup>
-              <col style={{ width: '32px' }} />
+              <col style={{ width: '40px' }} />
               {visibleColIds.map(id => (
                 <col key={id} style={{ width: `${colWidths[id]}%` }} />
               ))}
@@ -396,20 +394,16 @@ export function TradeTable() {
             <tbody className="bg-white dark:bg-[#1a1a1a]">
               {trades.map(trade => {
                 const entryRaw = trade.entry_time_et ?? null
-                const isExpanded = expandedId === trade.id
                 return (
-                  <Fragment key={trade.id}>
-                  <tr className="group border-b border-gray-100 dark:border-white/8 last:border-0 h-[70px]">
+                  <tr key={trade.id} className="group border-b border-gray-100 dark:border-white/8 last:border-0 h-[100px] align-middle">
                     <td className="p-0 align-middle">
                       <button
-                        onClick={() => setExpandedId(isExpanded ? null : trade.id)}
-                        aria-label={isExpanded ? S.journal.closeSummary : S.journal.openSummary}
-                        title={isExpanded ? S.journal.closeSummary : S.journal.openSummary}
-                        className={`mx-auto flex h-6 w-6 items-center justify-center rounded-md text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-700 dark:text-[#6b7280] dark:hover:bg-white/10 dark:hover:text-white ${
-                          isExpanded ? 'opacity-100 bg-gray-100 text-gray-700 dark:bg-white/10 dark:text-white' : 'opacity-0 group-hover:opacity-100 focus-visible:opacity-100'
-                        }`}
+                        onClick={() => setDetailTrade(trade)}
+                        aria-label={S.journal.openSummary}
+                        title={S.journal.openSummary}
+                        className="mx-auto flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-700 dark:text-[#6b7280] dark:hover:bg-white/10 dark:hover:text-white"
                       >
-                        <ChevronRight className={`h-3.5 w-3.5 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                        <Maximize2 className="h-3.5 w-3.5" />
                       </button>
                     </td>
                     {colVisible('pair') && (
@@ -588,7 +582,7 @@ export function TradeTable() {
                             ? <span className="text-gray-400 dark:text-[#6b7280]">***</span>
                             : <span className="text-gray-300 dark:text-white/20">—</span>
                         ) : trade.notes ? (
-                          <p className="text-xs text-gray-600 dark:text-[#9ca3af] leading-relaxed line-clamp-2 text-left">{trade.notes}</p>
+                          <p className="text-xs text-gray-600 dark:text-[#9ca3af] leading-relaxed line-clamp-3 text-left whitespace-pre-wrap break-words">{trade.notes}</p>
                         ) : (
                           <span className="text-gray-300 dark:text-white/20">—</span>
                         )}
@@ -657,14 +651,6 @@ export function TradeTable() {
                       </td>
                     )}
                   </tr>
-                  {isExpanded && (
-                    <tr key={`${trade.id}-summary`} className="bg-gray-50/80 dark:bg-[#0f0f0f]">
-                      <td colSpan={visibleColIds.length + 1} className="p-0">
-                        <TradeSummaryBar trade={trade} onOpenFull={() => setDetailTrade(trade)} />
-                      </td>
-                    </tr>
-                  )}
-                  </Fragment>
                 )
               })}
             </tbody>
