@@ -7,9 +7,10 @@ export const TR = {
     scoreboard: 'Skor Tablosu',
     news:       'Haberler',
     profile:    'Profilim',
-    logout:     'Çıkış',
-    admin:      'Yönetim',
-    blog:       'Blog',
+    logout:      'Çıkış',
+    admin:       'Yönetim',
+    blog:        'Blog',
+    hideSidebar: 'Kenar çubuğunu gizle',
   },
   blog: {
     title:           'Blog',
@@ -219,7 +220,7 @@ export const TR = {
     leadMinutes:  'Olaydan kaç dakika önce',
   },
   journal: {
-    title:        'İşlem Listem',
+    title:        'Traded Logs',
     listView:     'Liste',
     calendar:     'Takvim',
     addRow:       'İşlem Ekle',

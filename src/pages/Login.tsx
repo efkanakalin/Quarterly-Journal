@@ -67,15 +67,20 @@ type AuthMode = 'signin' | 'signup' | 'reset'
 
 function AuthCard() {
   const { signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword } = useAuthStore()
-  const [mode, setMode]       = useState<AuthMode>('signin')
-  const [email, setEmail]     = useState('')
-  const [password, setPass]   = useState('')
-  const [showPass, setShowP]  = useState(false)
-  const [loading, setLoading] = useState(false)
-  const [error, setError]     = useState('')
-  const [info, setInfo]       = useState('')
+  const [mode, setMode]           = useState<AuthMode>('signin')
+  const [email, setEmail]         = useState('')
+  const [password, setPass]       = useState('')
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName]   = useState('')
+  const [username, setUsername]   = useState('')
+  const [showPass, setShowP]      = useState(false)
+  const [loading, setLoading]     = useState(false)
+  const [error, setError]         = useState('')
+  const [info, setInfo]           = useState('')
 
   const reset = () => { setError(''); setInfo('') }
+
+  const validateUsername = (v: string) => /^[a-zA-Z0-9_]{3,20}$/.test(v)
 
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -88,7 +93,9 @@ function AuthCard() {
         setInfo('Check your inbox — we sent a password reset link.')
         setMode('signin')
       } else if (mode === 'signup') {
-        const { needsConfirmation } = await signUpWithEmail(email, password)
+        if (!firstName.trim() || !lastName.trim()) { setError('First and last name are required.'); setLoading(false); return }
+        if (!validateUsername(username)) { setError('Username must be 3–20 chars: letters, numbers, underscores only.'); setLoading(false); return }
+        const { needsConfirmation } = await signUpWithEmail(email, password, { firstName, lastName, username })
         if (needsConfirmation) {
           setInfo('Almost there! Check your email to confirm your account.')
         }
@@ -138,6 +145,40 @@ function AuthCard() {
 
       {/* Email form */}
       <form onSubmit={handleEmail} className="space-y-3">
+        {mode === 'signup' && (
+          <>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                placeholder="First name"
+                value={firstName}
+                onChange={e => { setFirstName(e.target.value); reset() }}
+                className={INPUT}
+                disabled={loading}
+                autoComplete="given-name"
+              />
+              <input
+                type="text"
+                placeholder="Last name"
+                value={lastName}
+                onChange={e => { setLastName(e.target.value); reset() }}
+                className={INPUT}
+                disabled={loading}
+                autoComplete="family-name"
+              />
+            </div>
+            <input
+              type="text"
+              placeholder="Username (e.g. trader123)"
+              value={username}
+              onChange={e => { setUsername(e.target.value); reset() }}
+              className={INPUT}
+              disabled={loading}
+              maxLength={20}
+              autoComplete="username"
+            />
+          </>
+        )}
         <input
           type="email"
           placeholder="Email address"

@@ -7,9 +7,10 @@ export const EN = {
     scoreboard: 'Scoreboard',
     news:       'News',
     profile:    'My Profile',
-    logout:     'Logout',
-    admin:      'Admin',
-    blog:       'Blog',
+    logout:      'Logout',
+    admin:       'Admin',
+    blog:        'Blog',
+    hideSidebar: 'Hide sidebar',
   },
   blog: {
     title:           'Blog',
@@ -219,7 +220,7 @@ export const EN = {
     leadMinutes:  'Notify minutes before',
   },
   journal: {
-    title:        'Your Trades List',
+    title:        'Traded Logs',
     listView:     'List',
     calendar:     'Calendar',
     addRow:       'Add Trade',
