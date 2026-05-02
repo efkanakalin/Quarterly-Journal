@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { AuthGuard } from '@/components/shared/AuthGuard'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Login } from '@/pages/Login'
+import { Auth } from '@/pages/Auth'
 import { Dashboard } from '@/pages/Dashboard'
 import { Journal } from '@/pages/Journal'
 import { DailyStats } from '@/pages/DailyStats'
@@ -37,6 +38,7 @@ function App() {
   return (
     <Routes>
       <Route path="/login"          element={<Login />} />
+      <Route path="/auth"           element={<Auth />} />
       <Route path="/privacy"        element={<Privacy />} />
       <Route path="/create-profile" element={<CreateProfile />} />
 
