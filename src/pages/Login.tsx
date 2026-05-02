@@ -94,10 +94,10 @@ export function Login() {
         {/* Particle field — pointer-events-none, mouse window'a bağlı */}
         <ParticleField />
 
-        {/* Hafif gradient (particles üstünde okunabilirlik için) */}
+        {/* Hafif vignette — koyu zemin korunsun */}
         <div
           className="pointer-events-none absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse 70% 50% at 50% 35%, transparent 0%, rgba(0,0,0,0.25) 100%)' }}
+          style={{ background: 'radial-gradient(ellipse 75% 55% at 50% 35%, transparent 0%, rgba(0,0,0,0.4) 100%)' }}
           aria-hidden
         />
 
@@ -126,14 +126,14 @@ export function Login() {
         </nav>
 
         {/* Hero copy + CTA */}
-        <div className="relative z-20 flex flex-col items-center text-center px-6 pt-12 sm:pt-16 pb-32 sm:pb-40">
+        <div className="relative z-20 flex flex-col items-center text-center px-6 pt-4 sm:pt-8 pb-56 sm:pb-72">
           <div
             ref={headRef}
             className={`transition-all duration-700 ease-out ${headShown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 backdrop-blur-sm">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 [animation:qt-pulse_2s_ease-in-out_infinite]" />
-              <span className="text-xs font-semibold text-slate-200 tracking-wide">100% FREE — Built for Quarterly Theory Traders</span>
+              <span className="text-xs font-semibold text-slate-200 tracking-wide">Built for Quarterly Theory Traders</span>
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] max-w-3xl text-white">
@@ -144,8 +144,7 @@ export function Login() {
             </h1>
 
             <p className="mt-5 text-base sm:text-lg text-slate-400 max-w-xl mx-auto leading-relaxed">
-              Track every trade, measure your confluences, and build a data-driven edge —{' '}
-              <span className="text-white font-semibold">completely free</span>, all within the Quarterly Theory framework.
+              Track every trade, measure your confluences, and build a data-driven edge within the Quarterly Theory framework — completely free.
             </p>
 
             {/* CTA */}
@@ -153,7 +152,7 @@ export function Login() {
               to="/auth?mode=signup"
               className="mt-10 inline-flex items-center gap-2 rounded-lg bg-white px-7 py-3.5 text-base font-semibold text-slate-900 hover:bg-slate-100 active:scale-[0.98] transition shadow-[0_8px_30px_rgba(255,255,255,0.15)]"
             >
-              Get Started — Free
+              Get Started
             </Link>
           </div>
         </div>
@@ -176,7 +175,7 @@ export function Login() {
       {/* ─────────────────── Dashboard preview — derinlik efekti ─────────────────── */}
       <div
         ref={dashRef}
-        className={`relative -mt-[100px] sm:-mt-[160px] mb-16 sm:mb-24 px-4 sm:px-6 z-10 transition-all duration-1000 ease-out ${dashShown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
+        className={`relative -mt-[140px] sm:-mt-[220px] mb-16 sm:mb-24 px-4 sm:px-6 z-10 transition-all duration-1000 ease-out ${dashShown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
       >
         <div className="mx-auto max-w-6xl">
           {/* Dış glow layer (mavimsi mistik halo) */}
