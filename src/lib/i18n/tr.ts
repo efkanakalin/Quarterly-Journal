@@ -220,7 +220,7 @@ export const TR = {
     leadMinutes:  'Olaydan kaç dakika önce',
   },
   journal: {
-    title:        'Traded Logs',
+    title:        'Trade List',
     listView:     'Liste',
     calendar:     'Takvim',
     addRow:       'İşlem Ekle',
