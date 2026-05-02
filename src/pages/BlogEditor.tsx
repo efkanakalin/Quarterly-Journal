@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, Loader2 } from 'lucide-react'
+import { ArrowLeft, ImagePlus, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import ReactMarkdown from 'react-markdown'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -43,6 +43,30 @@ export function BlogEditor() {
   const [slugTouched, setSlugTouched] = useState(false)
   const [readTouched, setReadTouched] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const bodyRef = useRef<HTMLTextAreaElement | null>(null)
+
+  // Cursor pozisyonuna markdown image syntax'ı yapıştır.
+  const insertImageAtCursor = () => {
+    const url = window.prompt(S.blog.imagePromptUrl)
+    if (!url || !url.trim()) return
+    const alt = window.prompt(S.blog.imagePromptAlt) ?? ''
+    const md = `\n\n![${alt}](${url.trim()})\n\n`
+    const ta = bodyRef.current
+    if (!ta) {
+      setForm(f => ({ ...f, body: f.body + md }))
+      return
+    }
+    const start = ta.selectionStart ?? form.body.length
+    const end   = ta.selectionEnd   ?? form.body.length
+    const next  = form.body.slice(0, start) + md + form.body.slice(end)
+    setForm(f => ({ ...f, body: next }))
+    // sonraki tick'te cursor'u yapıştırılan görselin sonuna al
+    setTimeout(() => {
+      ta.focus()
+      const pos = start + md.length
+      ta.setSelectionRange(pos, pos)
+    }, 0)
+  }
 
   // Edit modunda mevcut yazıyı yükle
   useEffect(() => {
@@ -168,16 +192,6 @@ export function BlogEditor() {
           />
         </Field>
 
-        <Field label={S.blog.formSlugLabel} hint={S.blog.formSlugHint}>
-          <input
-            type="text"
-            value={form.slug}
-            onChange={e => { setSlugTouched(true); setForm(f => ({ ...f, slug: slugify(e.target.value) })) }}
-            className={`${INPUT} font-mono text-xs`}
-            disabled={saving}
-          />
-        </Field>
-
         <Field label={S.blog.formCoverLabel} hint={S.blog.formCoverHint}>
           <input
             type="url"
@@ -211,7 +225,7 @@ export function BlogEditor() {
         </Field>
 
         <Field label={S.blog.formBodyLabel}>
-          <div className="mb-2 flex gap-2">
+          <div className="mb-2 flex flex-wrap items-center gap-2">
             <button
               type="button"
               onClick={() => setShowPreview(false)}
@@ -226,6 +240,15 @@ export function BlogEditor() {
             >
               Preview
             </button>
+            <button
+              type="button"
+              onClick={insertImageAtCursor}
+              disabled={showPreview || saving}
+              className="ml-auto inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white px-2.5 py-1 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 dark:border-white/10 dark:bg-[#0f0f0f] dark:text-[#d1d5db] dark:hover:bg-white/5"
+              title={S.blog.imageInsertHint}
+            >
+              <ImagePlus className="h-3 w-3" />{S.blog.imageInsertButton}
+            </button>
           </div>
           {showPreview ? (
             <div className="qt-prose min-h-[280px] rounded-lg border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-[#0f0f0f]">
@@ -233,6 +256,7 @@ export function BlogEditor() {
             </div>
           ) : (
             <textarea
+              ref={bodyRef}
               value={form.body}
               onChange={e => setForm(f => ({ ...f, body: e.target.value }))}
               placeholder={S.blog.formBodyPh}
