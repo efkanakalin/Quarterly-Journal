@@ -14,10 +14,14 @@ export function ConfirmationEffectiveness({
   const [sortBy, setSortBy] = useState<SortKey>('count')
   const [sortAsc, setSortAsc] = useState(false)
 
+  // Aynı trade aynı confirmation_type'ı (farklı timeframe'lerde olsa bile) bir kez sayılsın.
   const map: Record<string, { win: number; total: number; rSum: number; rCount: number }> = {}
   for (const trade of trades) {
+    const seen = new Set<string>()
     for (const conf of trade.trade_confirmations ?? []) {
-      const key = `${conf.timeframe}__${conf.confirmation_type}`
+      const key = conf.confirmation_type
+      if (seen.has(key)) continue
+      seen.add(key)
       if (!map[key]) map[key] = { win: 0, total: 0, rSum: 0, rCount: 0 }
       if (trade.outcome === 'win' || trade.outcome === 'loss') {
         map[key].total++
@@ -28,13 +32,12 @@ export function ConfirmationEffectiveness({
   }
 
   const rows = Object.entries(map).map(([key, v]) => {
-    const [timeframe, confirmationType] = key.split('__')
     return {
-      key, timeframe, confirmationType,
+      key, confirmationType: key,
       count:   v.total,
       winRate: v.total === 0 ? 0 : (v.win / v.total) * 100,
       avgR:    v.rCount === 0 ? null : v.rSum / v.rCount,
-      badgeClass: BADGE_CLASS[CONFIRMATION_PALETTE[confirmationType] ?? 'slate'],
+      badgeClass: BADGE_CLASS[CONFIRMATION_PALETTE[key] ?? 'slate'],
     }
   })
 
@@ -84,7 +87,7 @@ export function ConfirmationEffectiveness({
               <tr key={row.key} className="border-b border-gray-50 dark:border-white/5 last:border-0">
                 <td className="py-2">
                   <span className={`inline-flex items-center rounded-sm px-2 py-1 text-xs font-medium ${row.badgeClass}`}>
-                    {row.timeframe} {row.confirmationType}
+                    {row.confirmationType}
                   </span>
                 </td>
                 <td className="py-2 text-right text-gray-900 dark:text-white px-3">{row.count}</td>
