@@ -273,7 +273,7 @@ export function TradeTable() {
               <div className="flex items-center gap-2 flex-wrap text-xs text-gray-500 dark:text-[#9ca3af]">
                 {entryRaw && (
                   <>
-                    <span>{formatET(entryRaw, 'MMM d, yyyy')}</span>
+                    <span>{formatET(entryRaw, 'MMM d')}</span>
                     <span className="opacity-40">•</span>
                     <span className="font-mono">{formatET(entryRaw, 'HH:mm')}</span>
                   </>
@@ -499,7 +499,7 @@ export function TradeTable() {
                             saving={false}
                           />
                         ) : (
-                          entryRaw ? formatET(entryRaw, 'MMM d, yyyy') : '—'
+                          entryRaw ? formatET(entryRaw, 'MMM d') : '—'
                         )}
                       </td>
                     )}

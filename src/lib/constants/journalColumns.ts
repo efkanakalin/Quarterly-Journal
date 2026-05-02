@@ -14,12 +14,12 @@ export const JOURNAL_COLUMNS: ColumnDef[] = [
   { id: 'pair',       width: 7  },
   { id: 'result',     width: 7  },
   { id: 'pnl',        width: 8  },
-  { id: 'date',       width: 8  },
+  { id: 'date',       width: 6  },
   { id: 'session',    width: 7  },
-  { id: 'time',       width: 7  },
-  { id: 'confluence', width: 13 },
-  { id: 'notes',      width: 30 },
-  { id: 'chart',      width: 7  },
+  { id: 'time',       width: 6  },
+  { id: 'confluence', width: 22 },
+  { id: 'notes',      width: 25 },
+  { id: 'chart',      width: 6  },
   { id: 'actions',    width: 6  },
 ]
 
