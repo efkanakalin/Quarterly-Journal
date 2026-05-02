@@ -38,7 +38,7 @@ export function AppLayout() {
           <Menu className="h-5 w-5" />
         </button>
         <img
-          src="/quarterly-journal.png"
+          src="/qt-wordmark.png"
           alt="Quarterly Journal"
           className="h-9 w-auto object-contain"
         />
