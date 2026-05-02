@@ -4,7 +4,7 @@ import { ChevronDown } from 'lucide-react'
 import { ParticleField } from '@/components/landing/ParticleField'
 
 /* ─── Scroll-reveal ─────────────────────────────────────── */
-function useReveal<T extends HTMLElement>() {
+function useReveal<T extends HTMLElement>(threshold = 0.15) {
   const ref  = useRef<T | null>(null)
   const [shown, setShown] = useState(false)
   useEffect(() => {
@@ -12,10 +12,10 @@ function useReveal<T extends HTMLElement>() {
     if (!el) return
     const io = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) { setShown(true); io.disconnect() }
-    }, { threshold: 0.15 })
+    }, { threshold })
     io.observe(el)
     return () => io.disconnect()
-  }, [])
+  }, [threshold])
   return { ref, shown }
 }
 
@@ -51,33 +51,29 @@ const FAQS = [
   },
 ]
 
-/* ─── FAQ Item ───────────────────────────────────────────── */
+/* ─── FAQ Item — minimalist, ince ayraçlı ─────────────────── */
 function FaqItem({ q, a, index, open, onToggle }: {
   q: string; a: string; index: number; open: boolean; onToggle: () => void
 }) {
-  const { ref, shown } = useReveal<HTMLLIElement>()
+  const { ref, shown } = useReveal<HTMLLIElement>(0.1)
   return (
     <li
       ref={ref}
-      style={{ transitionDelay: shown ? `${index * 60}ms` : '0ms' }}
-      className={`transition-all duration-500 ease-out ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'}`}
+      style={{ transitionDelay: shown ? `${index * 80}ms` : '0ms' }}
+      className={`border-b border-slate-200 transition-all duration-700 ease-out ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
     >
       <button
         onClick={onToggle}
-        className={`w-full flex items-center justify-between gap-4 text-left px-5 py-4 rounded-xl border transition-all duration-200 ${
-          open
-            ? 'border-slate-400/40 bg-slate-50 shadow-sm'
-            : 'border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50'
-        }`}
+        className="w-full flex items-center justify-between gap-4 text-left py-5 group"
       >
-        <span className={`text-sm font-semibold transition-colors ${open ? 'text-slate-900' : 'text-slate-800'}`}>{q}</span>
+        <span className={`text-base font-medium transition-colors ${open ? 'text-slate-900' : 'text-slate-700 group-hover:text-slate-900'}`}>{q}</span>
         <ChevronDown
-          className={`h-4 w-4 shrink-0 transition-all duration-200 ${open ? 'rotate-180 text-slate-700' : 'text-slate-400'}`}
+          className={`h-4 w-4 shrink-0 transition-all duration-300 ${open ? 'rotate-180 text-slate-700' : 'text-slate-400'}`}
         />
       </button>
-      <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100 mt-1' : 'grid-rows-[0fr] opacity-0'}`}>
+      <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${open ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
         <div className="min-h-0">
-          <p className="px-5 pb-4 pt-2 text-sm text-slate-600 leading-relaxed">{a}</p>
+          <p className="pb-5 text-sm text-slate-600 leading-relaxed pr-8">{a}</p>
         </div>
       </div>
     </li>
@@ -88,117 +84,157 @@ function FaqItem({ q, a, index, open, onToggle }: {
 export function Login() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
   const { ref: headRef, shown: headShown } = useReveal<HTMLDivElement>()
+  const { ref: dashRef, shown: dashShown } = useReveal<HTMLDivElement>(0.05)
 
   return (
     <div className="min-h-screen bg-white text-slate-900 antialiased">
 
       {/* ─────────────────── Dark Hero with Particles ─────────────────── */}
-      <section className="relative overflow-hidden bg-gradient-to-b from-[#050505] via-[#101012] to-[#1c1c20]">
-        {/* Particle field */}
+      <section className="relative overflow-hidden bg-gradient-to-b from-[#050505] via-[#0c0c10] to-[#1a1a20]">
+        {/* Particle field — pointer-events-none, mouse window'a bağlı */}
         <ParticleField />
 
-        {/* Subtle radial vignette to focus on center */}
+        {/* Hafif gradient (particles üstünde okunabilirlik için) */}
         <div
           className="pointer-events-none absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 30%, transparent 0%, rgba(0,0,0,0.55) 100%)' }}
+          style={{ background: 'radial-gradient(ellipse 70% 50% at 50% 35%, transparent 0%, rgba(0,0,0,0.25) 100%)' }}
           aria-hidden
         />
 
         {/* Navbar */}
-        <nav className="relative z-20 flex items-center justify-between px-6 sm:px-10 py-5">
+        <nav className="relative z-30 flex items-center justify-between px-6 sm:px-10 py-5">
           <img
             src="/qt-full.png"
             alt="Quarterly Journal"
-            className="h-14 sm:h-16 w-auto object-contain"
+            className="h-24 sm:h-28 w-auto object-contain"
             onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
           />
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               to="/auth?mode=signin"
-              className="rounded-lg px-4 py-2 text-sm font-medium text-slate-200 hover:text-white hover:bg-white/5 transition"
+              className="rounded-lg px-5 py-2.5 text-base font-medium text-slate-200 hover:text-white hover:bg-white/5 transition"
             >
               Login
             </Link>
             <Link
               to="/auth?mode=signup"
-              className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-slate-900 hover:bg-slate-100 active:scale-[0.98] transition shadow-sm"
+              className="rounded-lg bg-white px-5 py-2.5 text-base font-semibold text-slate-900 hover:bg-slate-100 active:scale-[0.98] transition shadow-sm"
             >
               Get Started
             </Link>
           </div>
         </nav>
 
-        {/* Hero copy */}
-        <div className="relative z-10 flex flex-col items-center text-center px-6 pt-16 pb-72 sm:pb-80">
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 backdrop-blur-sm">
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-300" />
-            <span className="text-xs font-semibold text-slate-200 tracking-wide">Built for Quarterly Theory Traders</span>
-          </div>
-
+        {/* Hero copy + CTA */}
+        <div className="relative z-20 flex flex-col items-center text-center px-6 pt-12 sm:pt-16 pb-32 sm:pb-40">
           <div
             ref={headRef}
             className={`transition-all duration-700 ease-out ${headShown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'}`}
           >
+            <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.04] px-4 py-1.5 backdrop-blur-sm">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 [animation:qt-pulse_2s_ease-in-out_infinite]" />
+              <span className="text-xs font-semibold text-slate-200 tracking-wide">100% FREE — Built for Quarterly Theory Traders</span>
+            </div>
+
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight leading-[1.1] max-w-3xl text-white">
               A{' '}
-              <span className="relative inline-block">
-                <span className="relative z-10 bg-gradient-to-r from-slate-100 to-slate-300 bg-clip-text text-transparent">Trading Journal</span>
-              </span>
+              <span className="bg-gradient-to-r from-slate-100 via-white to-slate-300 bg-clip-text text-transparent">Trading Journal</span>
               <br />
               to Master Your Process
             </h1>
-            <p className="mt-5 text-base sm:text-lg text-slate-400 max-w-xl mx-auto leading-relaxed">
-              Track every trade, measure your confluences, and build a data-driven edge — all within the Quarterly Theory framework.
-            </p>
-          </div>
 
-          {/* Get Started CTA */}
-          <Link
-            to="/auth?mode=signup"
-            className="mt-10 inline-flex items-center gap-2 rounded-lg bg-white px-6 py-3 text-sm font-semibold text-slate-900 hover:bg-slate-100 active:scale-[0.98] transition shadow-lg"
-          >
-            Get Started
-          </Link>
+            <p className="mt-5 text-base sm:text-lg text-slate-400 max-w-xl mx-auto leading-relaxed">
+              Track every trade, measure your confluences, and build a data-driven edge —{' '}
+              <span className="text-white font-semibold">completely free</span>, all within the Quarterly Theory framework.
+            </p>
+
+            {/* CTA */}
+            <Link
+              to="/auth?mode=signup"
+              className="mt-10 inline-flex items-center gap-2 rounded-lg bg-white px-7 py-3.5 text-base font-semibold text-slate-900 hover:bg-slate-100 active:scale-[0.98] transition shadow-[0_8px_30px_rgba(255,255,255,0.15)]"
+            >
+              Get Started — Free
+            </Link>
+          </div>
         </div>
 
         {/* Curved white transition at bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-[160px] sm:h-[220px] pointer-events-none">
+        <div className="absolute bottom-0 left-0 right-0 h-[120px] sm:h-[180px] pointer-events-none">
           <svg
             viewBox="0 0 1440 220"
             preserveAspectRatio="none"
             className="w-full h-full"
           >
             <path
-              d="M0,220 L0,80 Q720,260 1440,80 L1440,220 Z"
+              d="M0,220 L0,90 Q720,260 1440,90 L1440,220 Z"
               fill="white"
             />
           </svg>
         </div>
       </section>
 
-      {/* ─────────────────── Dashboard preview floating on the curve ─────────────────── */}
-      <div className="relative -mt-[260px] sm:-mt-[340px] mb-12 sm:mb-20 px-4 sm:px-6 z-10">
+      {/* ─────────────────── Dashboard preview — derinlik efekti ─────────────────── */}
+      <div
+        ref={dashRef}
+        className={`relative -mt-[100px] sm:-mt-[160px] mb-16 sm:mb-24 px-4 sm:px-6 z-10 transition-all duration-1000 ease-out ${dashShown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'}`}
+      >
         <div className="mx-auto max-w-6xl">
-          <div className="rounded-2xl border border-slate-900/10 bg-white shadow-2xl overflow-hidden">
-            <img
-              src="/qt-dashboard-preview.png"
-              alt="Quarterly Journal Dashboard"
-              className="w-full h-auto block"
-            />
+          {/* Dış glow layer (mavimsi mistik halo) */}
+          <div
+            className="absolute -inset-4 rounded-3xl opacity-50 blur-3xl"
+            style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 30%, rgba(180,180,210,0.45), transparent 70%)' }}
+            aria-hidden
+          />
+
+          {/* Browser-style frame */}
+          <div
+            className="relative rounded-2xl bg-gradient-to-b from-[#1c1c22] to-[#0f0f12] p-1.5 ring-1 ring-white/10"
+            style={{
+              boxShadow:
+                '0 30px 60px -15px rgba(0,0,0,0.55), 0 18px 36px -18px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04) inset',
+            }}
+          >
+            {/* Window controls bar */}
+            <div className="flex items-center gap-1.5 px-3 py-2.5 rounded-t-xl bg-[#16161a] border-b border-white/[0.06]">
+              <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+              <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+              <div className="flex-1 mx-3">
+                <div className="mx-auto max-w-[280px] rounded-md bg-[#0c0c10] px-3 py-1 text-center text-[10px] text-slate-500 font-mono">
+                  app.quarterlyjournal.com/dashboard
+                </div>
+              </div>
+            </div>
+
+            {/* Dashboard image */}
+            <div className="rounded-b-xl overflow-hidden bg-white">
+              <img
+                src="/qt-dashboard-preview.png"
+                alt="Quarterly Journal Dashboard"
+                className="w-full h-auto block"
+              />
+            </div>
           </div>
+
+          {/* Reflective sheen at top */}
+          <div
+            className="pointer-events-none absolute inset-x-0 top-0 h-px"
+            style={{ background: 'linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent)' }}
+            aria-hidden
+          />
         </div>
       </div>
 
-      {/* ─────────────────── FAQ on white ─────────────────── */}
+      {/* ─────────────────── FAQ on white — minimalist ─────────────────── */}
       <section id="faq" className="px-6 pb-24 max-w-2xl mx-auto">
-        <div className="mb-10 text-center">
-          <h2 className="text-2xl font-bold tracking-tight text-slate-900">
+        <div className="mb-12 text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-slate-900">
             Frequently asked questions
           </h2>
-          <p className="mt-2 text-sm text-slate-500">Everything you need to know before you start.</p>
+          <p className="mt-3 text-sm text-slate-500">Everything you need to know before you start.</p>
         </div>
 
-        <ul className="space-y-2">
+        <ul className="border-t border-slate-200">
           {FAQS.map((faq, i) => (
             <FaqItem
               key={i}
