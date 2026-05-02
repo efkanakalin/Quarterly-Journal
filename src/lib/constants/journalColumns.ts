@@ -18,9 +18,9 @@ export const JOURNAL_COLUMNS: ColumnDef[] = [
   { id: 'session',    width: 7  },
   { id: 'time',       width: 6  },
   { id: 'confluence', width: 22 },
-  { id: 'notes',      width: 25 },
-  { id: 'chart',      width: 6  },
-  { id: 'actions',    width: 6  },
+  { id: 'notes',      width: 21 },
+  { id: 'chart',      width: 8  },
+  { id: 'actions',    width: 8  },
 ]
 
 export const DEFAULT_ENABLED_COLUMNS: JournalColumnId[] =
