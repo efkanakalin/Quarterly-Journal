@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react'
 import { NavLink, useLocation, useNavigate } from 'react-router-dom'
 import {
   BookOpen, BarChart2, TrendingUp,
-  User, LogOut, Sun, Moon, Newspaper, X, Plug, ShieldCheck,
+  User, LogOut, Sun, Moon, Newspaper, X, ShieldCheck, FileText,
 } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useThemeStore } from '@/stores/useThemeStore'
@@ -34,12 +34,17 @@ export function Sidebar({ mobileOpen = false, onMobileClose }: SidebarProps) {
   }, [location.pathname, onMobileClose])
 
   const role = useAuthStore(s => s.role)
+  // Brokers sekmesi şu an gizli — Tradovate manuel-token akışı production'da
+  // yeterince test edilmediği için kullanıcılara henüz açmıyoruz. Kod (sayfa,
+  // store, worker entegrasyonu) repo'da duruyor; aşağıdaki satırı geri açmak
+  // yeniden aktif etmek için yeterli.
+  // { to: '/brokers',     icon: Plug,         label: S.nav.brokers, beta: true },
   const NAV_ITEMS = [
-    { to: '/dashboard',   icon: BarChart2,    label: S.nav.dashboard },
-    { to: '/journal',     icon: BookOpen,     label: S.nav.journal },
-    { to: '/daily-stats', icon: TrendingUp,   label: S.nav.dailyStats },
-    { to: '/news',        icon: Newspaper,    label: S.nav.news, badge: unreadNews },
-    { to: '/brokers',     icon: Plug,         label: S.nav.brokers, beta: true },
+    { to: '/dashboard',   icon: BarChart2,  label: S.nav.dashboard },
+    { to: '/journal',     icon: BookOpen,   label: S.nav.journal },
+    { to: '/daily-stats', icon: TrendingUp, label: S.nav.dailyStats },
+    { to: '/news',        icon: Newspaper,  label: S.nav.news, badge: unreadNews },
+    { to: '/blog',        icon: FileText,   label: S.nav.blog },
     ...(role === 'admin'
       ? [{ to: '/admin', icon: ShieldCheck, label: S.nav.admin }]
       : []),

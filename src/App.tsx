@@ -15,6 +15,9 @@ import { News } from '@/pages/News'
 import { Privacy } from '@/pages/Privacy'
 import { Brokers } from '@/pages/Brokers'
 import { AdminUsers } from '@/pages/AdminUsers'
+import { Blog } from '@/pages/Blog'
+import { BlogPost } from '@/pages/BlogPost'
+import { BlogEditor } from '@/pages/BlogEditor'
 
 function App() {
   const setSession = useAuthStore(s => s.setSession)
@@ -52,6 +55,10 @@ function App() {
         <Route path="/news"        element={<News />} />
         <Route path="/profile"     element={<Profile />} />
         <Route path="/admin"       element={<AdminUsers />} />
+        <Route path="/blog"             element={<Blog />} />
+        <Route path="/blog/new"         element={<BlogEditor />} />
+        <Route path="/blog/:slug"       element={<BlogPost />} />
+        <Route path="/blog/:slug/edit"  element={<BlogEditor />} />
         <Route path="/"            element={<Navigate to="/dashboard" replace />} />
       </Route>
 
