@@ -142,3 +142,18 @@ export interface ImportResult {
   imported: number
   skipped: number
 }
+
+export interface BlogPost {
+  id:              string
+  author_id:       string
+  title:           string
+  slug:            string
+  excerpt:         string | null
+  cover_image_url: string | null
+  body:            string
+  read_minutes:    number
+  published:       boolean
+  published_at:    string | null
+  created_at:      string
+  updated_at:      string
+}

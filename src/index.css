@@ -193,3 +193,47 @@ body {
   20%  { background-color: rgba(244, 63, 94, 0.22); }
   100% { background-color: transparent; }
 }
+/* ── Blog post markdown — minimal Medium-style prose ── */
+.qt-prose { color: #1f2937; line-height: 1.75; font-size: 16px; }
+.dark .qt-prose { color: #d1d5db; }
+
+.qt-prose > * + * { margin-top: 1em; }
+.qt-prose h1 { font-size: 1.75rem; font-weight: 700; margin-top: 1.6em; line-height: 1.25; color: #111827; }
+.qt-prose h2 { font-size: 1.4rem;  font-weight: 700; margin-top: 1.4em; line-height: 1.3;  color: #111827; }
+.qt-prose h3 { font-size: 1.15rem; font-weight: 600; margin-top: 1.2em; line-height: 1.35; color: #111827; }
+.dark .qt-prose h1, .dark .qt-prose h2, .dark .qt-prose h3 { color: #fff; }
+
+.qt-prose p { margin-top: 1em; }
+.qt-prose a { color: #415dff; text-decoration: underline; text-underline-offset: 2px; }
+.dark .qt-prose a { color: #8a9eff; }
+
+.qt-prose strong { font-weight: 600; color: #111827; }
+.dark .qt-prose strong { color: #fff; }
+
+.qt-prose ul, .qt-prose ol { padding-left: 1.4em; }
+.qt-prose ul { list-style: disc; }
+.qt-prose ol { list-style: decimal; }
+.qt-prose li + li { margin-top: 0.4em; }
+
+.qt-prose blockquote {
+  border-left: 3px solid #d1d5db; padding-left: 1em; color: #4b5563;
+  font-style: italic; margin: 1.4em 0;
+}
+.dark .qt-prose blockquote { border-color: rgba(255,255,255,0.2); color: #9ca3af; }
+
+.qt-prose code {
+  background: rgba(0,0,0,0.06); padding: 1px 6px; border-radius: 4px;
+  font-size: 0.9em; font-family: ui-monospace, SFMono-Regular, monospace;
+}
+.dark .qt-prose code { background: rgba(255,255,255,0.08); }
+
+.qt-prose pre {
+  background: #0f0f0f; color: #e5e7eb; padding: 16px; border-radius: 12px;
+  overflow-x: auto; font-size: 13px; line-height: 1.55;
+}
+.qt-prose pre code { background: transparent; padding: 0; }
+
+.qt-prose img { border-radius: 12px; max-width: 100%; height: auto; margin: 1.4em 0; }
+
+.qt-prose hr { border: 0; border-top: 1px solid #e5e7eb; margin: 2em 0; }
+.dark .qt-prose hr { border-color: rgba(255,255,255,0.1); }

@@ -101,12 +101,6 @@ export function Profile() {
           icon={<CalendarDays className="h-4 w-4" />}
           label={S.profile.joined}
           value={joined}
-        />
-        {/* Geçici debug: rol değeri görünüyorsa frontend doğru çalışıyor demektir. */}
-        <InfoRow
-          icon={<ShieldCheck className="h-4 w-4" />}
-          label="Role (debug)"
-          value={role ?? '(loading…)'}
           last
         />
       </div>
