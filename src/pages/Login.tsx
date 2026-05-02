@@ -302,7 +302,7 @@ export function Login() {
       {/* ── Navbar ─────────────────────────────────────── */}
       <nav className="sticky top-0 z-40 flex items-center justify-between px-6 py-4 bg-white/80 backdrop-blur-md border-b border-slate-100">
         <img
-          src="/landing-logo.png"
+          src="/qt-full.png"
           alt="Quarterly Journal"
           className="h-12 w-auto object-contain"
           onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}

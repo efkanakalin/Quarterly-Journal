@@ -85,7 +85,7 @@ export function Sidebar({ mobileOpen = false, onMobileClose, desktopCollapsed = 
         {/* Logo */}
         <div className="flex items-center px-4 py-4 border-b border-gray-200 dark:border-white/10">
           <img
-            src="/quarterly-journal.png"
+            src="/qt-wordmark.png"
             alt="Quarterly Journal"
             className="h-24 w-auto object-contain"
             onError={e => {
