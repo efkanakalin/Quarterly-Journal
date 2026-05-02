@@ -2,12 +2,12 @@ export function fmtClock(iso: string | null): string {
   if (!iso) return '—'
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return '—'
-  return d.toLocaleTimeString(undefined, {
-    hour:   '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    hour12: false,
-  })
+  return new Intl.DateTimeFormat('tr-TR', {
+    timeZone: 'Europe/Istanbul',
+    hour:     '2-digit',
+    minute:   '2-digit',
+    hour12:   false,
+  }).format(d)
 }
 
 export function fmtCountdown(targetIso: string | null, nowMs = Date.now()): string {

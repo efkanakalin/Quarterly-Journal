@@ -23,9 +23,25 @@ export function AuthGuard({ children }: Props) {
         .select('id')
         .eq('id', user.id)
         .single()
-        .then(({ data }) => {
-          if (!data) navigate('/create-profile', { replace: true })
-          else setProfileChecked(true)
+        .then(async ({ data }) => {
+          if (!data) {
+            // Try auto-create from user_metadata (set during signup)
+            const meta = user.user_metadata as {
+              username?: string; display_name?: string
+            } | undefined
+            if (meta?.username && meta?.display_name) {
+              await supabase.from('profiles').upsert({
+                id:           user.id,
+                username:     meta.username,
+                display_name: meta.display_name,
+              })
+              setProfileChecked(true)
+            } else {
+              navigate('/create-profile', { replace: true })
+            }
+          } else {
+            setProfileChecked(true)
+          }
         })
     }
   }, [user, loading, navigate])

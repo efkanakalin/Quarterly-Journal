@@ -3,7 +3,6 @@ import { format, isSameDay } from 'date-fns'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import { useNewsStore } from '@/stores/useNewsStore'
 import { CalendarRow } from './CalendarRow'
-import { NyClock } from './NyClock'
 import { useS } from '@/lib/i18n'
 
 function ymd(d: Date): string {
@@ -65,7 +64,6 @@ export function EconCalendar() {
           <h2 className="text-sm font-semibold tracking-tight text-gray-900 dark:text-white">
             {S.news.calendar}
           </h2>
-          <NyClock />
         </div>
 
         {/* Day navigator */}
