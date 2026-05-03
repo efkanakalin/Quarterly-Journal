@@ -389,6 +389,7 @@ export const EN = {
       CUSTOM:    'Custom',
     },
     customAddPlaceholder: 'Add your own entry model (e.g. MyOTE)',
+    customPairPlaceholder: 'Add your own pair (e.g. SOL/USDT)',
     customAdd:            'Add',
     customRemove:         'Remove',
     personalInfo:         'Personal Info',

@@ -45,6 +45,15 @@ export function Auth() {
   const [error, setError]         = useState('')
   const [info, setInfo]           = useState('')
 
+  // Remember me — localStorage'da persist; supabase storage adapter okur
+  const [rememberMe, setRememberMe] = useState<boolean>(() => {
+    if (typeof localStorage === 'undefined') return true
+    return localStorage.getItem('qt-remember') !== 'false'
+  })
+  useEffect(() => {
+    localStorage.setItem('qt-remember', rememberMe ? 'true' : 'false')
+  }, [rememberMe])
+
   useEffect(() => { setMode(initialMode) /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [location.search])
 
   const reset = () => { setError(''); setInfo('') }
@@ -196,7 +205,16 @@ export function Auth() {
             )}
 
             {mode === 'signin' && (
-              <div className="text-right">
+              <div className="flex items-center justify-between">
+                <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={e => setRememberMe(e.target.checked)}
+                    className="h-3.5 w-3.5 rounded border-slate-300 text-[#415dff] focus:ring-1 focus:ring-[#415dff]/40"
+                  />
+                  <span className="text-[11px] text-slate-500">Remember me</span>
+                </label>
                 <button
                   type="button" onClick={() => { setMode('reset'); reset() }}
                   className="text-[11px] text-slate-400 hover:text-[#415dff] transition-colors"

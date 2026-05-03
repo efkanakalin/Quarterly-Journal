@@ -35,8 +35,14 @@ export function TradeTable() {
   const { trades, loading, deleteTrade, updateTrade } = useTradesStore()
   const readOnly = useIsReadOnly()
   const enabledSymbols = useUserPrefsStore(s => s.enabledSymbols)
+  const customSymbols  = useUserPrefsStore(s => s.customSymbols)
   const enabledColumns = useUserPrefsStore(s => s.enabledColumns)
-  const symbolOptions = SYMBOLS_LIST.filter(s => enabledSymbols.length === 0 || enabledSymbols.includes(s.code))
+  const symbolOptions = [
+    ...SYMBOLS_LIST.filter(s => enabledSymbols.length === 0 || enabledSymbols.includes(s.code)),
+    ...customSymbols
+      .filter(code => enabledSymbols.length === 0 || enabledSymbols.includes(code))
+      .map(code => ({ code, name: code })),
+  ]
   const colVisible = (id: JournalColumnId) => enabledColumns.includes(id)
   const visibleColIds = JOURNAL_COLUMNS.map(c => c.id).filter(colVisible)
   const colWidths = normalizedColumnWidths(visibleColIds)

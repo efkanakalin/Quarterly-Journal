@@ -27,12 +27,14 @@ export function AppLayout() {
   }, [mobileOpen])
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-gray-100 dark:bg-[#0a0a0a]">
+    <div className="min-h-screen overflow-x-clip bg-gray-100 dark:bg-[#0a0a0a]">
       {/* Mobile topbar */}
       <header className="md:hidden sticky top-0 z-30 flex items-center justify-between border-b border-gray-200 dark:border-white/10 bg-white dark:bg-[#111111] px-4 py-3">
         <button
+          type="button"
           onClick={() => setMobileOpen(true)}
           aria-label="Menüyü aç"
+          style={{ touchAction: 'manipulation', WebkitTapHighlightColor: 'transparent' }}
           className="rounded-lg p-2 text-gray-600 dark:text-[#9ca3af] hover:bg-gray-100 dark:hover:bg-white/5 active:scale-95 transition"
         >
           <Menu className="h-5 w-5" />

@@ -20,7 +20,7 @@ export function Journal() {
   useEffect(() => { fetchTrades() }, [fetchTrades])
 
   return (
-    <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
+    <div className="space-y-4 sm:space-y-6 overflow-x-clip">
       {/* Header — Dashboard/News ile aynı pozisyon, biraz daha büyük */}
       <div className="flex items-start sm:items-center justify-between flex-wrap gap-3">
         <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">

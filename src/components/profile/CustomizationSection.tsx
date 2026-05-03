@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Check, RotateCcw, ChevronDown, Plus, X } from 'lucide-react'
+import { Check, RotateCcw, ChevronDown, Plus } from 'lucide-react'
 import { useUserPrefsStore } from '@/stores/useUserPrefsStore'
 import { useS } from '@/lib/i18n'
 import {
@@ -21,16 +21,16 @@ type Tab = 'symbols' | 'confirmations' | 'timeframes' | 'columns'
 export function CustomizationSection() {
   const {
     enabledSymbols, enabledConfirmations, enabledTimeframes, enabledColumns,
-    customConfirmations,
+    customConfirmations, customSymbols,
     toggleSymbol, toggleConfirmation, toggleTimeframe, toggleColumn, resetDefaults,
-    addCustomConfirmation, removeCustomConfirmation,
+    addCustomConfirmation, addCustomSymbol,
   } = useUserPrefsStore()
   const S = useS()
 
   const [tab, setTab] = useState<Tab>('symbols')
 
   const TABS: { id: Tab; label: string; count: number; total: number }[] = [
-    { id: 'symbols',       label: S.customization.pairs,      count: enabledSymbols.length,       total: SYMBOLS_LIST.length },
+    { id: 'symbols',       label: S.customization.pairs,      count: enabledSymbols.length,       total: SYMBOLS_LIST.length + customSymbols.length },
     { id: 'confirmations', label: S.customization.entries,    count: enabledConfirmations.length, total: CONFIRMATIONS.length + customConfirmations.length },
     { id: 'timeframes',    label: S.customization.timeframes, count: enabledTimeframes.length,    total: TIMEFRAMES.length },
     { id: 'columns',       label: S.customization.columns,    count: enabledColumns.length,       total: JOURNAL_COLUMNS.length },
@@ -85,7 +85,12 @@ export function CustomizationSection() {
       {/* Content */}
       <div className="p-4 sm:p-6">
         {tab === 'symbols' && (
-          <SymbolPicker enabled={enabledSymbols} onToggle={toggleSymbol} />
+          <SymbolPicker
+            enabled={enabledSymbols}
+            onToggle={toggleSymbol}
+            customLabels={customSymbols}
+            onAddCustom={addCustomSymbol}
+          />
         )}
         {tab === 'confirmations' && (
           <ConfirmationPicker
@@ -93,7 +98,6 @@ export function CustomizationSection() {
             onToggle={toggleConfirmation}
             customLabels={customConfirmations}
             onAddCustom={addCustomConfirmation}
-            onRemoveCustom={removeCustomConfirmation}
           />
         )}
         {tab === 'timeframes' && (
@@ -108,14 +112,30 @@ export function CustomizationSection() {
 }
 
 // ---------------------------------------------------------------------------
-// Symbol picker — grouped by category
+// Symbol picker — grouped by category + custom labels
 // ---------------------------------------------------------------------------
-function SymbolPicker({ enabled, onToggle }: { enabled: string[]; onToggle: (s: string) => void }) {
+function SymbolPicker({
+  enabled, onToggle, customLabels, onAddCustom,
+}: {
+  enabled: string[]
+  onToggle: (s: string) => void
+  customLabels: string[]
+  onAddCustom: (code: string) => void
+}) {
   const S = useS()
+  const [draft, setDraft] = useState('')
+
   const groups = SYMBOLS_LIST.reduce<Record<string, SymbolDef[]>>((acc, s) => {
     (acc[s.category] ??= []).push(s)
     return acc
   }, {})
+
+  const submitCustom = () => {
+    const v = draft.trim()
+    if (!v) return
+    onAddCustom(v)
+    setDraft('')
+  }
 
   return (
     <div className="space-y-5">
@@ -139,6 +159,49 @@ function SymbolPicker({ enabled, onToggle }: { enabled: string[]; onToggle: (s: 
           </div>
         </Group>
       ))}
+
+      {/* Custom symbols */}
+      <Group title={S.customization.groups.CUSTOM}>
+        <div className="space-y-2">
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={draft}
+              onChange={e => setDraft(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); submitCustom() } }}
+              maxLength={16}
+              placeholder={S.customization.customPairPlaceholder}
+              className="flex-1 rounded-lg border border-gray-200 dark:border-white/10 bg-white dark:bg-[#0f0f0f] px-3 py-2 text-xs text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:ring-1 focus:ring-[#415dff]/40 focus:border-[#415dff] uppercase"
+            />
+            <button
+              type="button"
+              onClick={submitCustom}
+              disabled={!draft.trim()}
+              className="inline-flex items-center gap-1 rounded-lg bg-[#415dff] px-3 py-2 text-xs font-semibold text-white hover:bg-[#2f4ae6] disabled:opacity-50 transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {S.customization.customAdd}
+            </button>
+          </div>
+
+          {customLabels.length > 0 && (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {customLabels.map(label => {
+                const on = enabled.includes(label)
+                return (
+                  <Pill
+                    key={label}
+                    selected={on}
+                    color="#a855f7"
+                    onClick={() => onToggle(label)}
+                    label={label}
+                  />
+                )
+              })}
+            </div>
+          )}
+        </div>
+      </Group>
     </div>
   )
 }
@@ -147,13 +210,12 @@ function SymbolPicker({ enabled, onToggle }: { enabled: string[]; onToggle: (s: 
 // Confirmation picker — grouped + custom labels
 // ---------------------------------------------------------------------------
 function ConfirmationPicker({
-  enabled, onToggle, customLabels, onAddCustom, onRemoveCustom,
+  enabled, onToggle, customLabels, onAddCustom,
 }: {
   enabled: ConfirmationType[]
   onToggle: (c: ConfirmationType) => void
   customLabels: string[]
   onAddCustom: (label: string) => void
-  onRemoveCustom: (label: string) => void
 }) {
   const S = useS()
   const [draft, setDraft] = useState('')
@@ -218,28 +280,19 @@ function ConfirmationPicker({
             </button>
           </div>
 
-          {/* Existing custom labels */}
+          {/* Existing custom labels — silme yok; istemiyorsan toggle ile gizle */}
           {customLabels.length > 0 && (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
               {customLabels.map(label => {
                 const on = enabled.includes(label as ConfirmationType)
                 return (
-                  <div key={label} className="relative">
-                    <Pill
-                      selected={on}
-                      color="#a855f7"
-                      onClick={() => onToggle(label as ConfirmationType)}
-                      label={label}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => onRemoveCustom(label)}
-                      title={S.customization.customRemove}
-                      className="absolute -top-1.5 -right-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white text-[10px] shadow hover:bg-rose-600"
-                    >
-                      <X className="h-3 w-3" strokeWidth={3} />
-                    </button>
-                  </div>
+                  <Pill
+                    key={label}
+                    selected={on}
+                    color="#a855f7"
+                    onClick={() => onToggle(label as ConfirmationType)}
+                    label={label}
+                  />
                 )
               })}
             </div>

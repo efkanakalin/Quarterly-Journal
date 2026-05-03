@@ -16,6 +16,10 @@ interface UserPrefsState {
    *  CONFIRMATIONS listesine ek olarak Add Trade ekranında gösterilirler. */
   customConfirmations:  string[]
 
+  /** Kullanıcının kendi eklediği custom pair/symbol kodları. Built-in
+   *  SYMBOLS_LIST'e ek olarak Add Trade ekranında gösterilirler. */
+  customSymbols:        string[]
+
   setEnabledSymbols:       (v: string[]) => void
   setEnabledConfirmations: (v: ConfirmationType[]) => void
   setEnabledTimeframes:    (v: Timeframe[]) => void
@@ -26,8 +30,8 @@ interface UserPrefsState {
   toggleTimeframe:    (t: Timeframe) => void
   toggleColumn:       (c: JournalColumnId) => void
 
-  addCustomConfirmation:    (label: string) => void
-  removeCustomConfirmation: (label: string) => void
+  addCustomConfirmation: (label: string) => void
+  addCustomSymbol:       (code: string) => void
 
   resetDefaults: () => void
 }
@@ -43,6 +47,7 @@ export const useUserPrefsStore = create<UserPrefsState>()(
       enabledTimeframes:    [...TIMEFRAMES],
       enabledColumns:       [...DEFAULT_ENABLED_COLUMNS],
       customConfirmations:  [],
+      customSymbols:        [],
 
       setEnabledSymbols:       (v) => set({ enabledSymbols: v }),
       setEnabledConfirmations: (v) => set({ enabledConfirmations: v }),
@@ -60,9 +65,12 @@ export const useUserPrefsStore = create<UserPrefsState>()(
         if (st.customConfirmations.includes(trimmed)) return st
         return { customConfirmations: [...st.customConfirmations, trimmed] }
       }),
-      removeCustomConfirmation: (label) => set(st => ({
-        customConfirmations: st.customConfirmations.filter(l => l !== label),
-      })),
+      addCustomSymbol: (code) => set(st => {
+        const trimmed = code.trim().toUpperCase().slice(0, 16)
+        if (!trimmed) return st
+        if (st.customSymbols.includes(trimmed)) return st
+        return { customSymbols: [...st.customSymbols, trimmed] }
+      }),
 
       resetDefaults: () => set({
         enabledSymbols:       DEFAULT_ENABLED_SYMBOLS,
@@ -70,6 +78,7 @@ export const useUserPrefsStore = create<UserPrefsState>()(
         enabledTimeframes:    [...TIMEFRAMES],
         enabledColumns:       [...DEFAULT_ENABLED_COLUMNS],
         customConfirmations:  [],
+        customSymbols:        [],
       }),
     }),
     { name: 'qt-user-prefs' },

@@ -389,6 +389,7 @@ export const TR = {
       CUSTOM:    'Özel',
     },
     customAddPlaceholder: 'Kendi entry modelini ekle (örn. MyOTE)',
+    customPairPlaceholder: 'Kendi paritenı ekle (örn. SOL/USDT)',
     customAdd:            'Ekle',
     customRemove:         'Kaldır',
     personalInfo:         'Kişisel Bilgiler',
