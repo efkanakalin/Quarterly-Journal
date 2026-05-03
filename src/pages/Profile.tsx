@@ -8,6 +8,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { useLangStore } from '@/stores/useLangStore'
 import { useS } from '@/lib/i18n'
 import { CustomizationSection } from '@/components/profile/CustomizationSection'
+import { MfaSection } from '@/components/profile/MfaSection'
 
 interface ProfileData {
   username:     string
@@ -126,6 +127,9 @@ export function Profile() {
               last
             />
           </div>
+
+          {/* 2FA */}
+          <MfaSection />
 
           {/* Admin shortcut */}
           {role === 'admin' && (

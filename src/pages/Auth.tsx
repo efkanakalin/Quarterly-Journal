@@ -1,7 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
+import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { supabase } from '@/lib/supabase'
+
+// hCaptcha site key — env'den alınır. Dev için hCaptcha test key'i fallback.
+// Production: VITE_HCAPTCHA_SITE_KEY env'ini kendi site key'inle set et + Supabase
+// Dashboard → Auth → Bot protection'da hCaptcha enable + secret key gir.
+const HCAPTCHA_SITE_KEY =
+  (import.meta.env.VITE_HCAPTCHA_SITE_KEY as string | undefined) ??
+  '10000000-ffff-ffff-ffff-000000000001'  // hCaptcha test key (always passes)
 
 type AuthMode = 'signin' | 'signup' | 'reset'
 
@@ -54,15 +63,49 @@ export function Auth() {
     localStorage.setItem('qt-remember', rememberMe ? 'true' : 'false')
   }, [rememberMe])
 
+  // hCaptcha — bot/credential stuffing koruması
+  const captchaRef = useRef<HCaptcha | null>(null)
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
+
+  // MFA — password doğrulandıktan sonra TOTP istenirse
+  const [mfaFactorId, setMfaFactorId] = useState<string | null>(null)
+  const [mfaCode, setMfaCode]         = useState('')
+  const [mfaSubmitting, setMfaSubmitting] = useState(false)
+
   useEffect(() => { setMode(initialMode) /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [location.search])
 
   const reset = () => { setError(''); setInfo('') }
   const validateUsername = (v: string) => /^[a-zA-Z0-9_]{3,20}$/.test(v)
 
+  const handleMfa = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!mfaFactorId || mfaCode.length !== 6) return
+    setMfaSubmitting(true)
+    setError('')
+    try {
+      const { data: chal, error: chalErr } = await supabase.auth.mfa.challenge({ factorId: mfaFactorId })
+      if (chalErr) throw chalErr
+      const { error: verErr } = await supabase.auth.mfa.verify({
+        factorId: mfaFactorId, challengeId: chal.id, code: mfaCode,
+      })
+      if (verErr) throw verErr
+      navigate('/dashboard', { replace: true })
+    } catch (err) {
+      setError(err instanceof Error ? err.message : '2FA code is incorrect or expired.')
+      setMfaCode('')
+    } finally {
+      setMfaSubmitting(false)
+    }
+  }
+
   const handleEmail = async (e: React.FormEvent) => {
     e.preventDefault()
     reset()
     if (!email) { setError('Email is required.'); return }
+    if ((mode === 'signin' || mode === 'signup') && !captchaToken) {
+      setError('Please complete the captcha first.')
+      return
+    }
     setLoading(true)
     try {
       if (mode === 'reset') {
@@ -72,16 +115,30 @@ export function Auth() {
       } else if (mode === 'signup') {
         if (!firstName.trim() || !lastName.trim()) { setError('First and last name are required.'); setLoading(false); return }
         if (!validateUsername(username)) { setError('Username must be 3–20 chars: letters, numbers, underscores only.'); setLoading(false); return }
-        const { needsConfirmation } = await signUpWithEmail(email, password, { firstName, lastName, username })
+        const { needsConfirmation } = await signUpWithEmail(email, password, { firstName, lastName, username }, captchaToken ?? undefined)
         if (needsConfirmation) setInfo('Almost there! Check your email to confirm your account.')
         else navigate('/dashboard', { replace: true })
       } else {
-        await signInWithEmail(email, password)
+        await signInWithEmail(email, password, captchaToken ?? undefined)
+        // MFA gerekiyorsa AAL2'ye yükselmeden /dashboard'a gidemeyiz
+        const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
+        if (aalData?.nextLevel === 'aal2' && aalData.currentLevel !== 'aal2') {
+          const { data: factors } = await supabase.auth.mfa.listFactors()
+          const totp = factors?.totp?.find(f => f.status === 'verified')
+          if (totp) {
+            setMfaFactorId(totp.id)
+            setLoading(false)
+            return
+          }
+        }
         navigate('/dashboard', { replace: true })
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Something went wrong.'
       setError(msg.replace('Invalid login credentials', 'Incorrect email or password.'))
+      // Captcha token tek-kullanımlık — başarısızlıkta sıfırla
+      captchaRef.current?.resetCaptcha()
+      setCaptchaToken(null)
     } finally {
       setLoading(false)
     }
@@ -158,8 +215,40 @@ export function Auth() {
           {info  && <p className="mt-4 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 text-xs text-emerald-700">{info}</p>}
           {error && <p className="mt-4 rounded-lg bg-red-50 border border-red-200 px-3 py-2 text-xs text-red-600">{error}</p>}
 
-          {/* Email form */}
-          <form onSubmit={handleEmail} className="mt-5 space-y-3">
+          {/* MFA challenge — password sonrası 2FA aktifse */}
+          {mfaFactorId && (
+            <form onSubmit={handleMfa} className="mt-5 space-y-3">
+              <p className="text-sm text-slate-700">Enter the 6-digit code from your authenticator app.</p>
+              <input
+                type="text"
+                value={mfaCode}
+                onChange={e => setMfaCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="123456"
+                maxLength={6}
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                autoFocus
+                className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-center font-mono text-lg tracking-[0.4em] focus:border-[#415dff] focus:outline-none focus:ring-1 focus:ring-[#415dff]/40"
+              />
+              <button
+                type="submit"
+                disabled={mfaCode.length !== 6 || mfaSubmitting}
+                className="w-full rounded-lg bg-[#415dff] py-2.5 text-sm font-semibold text-white hover:bg-[#2f4ae6] disabled:opacity-60"
+              >
+                {mfaSubmitting ? '...' : 'Verify'}
+              </button>
+              <button
+                type="button"
+                onClick={async () => { await supabase.auth.signOut(); setMfaFactorId(null); setMfaCode('') }}
+                className="w-full text-xs text-slate-500 hover:text-slate-700"
+              >
+                Cancel and sign out
+              </button>
+            </form>
+          )}
+
+          {/* Email form — MFA challenge ekranında gizli */}
+          <form onSubmit={handleEmail} className={`mt-5 space-y-3 ${mfaFactorId ? 'hidden' : ''}`}>
             {mode === 'signup' && (
               <>
                 <div className="flex gap-2">
@@ -221,6 +310,20 @@ export function Auth() {
                 >
                   Forgot password?
                 </button>
+              </div>
+            )}
+
+            {(mode === 'signin' || mode === 'signup') && (
+              <div className="flex justify-center">
+                <HCaptcha
+                  ref={captchaRef}
+                  sitekey={HCAPTCHA_SITE_KEY}
+                  onVerify={(token) => setCaptchaToken(token)}
+                  onExpire={() => setCaptchaToken(null)}
+                  onError={() => setCaptchaToken(null)}
+                  size="normal"
+                  theme="light"
+                />
               </div>
             )}
 

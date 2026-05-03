@@ -10,8 +10,8 @@ interface AuthState {
   role: UserRole | null
   loading: boolean
   signInWithGoogle: () => Promise<void>
-  signInWithEmail: (email: string, password: string) => Promise<void>
-  signUpWithEmail: (email: string, password: string, meta?: { firstName: string; lastName: string; username: string }) => Promise<{ needsConfirmation: boolean }>
+  signInWithEmail: (email: string, password: string, captchaToken?: string) => Promise<void>
+  signUpWithEmail: (email: string, password: string, meta?: { firstName: string; lastName: string; username: string }, captchaToken?: string) => Promise<{ needsConfirmation: boolean }>
   resetPassword: (email: string) => Promise<void>
   signOut: () => Promise<void>
   setSession: (session: Session | null) => void
@@ -31,20 +31,23 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) throw error
   },
 
-  signInWithEmail: async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+  signInWithEmail: async (email, password, captchaToken) => {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+      options: captchaToken ? { captchaToken } : undefined,
+    })
     if (error) throw error
-    // Race condition guard: store'u senkron güncelle ki navigate'den hemen sonra
-    // AuthGuard `user` null görüp /login'e yönlendirme yapmasın.
     if (data.session) get().setSession(data.session)
   },
 
-  signUpWithEmail: async (email, password, meta?: { firstName: string; lastName: string; username: string }) => {
+  signUpWithEmail: async (email, password, meta?: { firstName: string; lastName: string; username: string }, captchaToken?: string) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/dashboard`,
+        captchaToken,
         data: meta ? {
           first_name:   meta.firstName,
           last_name:    meta.lastName,
@@ -84,16 +87,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const user = session?.user ?? null
     set({ session, user, loading: false })
 
-    // Profile.role'ü arka planda çek; null oturumda role'ü temizle.
+    // Profile.role'ü arka planda RPC ile çek (column-level grant ile direct
+    // SELECT engellendi — migration 011); null oturumda role'ü temizle.
     if (!user) { set({ role: null }); return }
     void supabase
-      .from('profiles')
-      .select('role')
-      .eq('id', user.id)
-      .maybeSingle()
+      .rpc('get_my_role')
       .then(({ data }) => {
-        const r = data?.role
-        set({ role: r === 'admin' ? 'admin' : 'user' })
+        set({ role: data === 'admin' ? 'admin' : 'user' })
       })
   },
 }))
