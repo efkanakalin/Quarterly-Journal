@@ -18,8 +18,15 @@ function GoogleLogo() {
 
 export function Auth() {
   const { signInWithGoogle, signInWithEmail, signUpWithEmail, resetPassword } = useAuthStore()
+  const user    = useAuthStore(s => s.user)
+  const loadingAuth = useAuthStore(s => s.loading)
   const location = useLocation()
   const navigate = useNavigate()
+
+  // Already logged in? → /dashboard
+  useEffect(() => {
+    if (!loadingAuth && user) navigate('/dashboard', { replace: true })
+  }, [user, loadingAuth, navigate])
 
   // Initial mode from query string ?mode=signin|signup
   const initialMode: AuthMode = (() => {
@@ -58,8 +65,10 @@ export function Auth() {
         if (!validateUsername(username)) { setError('Username must be 3–20 chars: letters, numbers, underscores only.'); setLoading(false); return }
         const { needsConfirmation } = await signUpWithEmail(email, password, { firstName, lastName, username })
         if (needsConfirmation) setInfo('Almost there! Check your email to confirm your account.')
+        else navigate('/dashboard', { replace: true })
       } else {
         await signInWithEmail(email, password)
+        navigate('/dashboard', { replace: true })
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Something went wrong.'
