@@ -20,6 +20,7 @@
  * sadece CORS proxy görevi görüyor.
  */
 import { verifySupabaseJwt } from './jwt'
+import { rateLimit } from './rate-limit'
 import {
   renewAccessToken,
   listAccounts,
@@ -51,6 +52,19 @@ export default {
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'unauthorized'
       return corsResponse(env, { error: msg }, 401)
+    }
+
+    // Rate limit — per user (60/min + 800/day)
+    const rl = await rateLimit(env, userId)
+    if (!rl.ok) {
+      const r = corsResponse(env, {
+        error: `Rate limit exceeded (per-${rl.limitedBy})`,
+        retry_after: rl.retryAfter,
+      }, 429)
+      r.headers.set('Retry-After', String(rl.retryAfter))
+      r.headers.set('X-RateLimit-Remaining-Minute', String(rl.remaining.minute))
+      r.headers.set('X-RateLimit-Remaining-Day',    String(rl.remaining.day))
+      return r
     }
 
     // Body size limit (10 KB) — DoS / büyük payload koruması

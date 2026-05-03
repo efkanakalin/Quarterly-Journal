@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { useViewerStore } from '@/stores/useViewerStore'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useS } from '@/lib/i18n'
+import { audit } from '@/lib/security/audit'
 
 interface ProfileRow {
   id:           string
@@ -60,6 +61,12 @@ export function AdminUsers() {
       return
     }
     setViewing(p.id, p.display_name || p.username)
+    // Audit: admin başka kullanıcının journal'ını görüntüledi (immutable log)
+    void audit('admin.view_user', {
+      targetId:   p.id,
+      targetType: 'profile',
+      metadata:   { username: p.username },
+    })
     await fetchTrades()
     navigate('/dashboard')
   }

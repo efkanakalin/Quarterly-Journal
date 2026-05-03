@@ -5,6 +5,7 @@ import { tr, enUS } from 'date-fns/locale'
 import { ArrowLeft, Clock, Pencil, Trash2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
 import { safeUrlTransform, SAFE_MARKDOWN_ALLOWED_ELEMENTS } from '@/lib/security/markdown'
+import { audit } from '@/lib/security/audit'
 import { toast } from 'sonner'
 import { useBlogStore } from '@/stores/useBlogStore'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -52,6 +53,7 @@ export function BlogPost() {
     if (!confirm(S.blog.deleteConfirm)) return
     try {
       await deletePost(post.id)
+      void audit('blog.delete', { targetId: post.id, targetType: 'blog_post', metadata: { slug: post.slug, title: post.title } })
       toast.success(S.blog.deleted)
       navigate('/blog')
     } catch (err) {

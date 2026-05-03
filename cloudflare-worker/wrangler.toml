@@ -9,8 +9,18 @@ compatibility_flags = ["nodejs_compat"]
 # OAuth client_id/secret kullanılmaz — kullanıcı Tradovate access token'ını
 # manuel paste ediyor; worker sadece CORS proxy.
 #
+# Rate limit KV (60 req/min + 800 req/day per user):
+#   wrangler kv:namespace create RATE_LIMIT
+#   → çıktıdaki id'yi aşağıdaki kv_namespaces.id alanına yapıştır ve yorumdan çıkar
+#   Bind edilmezse rate limit fail-open (devre dışı) çalışır.
+#
 # Optional vars:
 [vars]
 TRADOVATE_API_BASE = "https://live.tradovateapi.com/v1"
 TRADOVATE_DEMO_API_BASE = "https://demo.tradovateapi.com/v1"
 ALLOWED_ORIGIN = "https://quarterlyjournal.org"
+
+# Per-user rate limiting state — production için aşağıdaki bloğu uncomment et:
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT"
+# id      = "PASTE_KV_NAMESPACE_ID_HERE"

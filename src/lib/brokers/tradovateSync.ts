@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import { useBrokerConnectionsStore } from '@/stores/useBrokerConnectionsStore'
 import { fetchFills, refreshAccessToken } from './tradovate'
+import { decryptToken } from './tokenCrypto'
 import { groupFillsToTrades } from '@/lib/trades/groupFillsToTrades'
 import type { BrokerConnection, TradeWithRelations } from '@/types'
 
@@ -27,6 +28,12 @@ export async function syncTradovateConnection(
   let { access_token, refresh_token, token_expires_at } = connection
   if (!access_token || !refresh_token) {
     throw new Error('Connection has no Tradovate access token')
+  }
+  // At-rest şifreli token'ları kullanmadan önce çöz (migration 010)
+  access_token  = await decryptToken(access_token)
+  refresh_token = await decryptToken(refresh_token)
+  if (!access_token || !refresh_token) {
+    throw new Error('Token decryption failed')
   }
 
   // 1) Token expiry kontrolü — 5 dk threshold.

@@ -17,6 +17,7 @@ export interface Env {
   TRADOVATE_DEMO_API_BASE: string
   SUPABASE_JWT_SECRET:     string
   ALLOWED_ORIGIN:          string
+  RATE_LIMIT?:             KVNamespace
 }
 
 interface TradovateError {

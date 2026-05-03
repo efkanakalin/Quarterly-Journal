@@ -4,6 +4,7 @@ import { ArrowLeft, ImagePlus, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import ReactMarkdown from 'react-markdown'
 import { safeUrlTransform, SAFE_MARKDOWN_ALLOWED_ELEMENTS } from '@/lib/security/markdown'
+import { audit } from '@/lib/security/audit'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useBlogStore } from '@/stores/useBlogStore'
 import { useS } from '@/lib/i18n'
@@ -145,6 +146,7 @@ export function BlogEditor() {
           published_at:    willPublish && !originalPublished ? now : undefined,
         }
         const updated = await updatePost(originalId, patch)
+        void audit('blog.update', { targetId: updated.id, targetType: 'blog_post', metadata: { slug: updated.slug, published: willPublish } })
         toast.success(S.blog.saved)
         navigate(`/blog/${updated.slug}`)
       } else {
@@ -159,6 +161,7 @@ export function BlogEditor() {
           published:       willPublish,
           published_at:    willPublish ? now : null,
         })
+        void audit('blog.create', { targetId: created.id, targetType: 'blog_post', metadata: { slug: created.slug, published: willPublish } })
         toast.success(S.blog.saved)
         navigate(`/blog/${created.slug}`)
       }
