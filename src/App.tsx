@@ -14,6 +14,7 @@ import { Profile } from '@/pages/Profile'
 import { CreateProfile } from '@/pages/CreateProfile'
 import { News } from '@/pages/News'
 import { Privacy } from '@/pages/Privacy'
+import { Terms } from '@/pages/Terms'
 import { Brokers } from '@/pages/Brokers'
 import { AdminUsers } from '@/pages/AdminUsers'
 import { Blog } from '@/pages/Blog'
@@ -40,6 +41,7 @@ function App() {
       <Route path="/login"          element={<Login />} />
       <Route path="/auth"           element={<Auth />} />
       <Route path="/privacy"        element={<Privacy />} />
+      <Route path="/terms"          element={<Terms />} />
       <Route path="/create-profile" element={<CreateProfile />} />
 
       <Route
