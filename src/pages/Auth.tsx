@@ -240,12 +240,41 @@ export function Auth() {
             Track every trade, measure your confluences, and build a data-driven edge — all within the Quarterly Theory framework.
           </p>
 
-          <div className="mt-8 rounded-xl border border-white/10 shadow-2xl overflow-hidden bg-[#0f0f10]">
-            <img
-              src="/qt-dashboard-preview.png"
-              alt="Dashboard preview"
-              className="w-full h-auto block"
+          <div className="relative mt-8">
+            {/* Dış halo */}
+            <div
+              className="absolute -inset-4 rounded-3xl opacity-50 blur-3xl pointer-events-none"
+              style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 30%, rgba(180,180,200,0.35), transparent 70%)' }}
+              aria-hidden
             />
+
+            {/* Browser-style frame */}
+            <div
+              className="relative rounded-2xl bg-gradient-to-b from-[#1c1c22] to-[#0f0f12] p-1.5 ring-1 ring-white/10"
+              style={{
+                boxShadow:
+                  '0 30px 60px -15px rgba(0,0,0,0.55), 0 18px 36px -18px rgba(0,0,0,0.4), 0 0 0 1px rgba(255,255,255,0.04) inset',
+              }}
+            >
+              <div className="flex items-center gap-1.5 px-3 py-2.5 rounded-t-xl bg-[#16161a] border-b border-white/[0.06]">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
+                <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />
+                <div className="flex-1 mx-3">
+                  <div className="mx-auto max-w-[260px] rounded-md bg-[#0c0c10] px-3 py-1 text-center text-[10px] text-slate-500 font-mono">
+                    app.quarterlyjournal.com/dashboard
+                  </div>
+                </div>
+              </div>
+
+              <div className="rounded-b-xl overflow-hidden bg-white">
+                <img
+                  src="/qt-dashboard-preview.png"
+                  alt="Dashboard preview"
+                  className="w-full h-auto block"
+                />
+              </div>
+            </div>
           </div>
         </div>
       </div>
