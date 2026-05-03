@@ -4,6 +4,7 @@ import { format } from 'date-fns'
 import { tr, enUS } from 'date-fns/locale'
 import { ArrowLeft, Clock, Pencil, Trash2 } from 'lucide-react'
 import ReactMarkdown from 'react-markdown'
+import { safeUrlTransform, SAFE_MARKDOWN_ALLOWED_ELEMENTS } from '@/lib/security/markdown'
 import { toast } from 'sonner'
 import { useBlogStore } from '@/stores/useBlogStore'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -132,7 +133,13 @@ export function BlogPost() {
       </header>
 
       <div className="qt-prose mt-8">
-        <ReactMarkdown>{post.body}</ReactMarkdown>
+        <ReactMarkdown
+          urlTransform={safeUrlTransform}
+          allowedElements={SAFE_MARKDOWN_ALLOWED_ELEMENTS as unknown as string[]}
+          unwrapDisallowed
+        >
+          {post.body}
+        </ReactMarkdown>
       </div>
     </article>
   )

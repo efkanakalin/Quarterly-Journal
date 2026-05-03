@@ -17,6 +17,7 @@ import { useIsReadOnly } from '@/stores/useViewerStore'
 import { useS } from '@/lib/i18n'
 import { SYMBOLS_LIST } from '@/lib/constants/symbols'
 import { JOURNAL_COLUMNS, normalizedColumnWidths, type JournalColumnId } from '@/lib/constants/journalColumns'
+import { sanitizeUrl } from '@/lib/security/url'
 import { useUserPrefsStore } from '@/stores/useUserPrefsStore'
 import { SESSION_LABELS } from '@/lib/constants/colors'
 import type { Outcome, Session, Trade, TradeWithRelations } from '@/types'
@@ -166,7 +167,7 @@ export function TradeTable() {
     }
     else if (field === 'session') updates.session = (currentDraft || null) as Session | null
     else if (field === 'notes') updates.notes = currentDraft || null
-    else if (field === 'chart_link') updates.chart_link = currentDraft || null
+    else if (field === 'chart_link') updates.chart_link = sanitizeUrl(currentDraft)
     else if (field === 'date' || field === 'time') {
       const existingDate = trade.entry_time_et ? formatET(trade.entry_time_et, 'yyyy-MM-dd') : null
       const existingTime = trade.entry_time_et ? formatET(trade.entry_time_et, 'HH:mm')      : null
@@ -300,9 +301,9 @@ export function TradeTable() {
 
               {/* Footer — chart link + actions */}
               <div className="flex items-center justify-between pt-1.5 border-t border-gray-100 dark:border-white/5">
-                {trade.chart_link ? (
+                {sanitizeUrl(trade.chart_link) ? (
                   <a
-                    href={trade.chart_link}
+                    href={sanitizeUrl(trade.chart_link) ?? '#'}
                     target="_blank"
                     rel="noopener noreferrer"
                     onClick={e => e.stopPropagation()}
@@ -605,9 +606,9 @@ export function TradeTable() {
                             onCancel={() => setEditing(null)}
                             saving={false}
                           />
-                        ) : trade.chart_link ? (
+                        ) : sanitizeUrl(trade.chart_link) ? (
                           <a
-                            href={trade.chart_link}
+                            href={sanitizeUrl(trade.chart_link) ?? '#'}
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={e => { e.stopPropagation(); }}

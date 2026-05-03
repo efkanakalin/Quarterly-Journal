@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom'
 import { ArrowLeft, ImagePlus, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import ReactMarkdown from 'react-markdown'
+import { safeUrlTransform, SAFE_MARKDOWN_ALLOWED_ELEMENTS } from '@/lib/security/markdown'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useBlogStore } from '@/stores/useBlogStore'
 import { useS } from '@/lib/i18n'
@@ -252,7 +253,13 @@ export function BlogEditor() {
           </div>
           {showPreview ? (
             <div className="qt-prose min-h-[280px] rounded-lg border border-gray-200 bg-white p-4 dark:border-white/10 dark:bg-[#0f0f0f]">
-              <ReactMarkdown>{form.body || '_(boş)_'}</ReactMarkdown>
+              <ReactMarkdown
+                urlTransform={safeUrlTransform}
+                allowedElements={SAFE_MARKDOWN_ALLOWED_ELEMENTS as unknown as string[]}
+                unwrapDisallowed
+              >
+                {form.body || '_(boş)_'}
+              </ReactMarkdown>
             </div>
           ) : (
             <textarea
