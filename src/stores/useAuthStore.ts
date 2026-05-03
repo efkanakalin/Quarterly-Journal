@@ -17,7 +17,7 @@ interface AuthState {
   setSession: (session: Session | null) => void
 }
 
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<AuthState>((set, get) => ({
   user:    null,
   session: null,
   role:    null,
@@ -32,8 +32,11 @@ export const useAuthStore = create<AuthState>((set) => ({
   },
 
   signInWithEmail: async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
+    // Race condition guard: store'u senkron güncelle ki navigate'den hemen sonra
+    // AuthGuard `user` null görüp /login'e yönlendirme yapmasın.
+    if (data.session) get().setSession(data.session)
   },
 
   signUpWithEmail: async (email, password, meta?: { firstName: string; lastName: string; username: string }) => {
@@ -61,12 +64,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       })
     }
 
+    if (data.session) get().setSession(data.session)
     return { needsConfirmation: !data.session }
   },
 
   resetPassword: async (email) => {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/dashboard`,
+      redirectTo: `${window.location.origin}/reset-password`,
     })
     if (error) throw error
   },

@@ -6,6 +6,7 @@ import { AuthGuard } from '@/components/shared/AuthGuard'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { Login } from '@/pages/Login'
 import { Auth } from '@/pages/Auth'
+import { ResetPassword } from '@/pages/ResetPassword'
 import { Dashboard } from '@/pages/Dashboard'
 import { Journal } from '@/pages/Journal'
 import { DailyStats } from '@/pages/DailyStats'
@@ -40,6 +41,7 @@ function App() {
     <Routes>
       <Route path="/login"          element={<Login />} />
       <Route path="/auth"           element={<Auth />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/privacy"        element={<Privacy />} />
       <Route path="/terms"          element={<Terms />} />
       <Route path="/create-profile" element={<CreateProfile />} />
