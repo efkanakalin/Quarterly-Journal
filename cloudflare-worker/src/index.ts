@@ -53,9 +53,18 @@ export default {
       return corsResponse(env, { error: msg }, 401)
     }
 
+    // Body size limit (10 KB) — DoS / büyük payload koruması
+    const contentLength = parseInt(request.headers.get('Content-Length') ?? '0', 10)
+    if (contentLength > 10_000) {
+      return corsResponse(env, { error: 'Payload too large' }, 413)
+    }
+
     let body: Record<string, unknown> = {}
     try {
       const text = await request.text()
+      if (text.length > 10_000) {
+        return corsResponse(env, { error: 'Payload too large' }, 413)
+      }
       body = text ? JSON.parse(text) : {}
     } catch {
       return corsResponse(env, { error: 'Invalid JSON body' }, 400)
@@ -108,12 +117,25 @@ function requireString(body: Record<string, unknown>, key: string): string {
 }
 
 function corsResponse(env: Env, body: unknown, status: number): Response {
+  // Fail-closed: ALLOWED_ORIGIN production'da MUTLAKA set edilmiş olmalı.
+  // Wildcard fallback yok — yanlış konfigürasyon sessiz CORS-bypass yaratmasın.
+  const allowedOrigin = env.ALLOWED_ORIGIN
+  if (!allowedOrigin || allowedOrigin === '*') {
+    return new Response(
+      JSON.stringify({ error: 'Server misconfiguration: ALLOWED_ORIGIN must be set to a concrete origin' }),
+      { status: 500, headers: { 'Content-Type': 'application/json' } },
+    )
+  }
+
   const headers = new Headers({
-    'Access-Control-Allow-Origin':  env.ALLOWED_ORIGIN ?? '*',
+    'Access-Control-Allow-Origin':  allowedOrigin,
     'Access-Control-Allow-Methods': 'POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age':       '86400',
     Vary: 'Origin',
+    // Defense-in-depth: response header'larında da güvenlik
+    'X-Content-Type-Options': 'nosniff',
+    'Referrer-Policy':        'strict-origin-when-cross-origin',
   })
   if (body !== null) {
     headers.set('Content-Type', 'application/json')

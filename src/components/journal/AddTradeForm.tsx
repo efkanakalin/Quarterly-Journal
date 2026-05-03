@@ -3,6 +3,7 @@ import { Plus, X, Check, ClipboardPaste } from 'lucide-react'
 import { fromZonedTime } from 'date-fns-tz'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import { sanitizeUrl } from '@/lib/security/url'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useUserPrefsStore } from '@/stores/useUserPrefsStore'
@@ -135,7 +136,7 @@ export function AddTradeForm({ onClose }: Props) {
         month_quarter: entryUtc ? deriveMonthQuarter(entryUtc) : null,
         year_quarter:  entryUtc ? deriveYearQuarter(entryUtc)  : null,
         outcome: outcome as Outcome,
-        r_multiple: null, chart_link: chartLink || null, notes: notes || null,
+        r_multiple: null, chart_link: sanitizeUrl(chartLink), notes: notes || null,
         source: 'manual' as const, is_complete: true, csv_fingerprint: null,
       }
 

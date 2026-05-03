@@ -1,5 +1,6 @@
 import { ArrowRight, Clock, ExternalLink, Hash, Maximize2, TrendingDown, TrendingUp } from 'lucide-react'
 import { formatET } from '@/lib/formatET'
+import { sanitizeUrl } from '@/lib/security/url'
 import { PairBadge } from './PairBadge'
 import { OutcomeBadge } from './OutcomeBadge'
 import { SessionBadge } from './SessionBadge'
@@ -108,9 +109,9 @@ export function TradeSummaryBar({ trade, onOpenFull }: Props) {
 
         {/* Spacer + actions */}
         <div className="ml-auto flex items-center gap-2">
-          {trade.chart_link && (
+          {sanitizeUrl(trade.chart_link) && (
             <a
-              href={trade.chart_link}
+              href={sanitizeUrl(trade.chart_link) ?? '#'}
               target="_blank"
               rel="noopener noreferrer"
               onClick={e => e.stopPropagation()}

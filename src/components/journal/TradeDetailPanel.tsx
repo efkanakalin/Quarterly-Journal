@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { X, ExternalLink, Clock, Calendar, TrendingUp, TrendingDown, Activity } from 'lucide-react'
 import { formatET } from '@/lib/formatET'
+import { sanitizeUrl } from '@/lib/security/url'
 import { PairBadge } from './PairBadge'
 import { OutcomeBadge } from './OutcomeBadge'
 import { SessionBadge } from './SessionBadge'
@@ -156,10 +157,10 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
         )}
 
         {/* Chart link */}
-        {trade.chart_link && (
+        {sanitizeUrl(trade.chart_link) && (
           <div className="px-4 sm:px-6 py-4 border-t border-gray-100 dark:border-white/5">
             <a
-              href={trade.chart_link}
+              href={sanitizeUrl(trade.chart_link) ?? '#'}
               target="_blank"
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-[#415dff] dark:text-[#8a9eff] hover:underline"

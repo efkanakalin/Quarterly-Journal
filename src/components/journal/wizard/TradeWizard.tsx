@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { supabase } from '@/lib/supabase'
+import { sanitizeUrl } from '@/lib/security/url'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useS } from '@/lib/i18n'
 import { WizardStep1Confirmations } from './WizardStep1Confirmations'
@@ -75,12 +76,13 @@ export function TradeWizard({ trade, open, onClose, onComplete, initialStep = 1 
           .eq('trade_id', trade.id)
         updateTrade(trade.id, {}, data ?? [], undefined)
       } else if (currentStep === 2) {
+        const safeLink = sanitizeUrl(chartLink)
         const { error } = await supabase
           .from('trades')
-          .update({ chart_link: chartLink || null })
+          .update({ chart_link: safeLink })
           .eq('id', trade.id)
         if (error) throw error
-        updateTrade(trade.id, { chart_link: chartLink || null })
+        updateTrade(trade.id, { chart_link: safeLink })
       } else if (currentStep === 3) {
         if (trade.outcome === 'win') {
           const r = rMultiple ? parseFloat(rMultiple) : null
