@@ -10,9 +10,10 @@ function useReveal<T extends HTMLElement>(threshold = 0.15) {
   useEffect(() => {
     const el = ref.current
     if (!el) return
+    // İlk render anında zaten görünürse animasyonu çalıştır
     const io = new IntersectionObserver(entries => {
       if (entries[0].isIntersecting) { setShown(true); io.disconnect() }
-    }, { threshold })
+    }, { threshold, rootMargin: '0px 0px -8% 0px' })
     io.observe(el)
     return () => io.disconnect()
   }, [threshold])
@@ -55,12 +56,12 @@ const FAQS = [
 function FaqItem({ q, a, index, open, onToggle }: {
   q: string; a: string; index: number; open: boolean; onToggle: () => void
 }) {
-  const { ref, shown } = useReveal<HTMLLIElement>(0.1)
+  const { ref, shown } = useReveal<HTMLLIElement>(0)
   return (
     <li
       ref={ref}
-      style={{ transitionDelay: shown ? `${index * 80}ms` : '0ms' }}
-      className={`border-b border-slate-200 transition-all duration-700 ease-out ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}
+      style={{ transitionDelay: shown ? `${index * 110}ms` : '0ms' }}
+      className={`border-b border-slate-200 transition-all duration-[900ms] ease-out ${shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
     >
       <button
         onClick={onToggle}
@@ -102,23 +103,23 @@ export function Login() {
         />
 
         {/* Navbar */}
-        <nav className="relative z-30 flex items-center justify-between px-6 sm:px-10 py-5">
+        <nav className="relative z-30 flex items-center justify-between gap-3 px-4 sm:px-10 py-4 sm:py-5">
           <img
             src="/qt-full.png"
             alt="Quarterly Journal"
-            className="h-24 sm:h-28 w-auto object-contain"
+            className="h-12 sm:h-24 lg:h-28 w-auto object-contain shrink-0"
             onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
           />
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
             <Link
               to="/auth?mode=signin"
-              className="rounded-lg px-5 py-2.5 text-base font-medium text-slate-200 hover:text-white hover:bg-white/5 transition"
+              className="rounded-lg px-3 sm:px-5 py-1.5 sm:py-2.5 text-sm sm:text-base font-medium text-slate-200 hover:text-white hover:bg-white/5 transition"
             >
               Login
             </Link>
             <Link
               to="/auth?mode=signup"
-              className="rounded-lg bg-white px-5 py-2.5 text-base font-semibold text-slate-900 hover:bg-slate-100 active:scale-[0.98] transition shadow-sm"
+              className="rounded-lg bg-white px-3 sm:px-5 py-1.5 sm:py-2.5 text-sm sm:text-base font-semibold text-slate-900 hover:bg-slate-100 active:scale-[0.98] transition shadow-sm whitespace-nowrap"
             >
               Get Started
             </Link>

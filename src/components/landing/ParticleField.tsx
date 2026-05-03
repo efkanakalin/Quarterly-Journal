@@ -50,9 +50,9 @@ export function ParticleField() {
       const y = Math.random() * height
       particles.push({
         x, y, z, ox: x, oy: y,
-        // Ambient floating — düşük ama daima aktif sürüklenme
-        vx:   (Math.random() - 0.5) * 0.2,
-        vy:   (Math.random() - 0.5) * 0.2,
+        // Ambient floating — daima aktif, mouse hareketsizken de belirgin sürüklenme
+        vx:   (Math.random() - 0.5) * 0.42,
+        vy:   (Math.random() - 0.5) * 0.42,
         base: 0.7 + Math.random() * 1.7,
       })
     }
@@ -102,9 +102,9 @@ export function ParticleField() {
           }
         }
 
-        // Origin'e çok hafif geri çekilme — ekrandan kayıp gitmesin
-        p.x += (p.ox - p.x) * 0.001
-        p.y += (p.oy - p.y) * 0.001
+        // Origin'e çok hafif geri çekilme — sürüklenmeyi yavaşlatmadan yön ver
+        p.x += (p.ox - p.x) * 0.0006
+        p.y += (p.oy - p.y) * 0.0006
       }
 
       // ─── Bağlantı çizgileri (yakın parçacıklar) ──────────────────
