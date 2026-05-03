@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { format } from 'date-fns'
 import { tr, enUS } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
-import { AtSign, Mail, CalendarDays, User as UserIcon, ShieldCheck } from 'lucide-react'
+import { AtSign, Mail, CalendarDays, User as UserIcon, ShieldCheck, Settings, UserCircle2 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useLangStore } from '@/stores/useLangStore'
@@ -15,6 +15,8 @@ interface ProfileData {
   created_at:   string
 }
 
+type ProfileTab = 'info' | 'customization'
+
 export function Profile() {
   const S = useS()
   const lang = useLangStore(s => s.lang)
@@ -23,6 +25,7 @@ export function Profile() {
   const role = useAuthStore(s => s.role)
   const [profile, setProfile] = useState<ProfileData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [tab, setTab] = useState<ProfileTab>('info')
 
   useEffect(() => {
     if (!user) return
@@ -52,77 +55,120 @@ export function Profile() {
   const initial = (profile.display_name || profile.username || '?').charAt(0).toUpperCase()
 
   return (
-    <div className="max-w-2xl mx-auto space-y-4 sm:space-y-6">
-      {/* Avatar card */}
-      <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-5 sm:p-8">
-        <div className="flex items-center gap-4 sm:gap-5">
-          <div
-            className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full text-2xl sm:text-3xl font-bold text-white shadow-sm shrink-0"
-            style={{ backgroundColor: '#415dff' }}
-          >
-            {initial}
-          </div>
-          <div className="min-w-0">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
-              {profile.display_name || profile.username}
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-[#9ca3af] truncate">
-              @{profile.username}
-            </p>
-          </div>
-        </div>
-      </div>
+    <div className="max-w-3xl mx-auto space-y-4 sm:space-y-6">
 
-      {/* Account info */}
-      <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] overflow-hidden">
-        <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-white/10">
-          <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
-            {S.profile.accountInfo}
-          </h2>
-        </div>
-
-        <InfoRow
-          icon={<AtSign className="h-4 w-4" />}
-          label={S.profile.username}
-          value={profile.username}
-          hint={S.profile.usernameLockedHint}
+      {/* Top tab bar */}
+      <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-1.5 inline-flex gap-1 w-full sm:w-auto">
+        <TabButton
+          active={tab === 'info'}
+          onClick={() => setTab('info')}
+          icon={<UserCircle2 className="h-4 w-4" />}
+          label={S.customization.personalInfo}
         />
-        <InfoRow
-          icon={<UserIcon className="h-4 w-4" />}
-          label={S.profile.displayName}
-          value={profile.display_name || '—'}
-        />
-        <InfoRow
-          icon={<Mail className="h-4 w-4" />}
-          label={S.profile.email}
-          value={user?.email ?? '—'}
-        />
-        <InfoRow
-          icon={<CalendarDays className="h-4 w-4" />}
-          label={S.profile.joined}
-          value={joined}
-          last
+        <TabButton
+          active={tab === 'customization'}
+          onClick={() => setTab('customization')}
+          icon={<Settings className="h-4 w-4" />}
+          label={S.customization.title}
         />
       </div>
 
-      {/* Admin shortcut — yalnız role=admin için görünür */}
-      {role === 'admin' && (
-        <Link
-          to="/admin"
-          className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 sm:px-6 py-4 transition-colors hover:bg-amber-100 dark:border-amber-400/30 dark:bg-amber-400/10 dark:hover:bg-amber-400/15"
-        >
-          <ShieldCheck className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-300" />
-          <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">{S.nav.admin}</p>
-            <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-200/80">{S.admin.subtitle}</p>
+      {tab === 'info' && (
+        <div className="space-y-4 sm:space-y-6">
+          {/* Avatar card */}
+          <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-5 sm:p-8">
+            <div className="flex items-center gap-4 sm:gap-5">
+              <div
+                className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-full text-2xl sm:text-3xl font-bold text-white shadow-sm shrink-0"
+                style={{ backgroundColor: '#415dff' }}
+              >
+                {initial}
+              </div>
+              <div className="min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white truncate">
+                  {profile.display_name || profile.username}
+                </h1>
+                <p className="text-sm text-gray-500 dark:text-[#9ca3af] truncate">
+                  @{profile.username}
+                </p>
+              </div>
+            </div>
           </div>
-          <span className="text-xs font-medium text-amber-700 dark:text-amber-200">→</span>
-        </Link>
+
+          {/* Account info */}
+          <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] overflow-hidden">
+            <div className="px-4 sm:px-6 py-4 border-b border-gray-200 dark:border-white/10">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
+                {S.profile.accountInfo}
+              </h2>
+            </div>
+
+            <InfoRow
+              icon={<AtSign className="h-4 w-4" />}
+              label={S.profile.username}
+              value={profile.username}
+              hint={S.profile.usernameLockedHint}
+            />
+            <InfoRow
+              icon={<UserIcon className="h-4 w-4" />}
+              label={S.profile.displayName}
+              value={profile.display_name || '—'}
+            />
+            <InfoRow
+              icon={<Mail className="h-4 w-4" />}
+              label={S.profile.email}
+              value={user?.email ?? '—'}
+            />
+            <InfoRow
+              icon={<CalendarDays className="h-4 w-4" />}
+              label={S.profile.joined}
+              value={joined}
+              last
+            />
+          </div>
+
+          {/* Admin shortcut */}
+          {role === 'admin' && (
+            <Link
+              to="/admin"
+              className="flex items-center gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 sm:px-6 py-4 transition-colors hover:bg-amber-100 dark:border-amber-400/30 dark:bg-amber-400/10 dark:hover:bg-amber-400/15"
+            >
+              <ShieldCheck className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-300" />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-semibold text-amber-900 dark:text-amber-100">{S.nav.admin}</p>
+                <p className="mt-0.5 text-xs text-amber-700 dark:text-amber-200/80">{S.admin.subtitle}</p>
+              </div>
+              <span className="text-xs font-medium text-amber-700 dark:text-amber-200">→</span>
+            </Link>
+          )}
+        </div>
       )}
 
-      {/* Özelleştirme */}
-      <CustomizationSection />
+      {tab === 'customization' && (
+        <CustomizationSection />
+      )}
     </div>
+  )
+}
+
+function TabButton({ active, onClick, icon, label }: {
+  active: boolean
+  onClick: () => void
+  icon: React.ReactNode
+  label: string
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={`flex-1 sm:flex-none flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors ${
+        active
+          ? 'bg-[#415dff]/10 text-[#415dff] dark:bg-[#415dff]/15 dark:text-[#8a9eff]'
+          : 'text-gray-600 dark:text-[#9ca3af] hover:bg-gray-100 dark:hover:bg-white/5 hover:text-gray-900 dark:hover:text-white'
+      }`}
+    >
+      {icon}
+      <span>{label}</span>
+    </button>
   )
 }
 

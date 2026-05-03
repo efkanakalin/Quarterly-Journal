@@ -12,6 +12,10 @@ interface UserPrefsState {
   enabledTimeframes:    Timeframe[]
   enabledColumns:       JournalColumnId[]
 
+  /** Kullanıcının kendi eklediği custom entry/confluence label'ları. Built-in
+   *  CONFIRMATIONS listesine ek olarak Add Trade ekranında gösterilirler. */
+  customConfirmations:  string[]
+
   setEnabledSymbols:       (v: string[]) => void
   setEnabledConfirmations: (v: ConfirmationType[]) => void
   setEnabledTimeframes:    (v: Timeframe[]) => void
@@ -21,6 +25,9 @@ interface UserPrefsState {
   toggleConfirmation: (c: ConfirmationType) => void
   toggleTimeframe:    (t: Timeframe) => void
   toggleColumn:       (c: JournalColumnId) => void
+
+  addCustomConfirmation:    (label: string) => void
+  removeCustomConfirmation: (label: string) => void
 
   resetDefaults: () => void
 }
@@ -35,6 +42,7 @@ export const useUserPrefsStore = create<UserPrefsState>()(
       enabledConfirmations: DEFAULT_ENABLED_CONFIRMATIONS,
       enabledTimeframes:    [...TIMEFRAMES],
       enabledColumns:       [...DEFAULT_ENABLED_COLUMNS],
+      customConfirmations:  [],
 
       setEnabledSymbols:       (v) => set({ enabledSymbols: v }),
       setEnabledConfirmations: (v) => set({ enabledConfirmations: v }),
@@ -46,11 +54,22 @@ export const useUserPrefsStore = create<UserPrefsState>()(
       toggleTimeframe:    (t) => set(st => ({ enabledTimeframes:    arrayToggle(st.enabledTimeframes, t) })),
       toggleColumn:       (c) => set(st => ({ enabledColumns:       arrayToggle(st.enabledColumns, c) })),
 
+      addCustomConfirmation: (label) => set(st => {
+        const trimmed = label.trim().slice(0, 24)
+        if (!trimmed) return st
+        if (st.customConfirmations.includes(trimmed)) return st
+        return { customConfirmations: [...st.customConfirmations, trimmed] }
+      }),
+      removeCustomConfirmation: (label) => set(st => ({
+        customConfirmations: st.customConfirmations.filter(l => l !== label),
+      })),
+
       resetDefaults: () => set({
         enabledSymbols:       DEFAULT_ENABLED_SYMBOLS,
         enabledConfirmations: DEFAULT_ENABLED_CONFIRMATIONS,
         enabledTimeframes:    [...TIMEFRAMES],
         enabledColumns:       [...DEFAULT_ENABLED_COLUMNS],
+        customConfirmations:  [],
       }),
     }),
     { name: 'qt-user-prefs' },

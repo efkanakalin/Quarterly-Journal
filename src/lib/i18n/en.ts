@@ -220,7 +220,7 @@ export const EN = {
     leadMinutes:  'Notify minutes before',
   },
   journal: {
-    title:        'Trade List',
+    title:        'Trade Journal',
     listView:     'List',
     calendar:     'Calendar',
     addRow:       'Add Trade',
@@ -386,7 +386,12 @@ export const EN = {
       VOLUME:    'Volume / Order Flow',
       PATTERN:   'Patterns',
       STRUCTURE: 'Structure',
+      CUSTOM:    'Custom',
     },
+    customAddPlaceholder: 'Add your own entry model (e.g. MyOTE)',
+    customAdd:            'Add',
+    customRemove:         'Remove',
+    personalInfo:         'Personal Info',
     symbolGroups: {
       futures:   'Index Futures',
       commodity: 'Commodities',

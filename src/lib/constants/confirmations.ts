@@ -2,7 +2,7 @@ import type { ConfirmationType } from '@/types'
 
 export interface ConfirmationDef {
   type:    ConfirmationType
-  group:   'QT' | 'ICT' | 'INDICATOR' | 'VOLUME' | 'PATTERN' | 'STRUCTURE'
+  group:   'QT' | 'ICT' | 'INDICATOR' | 'VOLUME' | 'PATTERN' | 'STRUCTURE' | 'CUSTOM'
   /** Confluence'ın anlamlı bir TF'i var mı? CVD/RSI gibi indikatörler genellikle yok. */
   needsTimeframe: boolean
 }
@@ -97,6 +97,7 @@ export const CONFIRMATION_GROUP_LABELS: Record<ConfirmationDef['group'], string>
   VOLUME:    'Volume / Order Flow',
   PATTERN:   'Patterns',
   STRUCTURE: 'Structure',
+  CUSTOM:    'Custom',
 }
 
 export const CONFIRMATION_GROUP_LABELS_TR: Record<ConfirmationDef['group'], string> = {
@@ -106,6 +107,7 @@ export const CONFIRMATION_GROUP_LABELS_TR: Record<ConfirmationDef['group'], stri
   VOLUME:    'Hacim / Order Flow',
   PATTERN:   'Formasyonlar',
   STRUCTURE: 'Yapı',
+  CUSTOM:    'Özel',
 }
 
 /** Default — all QT confluences enabled out of the box. */

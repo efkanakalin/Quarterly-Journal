@@ -21,13 +21,15 @@ export function Journal() {
 
   return (
     <div className="space-y-4 sm:space-y-6 overflow-x-hidden">
-      {/* Büyük ortalanmış başlık */}
-      <h1 className="text-center text-3xl sm:text-5xl font-bold text-gray-900 dark:text-white pt-2 sm:pt-6">
-        {S.journal.title}
-      </h1>
+      {/* Header — Dashboard/News ile aynı pozisyon, biraz daha büyük */}
+      <div className="flex items-start sm:items-center justify-between flex-wrap gap-3">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white">
+          {S.journal.title}
+        </h1>
+      </div>
 
       {/* Kontroller — listenin hemen üstünde */}
-      <div className="flex items-center justify-end gap-2 flex-wrap pt-2 sm:pt-4">
+      <div className="flex items-center justify-end gap-2 flex-wrap">
         {!readOnly && <CsvUpload compact />}
 
         {!readOnly && (
