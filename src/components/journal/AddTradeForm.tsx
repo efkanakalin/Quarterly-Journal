@@ -38,11 +38,15 @@ export function AddTradeForm({ onClose }: Props) {
   const enabledConfirmations = useUserPrefsStore(s => s.enabledConfirmations)
   const enabledTimeframes    = useUserPrefsStore(s => s.enabledTimeframes)
   const customConfirmations  = useUserPrefsStore(s => s.customConfirmations)
+  const customSymbols        = useUserPrefsStore(s => s.customSymbols)
 
-  const filteredSymbols = useMemo(
-    () => SYMBOLS_LIST.filter(s => enabledSymbols.includes(s.code)),
-    [enabledSymbols],
-  )
+  const filteredSymbols = useMemo(() => {
+    const builtIn = SYMBOLS_LIST.filter(s => enabledSymbols.includes(s.code))
+    const customAsSymbols = customSymbols
+      .filter(code => enabledSymbols.includes(code))
+      .map(code => ({ code, name: code, category: 'index' as const }))
+    return [...builtIn, ...customAsSymbols]
+  }, [enabledSymbols, customSymbols])
   const availableConfs = useMemo(() => {
     const builtIn = CONFIRMATIONS.filter(c => enabledConfirmations.includes(c.type))
     // Custom labels: enabled olanları (toggle ile seçilmişler) + tüm custom'lar — formda göster
