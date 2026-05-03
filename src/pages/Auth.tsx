@@ -216,6 +216,7 @@ export function Auth() {
 
           <p className="mt-6 text-center text-[10px] text-slate-400">
             By continuing you agree to our{' '}
+            <Link to="/terms" className="underline hover:text-slate-600">Terms of Service</Link>{' '}and{' '}
             <Link to="/privacy" className="underline hover:text-slate-600">Privacy Policy</Link>.
           </p>
         </div>

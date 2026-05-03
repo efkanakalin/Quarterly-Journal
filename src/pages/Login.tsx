@@ -252,6 +252,8 @@ export function Login() {
       <footer className="border-t border-slate-200 bg-white py-6 px-6 text-center text-xs text-slate-400">
         <a href="/privacy" className="hover:text-slate-600 underline underline-offset-2 transition-colors">Privacy Policy</a>
         <span className="mx-3 opacity-50">·</span>
+        <a href="/terms" className="hover:text-slate-600 underline underline-offset-2 transition-colors">Terms of Service</a>
+        <span className="mx-3 opacity-50">·</span>
         <span>© {new Date().getFullYear()} Quarterly Journal</span>
       </footer>
     </div>
