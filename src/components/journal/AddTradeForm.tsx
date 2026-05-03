@@ -37,15 +37,24 @@ export function AddTradeForm({ onClose }: Props) {
   const enabledSymbols       = useUserPrefsStore(s => s.enabledSymbols)
   const enabledConfirmations = useUserPrefsStore(s => s.enabledConfirmations)
   const enabledTimeframes    = useUserPrefsStore(s => s.enabledTimeframes)
+  const customConfirmations  = useUserPrefsStore(s => s.customConfirmations)
 
   const filteredSymbols = useMemo(
     () => SYMBOLS_LIST.filter(s => enabledSymbols.includes(s.code)),
     [enabledSymbols],
   )
-  const availableConfs = useMemo(
-    () => CONFIRMATIONS.filter(c => enabledConfirmations.includes(c.type)),
-    [enabledConfirmations],
-  )
+  const availableConfs = useMemo(() => {
+    const builtIn = CONFIRMATIONS.filter(c => enabledConfirmations.includes(c.type))
+    // Custom labels: enabled olanları (toggle ile seçilmişler) + tüm custom'lar — formda göster
+    const customAsConfs = customConfirmations
+      .filter(label => enabledConfirmations.includes(label as ConfirmationType))
+      .map(label => ({
+        type: label as ConfirmationType,
+        group: 'CUSTOM' as const,
+        needsTimeframe: true,
+      }))
+    return [...builtIn, ...customAsConfs]
+  }, [enabledConfirmations, customConfirmations])
 
   const [symbol,    setSymbol]    = useState('')
   const [outcome,   setOutcome]   = useState<Outcome | ''>('')

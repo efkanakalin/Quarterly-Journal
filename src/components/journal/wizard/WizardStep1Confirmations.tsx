@@ -20,13 +20,21 @@ const NO_TF_VALUE = '__NONE__'
 export function WizardStep1Confirmations({ confirmations, onChange }: Props) {
   const enabledTimeframes    = useUserPrefsStore(s => s.enabledTimeframes)
   const enabledConfirmations = useUserPrefsStore(s => s.enabledConfirmations)
+  const customConfirmations  = useUserPrefsStore(s => s.customConfirmations)
   const S = useS()
 
-  // Active confluences (filtered + grouped — group order preserved from CONFIRMATIONS)
-  const availableConfs = useMemo(
-    () => CONFIRMATIONS.filter(c => enabledConfirmations.includes(c.type)),
-    [enabledConfirmations],
-  )
+  // Active confluences (built-in + custom)
+  const availableConfs = useMemo(() => {
+    const builtIn = CONFIRMATIONS.filter(c => enabledConfirmations.includes(c.type))
+    const customAsConfs = customConfirmations
+      .filter(label => enabledConfirmations.includes(label as ConfirmationType))
+      .map(label => ({
+        type: label as ConfirmationType,
+        group: 'CUSTOM' as const,
+        needsTimeframe: true,
+      }))
+    return [...builtIn, ...customAsConfs]
+  }, [enabledConfirmations, customConfirmations])
 
   const [selectedType, setSelectedType] = useState<ConfirmationType>(
     () => availableConfs[0]?.type ?? 'SSMT',

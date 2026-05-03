@@ -220,7 +220,7 @@ export const TR = {
     leadMinutes:  'Olaydan kaç dakika önce',
   },
   journal: {
-    title:        'Trade List',
+    title:        'Trade Journal',
     listView:     'Liste',
     calendar:     'Takvim',
     addRow:       'İşlem Ekle',
@@ -386,7 +386,12 @@ export const TR = {
       VOLUME:    'Hacim / Order Flow',
       PATTERN:   'Formasyonlar',
       STRUCTURE: 'Yapı',
+      CUSTOM:    'Özel',
     },
+    customAddPlaceholder: 'Kendi entry modelini ekle (örn. MyOTE)',
+    customAdd:            'Ekle',
+    customRemove:         'Kaldır',
+    personalInfo:         'Kişisel Bilgiler',
     symbolGroups: {
       futures:   'Index Futures',
       commodity: 'Emtialar',

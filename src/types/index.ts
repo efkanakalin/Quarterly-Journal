@@ -25,11 +25,11 @@ export interface BrokerConnection {
   updated_at: string
 }
 export type Timeframe =
-  | '30S' | '45S'
+  | '5S' | '15S' | '30S' | '45S'
   | '1M' | '2M' | '3M' | '5M' | '10M' | '15M' | '30M' | '45M' | '90M'
   | '1H' | '2H' | '3H' | '4H' | '6H'
   | '1D' | '1W'
-  | '1Mo' | '3Mo' | '6Mo'
+  | '1Mo' | '3Mo'
 
 export type ConfirmationType =
   // QT primitives
