@@ -1,0 +1,41 @@
+version: 2
+updates:
+  # Frontend npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    groups:
+      patch-and-minor:
+        update-types: ["minor", "patch"]
+      security-only:
+        applies-to: security-updates
+        patterns: ["*"]
+    labels:
+      - "dependencies"
+      - "frontend"
+
+  # Cloudflare worker npm
+  - package-ecosystem: "npm"
+    directory: "/cloudflare-worker"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 3
+    groups:
+      patch-and-minor:
+        update-types: ["minor", "patch"]
+    labels:
+      - "dependencies"
+      - "worker"
+
+  # GitHub Actions (eğer eklersen)
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    labels:
+      - "dependencies"
+      - "ci"
