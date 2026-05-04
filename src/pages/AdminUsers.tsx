@@ -30,10 +30,10 @@ export function AdminUsers() {
   useEffect(() => {
     if (role !== 'admin') return
     let cancelled = false
+    // Migration 011: profiles.role kolonu authenticated SELECT'ten revoke;
+    // admin için SECURITY DEFINER RPC kullanıyoruz (admin guard içinde).
     void supabase
-      .from('profiles')
-      .select('id, username, display_name, role, created_at')
-      .order('created_at', { ascending: true })
+      .rpc('admin_list_profiles')
       .then(({ data, error }) => {
         if (cancelled) return
         if (error) {
