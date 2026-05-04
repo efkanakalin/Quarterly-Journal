@@ -2,7 +2,7 @@ export type Outcome = 'win' | 'loss' | 'breakeven'
 export type Session = 'asia' | 'london' | 'ny_am' | 'ny_pm'
 export type SessionQuarter = 'Q1' | 'Q2' | 'Q3' | 'Q4'
 export type Direction = 'long' | 'short'
-export type ContractClass = 'micro' | 'mini'
+export type ContractClass = 'micro' | 'mini' | 'forex' | 'crypto'
 export type Source = 'csv' | 'manual' | 'tradovate_api'
 
 export type BrokerSlug = 'tradovate' | 'mt4' | 'binance' | 'ibkr'
