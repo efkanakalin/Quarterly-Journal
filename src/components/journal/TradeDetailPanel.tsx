@@ -4,13 +4,11 @@ import { toPng } from 'html-to-image'
 import { toast } from 'sonner'
 import { formatET } from '@/lib/formatET'
 import { sanitizeUrl } from '@/lib/security/url'
-import { PairBadge } from './PairBadge'
-import { OutcomeBadge } from './OutcomeBadge'
-import { SessionBadge } from './SessionBadge'
 import { ConfirmationChips } from './ConfirmationChips'
 import { useS } from '@/lib/i18n'
 import { useThemeStore } from '@/stores/useThemeStore'
-import type { TradeWithRelations } from '@/types'
+import { SESSION_LABELS } from '@/lib/constants/colors'
+import type { Outcome, TradeWithRelations } from '@/types'
 
 interface Props {
   trade: TradeWithRelations | null
@@ -185,8 +183,8 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
           {/* Top accent bar — outcome rengi */}
           <div className={`h-1 w-full bg-gradient-to-r ${accentBar}`} />
 
-          {/* Brand header — logo sol üst köşede */}
-          <div className={`flex items-center justify-start px-6 pt-6 pb-2`}>
+          {/* Brand header — logo sol, outcome pill sağ */}
+          <div className={`flex items-center justify-between gap-3 px-6 pt-6 pb-5 border-b ${t.divider}`}>
             <img
               src="/qt-full.png"
               alt="Quarterly Journal"
@@ -194,21 +192,7 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
               crossOrigin="anonymous"
               onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
             />
-          </div>
-
-          {/* Pair + outcome row */}
-          <div className={`flex items-center justify-center gap-2 px-6 pb-4 border-b ${t.divider}`}>
-            <PairBadge symbol={trade.symbol} />
-            <OutcomeBadge outcome={trade.outcome} />
-            {trade.direction && (
-              <span className={`inline-flex items-center gap-1 rounded-md ${isDark ? 'bg-white/[0.06] border border-white/10 text-slate-200' : 'bg-slate-100 border border-slate-200 text-slate-700'} px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider`}>
-                {trade.direction === 'long'
-                  ? <TrendingUp className="h-3 w-3" />
-                  : <TrendingDown className="h-3 w-3" />}
-                {trade.direction}
-              </span>
-            )}
-            <SessionBadge session={trade.session} />
+            <OutcomePill outcome={trade.outcome} isDark={isDark} />
           </div>
 
           {/* HERO — PnL */}
@@ -216,29 +200,15 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
             <p className={`text-[10px] font-semibold uppercase tracking-[0.25em] ${t.labelText}`}>
               Profit / Loss
             </p>
-            <div className="relative mt-2 inline-block">
-              {hidePnl && pnl !== null && (
-                <span
-                  aria-hidden
-                  className={`absolute inset-0 -m-3 rounded-full blur-2xl opacity-60 ${
-                    pnlPositive
-                      ? (isDark ? 'bg-emerald-500/40' : 'bg-emerald-400/50')
-                      : pnlNegative
-                        ? (isDark ? 'bg-rose-500/40' : 'bg-rose-400/50')
-                        : (isDark ? 'bg-slate-500/30' : 'bg-slate-400/40')
-                  }`}
-                />
-              )}
-              <p
-                className={`relative text-3xl sm:text-4xl font-bold font-mono tracking-tight ${
-                  hidePnl && pnl !== null ? `${pnlColor} blur-md select-none` : pnlColor
-                }`}
-              >
-                {pnl === null
-                  ? '—'
-                  : `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`}
-              </p>
-            </div>
+            <p
+              className={`mt-2 text-3xl sm:text-4xl font-bold font-mono tracking-tight inline-block ${pnlColor} ${
+                hidePnl && pnl !== null ? 'blur-sm select-none' : ''
+              }`}
+            >
+              {pnl === null
+                ? '—'
+                : `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`}
+            </p>
             {trade.r_multiple != null && !hidePnl && (
               <p className={`mt-2 text-sm font-mono ${t.subtleText}`}>
                 {trade.r_multiple > 0 ? '+' : ''}{trade.r_multiple}R
@@ -246,8 +216,32 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
             )}
           </div>
 
-          {/* Date / Time / Duration row */}
+          {/* Pair / Direction / Session */}
           <div className={`grid grid-cols-3 border-y divide-x ${t.divider}`}>
+            <Cell theme={t}>
+              <CellLabel theme={t}>Pair</CellLabel>
+              <p className={`mt-1 text-sm font-semibold font-mono ${t.valueText}`}>
+                {trade.symbol ?? '—'}
+              </p>
+            </Cell>
+            <Cell theme={t}>
+              <CellLabel theme={t}>Direction</CellLabel>
+              <p className={`mt-1 text-sm font-medium uppercase tracking-wide flex items-center justify-center gap-1 ${t.valueText}`}>
+                {trade.direction === 'long' && <TrendingUp className="h-3.5 w-3.5 text-emerald-500" />}
+                {trade.direction === 'short' && <TrendingDown className="h-3.5 w-3.5 text-rose-500" />}
+                {trade.direction ?? '—'}
+              </p>
+            </Cell>
+            <Cell theme={t}>
+              <CellLabel theme={t}>Session</CellLabel>
+              <p className={`mt-1 text-sm font-medium ${t.valueText}`}>
+                {trade.session ? SESSION_LABELS[trade.session] : '—'}
+              </p>
+            </Cell>
+          </div>
+
+          {/* Date / Time / Duration row */}
+          <div className={`grid grid-cols-3 border-b divide-x ${t.divider}`}>
             <Cell theme={t}>
               <CellLabel theme={t} icon={<Calendar className="h-3 w-3" />}>Date</CellLabel>
               <p className={`mt-1 text-sm font-medium ${t.valueText}`}>
@@ -394,5 +388,32 @@ function Section({ title, children, theme }: { title: string; children: React.Re
       </p>
       {children}
     </div>
+  )
+}
+
+const OUTCOME_LABEL: Record<Outcome, string> = {
+  win:       'WIN',
+  loss:      'STOP',
+  breakeven: 'B/E',
+}
+
+function OutcomePill({ outcome, isDark }: { outcome: Outcome | null; isDark: boolean }) {
+  if (!outcome) {
+    return (
+      <span className={`inline-flex items-center rounded-full px-3.5 py-1 text-xs font-bold tracking-widest ${
+        isDark ? 'bg-white/[0.04] text-slate-500 border border-white/10' : 'bg-slate-100 text-slate-500 border border-slate-200'
+      }`}>—</span>
+    )
+  }
+  const tone =
+    outcome === 'win'
+      ? (isDark ? 'bg-emerald-500/15 text-emerald-300 border-emerald-400/30' : 'bg-emerald-50 text-emerald-700 border-emerald-200')
+      : outcome === 'loss'
+        ? (isDark ? 'bg-rose-500/15 text-rose-300 border-rose-400/30' : 'bg-rose-50 text-rose-700 border-rose-200')
+        : (isDark ? 'bg-amber-500/15 text-amber-300 border-amber-400/30' : 'bg-amber-50 text-amber-700 border-amber-200')
+  return (
+    <span className={`inline-flex items-center rounded-full border px-3.5 py-1 text-xs font-bold tracking-[0.2em] ${tone}`}>
+      {OUTCOME_LABEL[outcome]}
+    </span>
   )
 }
