@@ -10,8 +10,8 @@ interface AuthState {
   role: UserRole | null
   loading: boolean
   signInWithGoogle: () => Promise<void>
-  signInWithEmail: (email: string, password: string, captchaToken?: string) => Promise<void>
-  signUpWithEmail: (email: string, password: string, meta?: { firstName: string; lastName: string; username: string }, captchaToken?: string) => Promise<{ needsConfirmation: boolean }>
+  signInWithEmail: (email: string, password: string) => Promise<void>
+  signUpWithEmail: (email: string, password: string, meta?: { firstName: string; lastName: string; username: string }) => Promise<{ needsConfirmation: boolean }>
   resetPassword: (email: string) => Promise<void>
   signOut: () => Promise<void>
   setSession: (session: Session | null) => void
@@ -31,23 +31,21 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     if (error) throw error
   },
 
-  signInWithEmail: async (email, password, captchaToken) => {
+  signInWithEmail: async (email, password) => {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: captchaToken ? { captchaToken } : undefined,
     })
     if (error) throw error
     if (data.session) get().setSession(data.session)
   },
 
-  signUpWithEmail: async (email, password, meta?: { firstName: string; lastName: string; username: string }, captchaToken?: string) => {
+  signUpWithEmail: async (email, password, meta?: { firstName: string; lastName: string; username: string }) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
         emailRedirectTo: `${window.location.origin}/dashboard`,
-        captchaToken,
         data: meta ? {
           first_name:   meta.firstName,
           last_name:    meta.lastName,
