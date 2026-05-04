@@ -1,14 +1,17 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { format } from 'date-fns'
 import { tr, enUS } from 'date-fns/locale'
 import { AreaChart, Area, YAxis, ResponsiveContainer, Tooltip } from 'recharts'
-import { FilePlus, Eye } from 'lucide-react'
+import { FilePlus, Eye, FileDown, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 import { formatET } from '@/lib/formatET'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useLangStore } from '@/stores/useLangStore'
 import { useThemeStore } from '@/stores/useThemeStore'
 import { useS } from '@/lib/i18n'
 import { ConfirmationChips } from '@/components/journal/ConfirmationChips'
+import { DailyReportPDF } from '@/components/journal/DailyReportPDF'
+import { exportNodeToPdf } from '@/lib/pdf/exportDailyReport'
 import {
   Dialog,
   DialogContent,
@@ -140,6 +143,8 @@ function DayCard({ day }: { day: DayGroup }) {
   const [noteOpen, setNoteOpen] = useState(false)
   const [noteDraft, setNoteDraft] = useState('')
   const [savedNote, setSavedNote] = useState(() => loadNote(day.date))
+  const [exporting, setExporting] = useState(false)
+  const reportRef = useRef<HTMLDivElement | null>(null)
 
   const openNote = () => {
     setNoteDraft(savedNote)
@@ -153,6 +158,22 @@ function DayCard({ day }: { day: DayGroup }) {
   }
 
   const hasNote = savedNote.trim().length > 0
+
+  const handleExportPdf = async () => {
+    if (!reportRef.current) return
+    setExporting(true)
+    try {
+      // Wait one frame so the chart inside the hidden template has finished
+      // its initial render before we capture.
+      await new Promise(r => requestAnimationFrame(() => r(null)))
+      await exportNodeToPdf(reportRef.current, `qt-daily-${day.date}.pdf`)
+      toast.success('Daily report downloaded')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'PDF export failed')
+    } finally {
+      setExporting(false)
+    }
+  }
 
   return (
     <div className="rounded-2xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] overflow-hidden">
@@ -189,6 +210,17 @@ function DayCard({ day }: { day: DayGroup }) {
         {/* Actions */}
         <div className="col-span-12 md:col-span-2 flex items-center justify-end gap-2">
           <button
+            onClick={handleExportPdf}
+            disabled={exporting}
+            title="Download PDF report"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:opacity-60 dark:border-white/10 dark:bg-[#0f0f0f] dark:text-[#9ca3af] dark:hover:bg-white/5"
+          >
+            {exporting
+              ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+              : <FileDown className="h-3.5 w-3.5" />}
+            PDF
+          </button>
+          <button
             onClick={openNote}
             className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-2 text-xs font-medium transition-colors ${
               hasNote
@@ -200,6 +232,36 @@ function DayCard({ day }: { day: DayGroup }) {
             {hasNote ? S.daily.seeNote : S.daily.writeNote}
           </button>
         </div>
+      </div>
+
+      {/* Hidden report template — captured by exporter, never shown to user */}
+      <div
+        aria-hidden
+        style={{
+          position: 'absolute',
+          left: -99999,
+          top: 0,
+          pointerEvents: 'none',
+          opacity: 0,
+        }}
+      >
+        <DailyReportPDF
+          ref={reportRef}
+          data={{
+            date:         day.date,
+            label:        day.label,
+            trades:       day.trades,
+            netPnl:       day.netPnl,
+            winners:      day.winners,
+            losers:       day.losers,
+            winrate:      day.winrate,
+            grossPnl:     day.grossPnl,
+            volume:       day.volume,
+            profitFactor: day.profitFactor,
+            curve:        day.curve,
+            note:         savedNote,
+          }}
+        />
       </div>
 
       {/* Trades table */}
