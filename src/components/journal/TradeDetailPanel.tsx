@@ -185,12 +185,12 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
           {/* Top accent bar — outcome rengi */}
           <div className={`h-1 w-full bg-gradient-to-r ${accentBar}`} />
 
-          {/* Brand header — sadece logo */}
-          <div className={`flex items-center justify-center px-6 pt-6 pb-2`}>
+          {/* Brand header — logo sol üst köşede */}
+          <div className={`flex items-center justify-start px-6 pt-6 pb-2`}>
             <img
               src="/qt-full.png"
               alt="Quarterly Journal"
-              className={`h-12 w-auto object-contain ${isDark ? '' : ''}`}
+              className="h-14 w-auto object-contain"
               crossOrigin="anonymous"
               onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
             />
@@ -211,18 +211,34 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
             <SessionBadge session={trade.session} />
           </div>
 
-          {/* HERO — büyük PnL */}
-          <div className="px-6 py-7 text-center">
+          {/* HERO — PnL */}
+          <div className="px-6 py-6 text-center">
             <p className={`text-[10px] font-semibold uppercase tracking-[0.25em] ${t.labelText}`}>
               Profit / Loss
             </p>
-            <p className={`mt-2 text-5xl sm:text-6xl font-bold font-mono tracking-tight ${pnlColor}`}>
-              {pnl === null
-                ? '—'
-                : hidePnl
-                  ? <span className={`tracking-widest ${t.pnlMask}`}>••••••</span>
+            <div className="relative mt-2 inline-block">
+              {hidePnl && pnl !== null && (
+                <span
+                  aria-hidden
+                  className={`absolute inset-0 -m-3 rounded-full blur-2xl opacity-60 ${
+                    pnlPositive
+                      ? (isDark ? 'bg-emerald-500/40' : 'bg-emerald-400/50')
+                      : pnlNegative
+                        ? (isDark ? 'bg-rose-500/40' : 'bg-rose-400/50')
+                        : (isDark ? 'bg-slate-500/30' : 'bg-slate-400/40')
+                  }`}
+                />
+              )}
+              <p
+                className={`relative text-3xl sm:text-4xl font-bold font-mono tracking-tight ${
+                  hidePnl && pnl !== null ? `${pnlColor} blur-md select-none` : pnlColor
+                }`}
+              >
+                {pnl === null
+                  ? '—'
                   : `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`}
-            </p>
+              </p>
+            </div>
             {trade.r_multiple != null && !hidePnl && (
               <p className={`mt-2 text-sm font-mono ${t.subtleText}`}>
                 {trade.r_multiple > 0 ? '+' : ''}{trade.r_multiple}R
@@ -271,7 +287,7 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
           {/* Confluences */}
           {trade.trade_confirmations?.length > 0 && (
             <Section theme={t} title="Entries">
-              <ConfirmationChips confirmations={trade.trade_confirmations} />
+              <ConfirmationChips confirmations={trade.trade_confirmations} size="md" />
             </Section>
           )}
 
