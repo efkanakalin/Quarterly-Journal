@@ -188,7 +188,7 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
             <img
               src="/qt-full.png"
               alt="Quarterly Journal"
-              className="h-14 w-auto object-contain"
+              className="h-[4.55rem] w-auto object-contain"
               crossOrigin="anonymous"
               onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none' }}
             />
@@ -209,7 +209,7 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
                 ? '—'
                 : `${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)}`}
             </p>
-            {trade.r_multiple != null && !hidePnl && (
+            {trade.r_multiple != null && (
               <p className={`mt-2 text-sm font-mono ${t.subtleText}`}>
                 {trade.r_multiple > 0 ? '+' : ''}{trade.r_multiple}R
               </p>

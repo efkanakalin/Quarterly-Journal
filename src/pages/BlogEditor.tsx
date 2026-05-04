@@ -1,15 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
-import { ArrowLeft, ImagePlus, Loader2 } from 'lucide-react'
+import { ArrowLeft, ImagePlus, Loader2, Upload, X } from 'lucide-react'
 import { toast } from 'sonner'
 import ReactMarkdown from 'react-markdown'
 import { safeUrlTransform, SAFE_MARKDOWN_ALLOWED_ELEMENTS } from '@/lib/security/markdown'
 import { audit } from '@/lib/security/audit'
+import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useBlogStore } from '@/stores/useBlogStore'
 import { useS } from '@/lib/i18n'
 import { estimateReadMinutes, slugify } from '@/lib/blog/slug'
 import type { BlogPost } from '@/types'
+
+const COVER_BUCKET = 'blog-covers'
+const COVER_MAX_BYTES = 5 * 1024 * 1024 // 5 MB
+const COVER_ACCEPT = 'image/png,image/jpeg,image/webp,image/avif'
 
 interface FormState {
   title:           string
@@ -45,7 +50,42 @@ export function BlogEditor() {
   const [slugTouched, setSlugTouched] = useState(false)
   const [readTouched, setReadTouched] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
+  const [uploadingCover, setUploadingCover] = useState(false)
   const bodyRef = useRef<HTMLTextAreaElement | null>(null)
+  const coverInputRef = useRef<HTMLInputElement | null>(null)
+
+  const handleCoverFile = async (file: File | undefined) => {
+    if (!file) return
+    if (!user) { toast.error('Not authenticated'); return }
+    if (file.size > COVER_MAX_BYTES) {
+      toast.error('Image too large (max 5 MB)')
+      return
+    }
+    if (!file.type.startsWith('image/')) {
+      toast.error('Only image files are accepted')
+      return
+    }
+    setUploadingCover(true)
+    try {
+      const ext = (file.name.split('.').pop() || 'png').toLowerCase().replace(/[^a-z0-9]/g, '')
+      const path = `${user.id}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`
+      const { error: uploadErr } = await supabase
+        .storage
+        .from(COVER_BUCKET)
+        .upload(path, file, { upsert: false, contentType: file.type })
+      if (uploadErr) throw uploadErr
+      const { data: pub } = supabase.storage.from(COVER_BUCKET).getPublicUrl(path)
+      if (!pub?.publicUrl) throw new Error('Public URL unavailable')
+      setForm(f => ({ ...f, cover_image_url: pub.publicUrl }))
+      toast.success('Cover uploaded')
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Upload failed'
+      toast.error(msg)
+    } finally {
+      setUploadingCover(false)
+      if (coverInputRef.current) coverInputRef.current.value = ''
+    }
+  }
 
   // Cursor pozisyonuna markdown image syntax'ı yapıştır.
   const insertImageAtCursor = () => {
@@ -197,13 +237,44 @@ export function BlogEditor() {
         </Field>
 
         <Field label={S.blog.formCoverLabel} hint={S.blog.formCoverHint}>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => coverInputRef.current?.click()}
+              disabled={saving || uploadingCover}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-60 dark:border-white/10 dark:bg-[#0f0f0f] dark:text-[#d1d5db] dark:hover:bg-white/5"
+            >
+              {uploadingCover
+                ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                : <Upload className="h-3.5 w-3.5" />}
+              {uploadingCover ? 'Uploading…' : 'Upload image'}
+            </button>
+            {form.cover_image_url && (
+              <button
+                type="button"
+                onClick={() => setForm(f => ({ ...f, cover_image_url: '' }))}
+                disabled={saving || uploadingCover}
+                className="inline-flex items-center gap-1 rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs font-medium text-gray-500 hover:text-rose-600 hover:border-rose-300 disabled:opacity-60 dark:border-white/10 dark:bg-[#0f0f0f] dark:text-[#9ca3af]"
+                title="Remove cover"
+              >
+                <X className="h-3.5 w-3.5" />
+              </button>
+            )}
+            <input
+              ref={coverInputRef}
+              type="file"
+              accept={COVER_ACCEPT}
+              onChange={e => handleCoverFile(e.target.files?.[0])}
+              className="hidden"
+            />
+          </div>
           <input
             type="url"
             value={form.cover_image_url}
             onChange={e => setForm(f => ({ ...f, cover_image_url: e.target.value }))}
             placeholder={S.blog.formCoverPh}
             className={INPUT}
-            disabled={saving}
+            disabled={saving || uploadingCover}
           />
           {form.cover_image_url && (
             <div className="mt-2 aspect-[16/9] w-full overflow-hidden rounded-lg border border-gray-200 bg-gray-50 dark:border-white/10 dark:bg-white/5">
