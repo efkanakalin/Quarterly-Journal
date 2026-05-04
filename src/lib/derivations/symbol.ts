@@ -1,15 +1,14 @@
 import type { ContractClass } from '@/types'
+import { SYMBOL_CLASS_MAP } from '@/lib/constants/symbols'
 
-const MICRO_SYMBOLS = ['MNQ', 'MES', 'MYM']
-const MINI_SYMBOLS  = ['NQ', 'ES', 'YM']
+// Futures expiry: month letter (FGHJKMNQUVXZ) + 1-2 digit year. Strip only if matches.
+const FUTURES_EXPIRY_RE = /[FGHJKMNQUVXZ]\d{1,2}$/
 
 export function cleanSymbol(raw: string): string {
-  // "MNQM6" → "MNQ" (remove last 2 chars which are expiry code)
-  return raw.slice(0, -2)
+  // "MNQM6" → "MNQ", but leave "EURUSD" / "BTCUSD" untouched
+  return FUTURES_EXPIRY_RE.test(raw) ? raw.replace(FUTURES_EXPIRY_RE, '') : raw
 }
 
 export function getContractClass(symbol: string): ContractClass | null {
-  if (MICRO_SYMBOLS.includes(symbol)) return 'micro'
-  if (MINI_SYMBOLS.includes(symbol))  return 'mini'
-  return null
+  return SYMBOL_CLASS_MAP[symbol] ?? null
 }

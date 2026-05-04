@@ -1,4 +1,6 @@
-export type ContractClass = 'micro' | 'mini' | 'forex' | 'crypto'
+import type { ContractClass } from '@/types'
+
+export type { ContractClass }
 
 export interface SymbolDef {
   code: string
