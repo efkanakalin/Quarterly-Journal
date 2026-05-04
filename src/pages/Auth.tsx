@@ -1,16 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
-import HCaptcha from '@hcaptcha/react-hcaptcha'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { supabase } from '@/lib/supabase'
-
-// hCaptcha site key — env'den alınır. Dev için hCaptcha test key'i fallback.
-// Production: VITE_HCAPTCHA_SITE_KEY env'ini kendi site key'inle set et + Supabase
-// Dashboard → Auth → Bot protection'da hCaptcha enable + secret key gir.
-const HCAPTCHA_SITE_KEY =
-  (import.meta.env.VITE_HCAPTCHA_SITE_KEY as string | undefined) ??
-  '10000000-ffff-ffff-ffff-000000000001'  // hCaptcha test key (always passes)
 
 type AuthMode = 'signin' | 'signup' | 'reset'
 
@@ -63,10 +55,6 @@ export function Auth() {
     localStorage.setItem('qt-remember', rememberMe ? 'true' : 'false')
   }, [rememberMe])
 
-  // hCaptcha — bot/credential stuffing koruması
-  const captchaRef = useRef<HCaptcha | null>(null)
-  const [captchaToken, setCaptchaToken] = useState<string | null>(null)
-
   // MFA — password doğrulandıktan sonra TOTP istenirse
   const [mfaFactorId, setMfaFactorId] = useState<string | null>(null)
   const [mfaCode, setMfaCode]         = useState('')
@@ -102,10 +90,6 @@ export function Auth() {
     e.preventDefault()
     reset()
     if (!email) { setError('Email is required.'); return }
-    if ((mode === 'signin' || mode === 'signup') && !captchaToken) {
-      setError('Please complete the captcha first.')
-      return
-    }
     setLoading(true)
     try {
       if (mode === 'reset') {
@@ -115,11 +99,11 @@ export function Auth() {
       } else if (mode === 'signup') {
         if (!firstName.trim() || !lastName.trim()) { setError('First and last name are required.'); setLoading(false); return }
         if (!validateUsername(username)) { setError('Username must be 3–20 chars: letters, numbers, underscores only.'); setLoading(false); return }
-        const { needsConfirmation } = await signUpWithEmail(email, password, { firstName, lastName, username }, captchaToken ?? undefined)
+        const { needsConfirmation } = await signUpWithEmail(email, password, { firstName, lastName, username })
         if (needsConfirmation) setInfo('Almost there! Check your email to confirm your account.')
         else navigate('/dashboard', { replace: true })
       } else {
-        await signInWithEmail(email, password, captchaToken ?? undefined)
+        await signInWithEmail(email, password)
         // MFA gerekiyorsa AAL2'ye yükselmeden /dashboard'a gidemeyiz
         const { data: aalData } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel()
         if (aalData?.nextLevel === 'aal2' && aalData.currentLevel !== 'aal2') {
@@ -136,9 +120,6 @@ export function Auth() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Something went wrong.'
       setError(msg.replace('Invalid login credentials', 'Incorrect email or password.'))
-      // Captcha token tek-kullanımlık — başarısızlıkta sıfırla
-      captchaRef.current?.resetCaptcha()
-      setCaptchaToken(null)
     } finally {
       setLoading(false)
     }
@@ -310,20 +291,6 @@ export function Auth() {
                 >
                   Forgot password?
                 </button>
-              </div>
-            )}
-
-            {(mode === 'signin' || mode === 'signup') && (
-              <div className="flex justify-center">
-                <HCaptcha
-                  ref={captchaRef}
-                  sitekey={HCAPTCHA_SITE_KEY}
-                  onVerify={(token) => setCaptchaToken(token)}
-                  onExpire={() => setCaptchaToken(null)}
-                  onError={() => setCaptchaToken(null)}
-                  size="normal"
-                  theme="light"
-                />
               </div>
             )}
 
