@@ -26,14 +26,19 @@ export function Sidebar({ mobileOpen = false, onMobileClose, desktopCollapsed = 
   const navigate = useNavigate()
   const location = useLocation()
   const S = useS()
-  const initialPath = useRef(location.pathname)
-
-  // Route değişince mobil drawer'ı kapat (ilk mount'ta tetiklenmesin)
+  // Route değişince mobil drawer'ı kapat. onMobileClose'u ref'te tut ki
+  // her render'daki yeni fonksiyon referansı bu effect'i tetiklemesin —
+  // aksi halde hamburger'a basıp aynı render içinde gelen route-close
+  // tetiklemesi drawer'ı hemen kapatabiliyordu.
+  const onMobileCloseRef = useRef(onMobileClose)
+  useEffect(() => { onMobileCloseRef.current = onMobileClose }, [onMobileClose])
+  const previousPath = useRef(location.pathname)
   useEffect(() => {
-    if (location.pathname !== initialPath.current) {
-      onMobileClose?.()
+    if (location.pathname !== previousPath.current) {
+      previousPath.current = location.pathname
+      onMobileCloseRef.current?.()
     }
-  }, [location.pathname, onMobileClose])
+  }, [location.pathname])
 
   const role = useAuthStore(s => s.role)
   // Brokers sekmesi şu an gizli — Tradovate manuel-token akışı production'da

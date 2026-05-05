@@ -320,25 +320,35 @@ export function TradeTable() {
                 ) : (
                   <span />
                 )}
-                {!readOnly && (
-                  <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
-                    <button
-                      onClick={() => openWizardAt(trade, 1)}
-                      className="rounded-md px-2.5 py-1.5 text-white text-xs"
-                      style={{ backgroundColor: '#415dff' }}
-                      aria-label="Edit"
-                    >
-                      <Pencil className="h-3.5 w-3.5" />
-                    </button>
-                    <button
-                      onClick={() => requestDelete(trade.id)}
-                      className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                      aria-label="Delete"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                )}
+                <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
+                  <button
+                    onClick={() => setDetailTrade(trade)}
+                    aria-label={S.journal.openSummary}
+                    title={S.journal.openSummary}
+                    className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-[#9ca3af] dark:hover:bg-white/10 dark:hover:text-white transition-colors"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </button>
+                  {!readOnly && (
+                    <>
+                      <button
+                        onClick={() => openWizardAt(trade, 1)}
+                        className="rounded-md px-2.5 py-1.5 text-white text-xs"
+                        style={{ backgroundColor: '#415dff' }}
+                        aria-label="Edit"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => requestDelete(trade.id)}
+                        className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                        aria-label="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           )
