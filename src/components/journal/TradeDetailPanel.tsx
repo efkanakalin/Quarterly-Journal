@@ -156,16 +156,18 @@ export function TradeDetailPanel({ trade, open, onClose }: Props) {
               inactiveCls={t.toolbarBtnDim}
             />
           </div>
-          <div className="flex items-center gap-1.5">
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               onClick={handleDownload}
               disabled={downloading}
-              className={`inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[11px] font-semibold disabled:opacity-60 transition ${t.downloadBtn}`}
+              aria-label="Download PNG"
+              title="Download PNG"
+              className={`inline-flex items-center gap-1.5 rounded-md px-2.5 sm:px-3 py-1.5 text-[11px] font-semibold disabled:opacity-60 transition ${t.downloadBtn}`}
             >
               {downloading
                 ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 : <Download className="h-3.5 w-3.5" />}
-              Download PNG
+              <span className="hidden sm:inline">Download PNG</span>
             </button>
             <button
               onClick={onClose}
