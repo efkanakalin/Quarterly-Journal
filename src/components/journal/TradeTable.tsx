@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { fromZonedTime } from 'date-fns-tz'
 import { formatET } from '@/lib/formatET'
 import { Pencil, Trash2, ExternalLink, Eye, EyeOff, Check, X, Maximize2 } from 'lucide-react'
@@ -12,6 +12,7 @@ import { DeleteTradeDialog } from './DeleteTradeDialog'
 import { TradeWizard } from './wizard/TradeWizard'
 import { supabase } from '@/lib/supabase'
 import { deriveOutcome } from '@/lib/derivations/outcome'
+import { groupNearbyTrades, type TradeGroup } from '@/lib/trades/groupNearbyTrades'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useIsReadOnly } from '@/stores/useViewerStore'
 import { useS } from '@/lib/i18n'
@@ -56,33 +57,20 @@ export function TradeTable() {
   const [notesHidden, setNotesHidden] = useState<boolean>(() => localStorage.getItem('qt-notes-hidden') === '1')
 
   const [editing, setEditing] = useState<{ id: string; field: EditField } | null>(null)
-  const [selected, setSelected] = useState<{ id: string; field: EditField } | null>(null)
   const [draft, setDraft] = useState<string>('')
+  const [groupDeleteTarget, setGroupDeleteTarget] = useState<TradeGroup | null>(null)
+
+  const groups = useMemo(() => groupNearbyTrades(trades), [trades])
 
   const S = useS()
 
-  // Esc ile inline edit/seçim iptal
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        setEditing(null)
-        setSelected(null)
-      }
+      if (e.key === 'Escape') setEditing(null)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [])
-
-  // Dışarıya tıklanınca seçim temizlensin
-  useEffect(() => {
-    if (!selected) return
-    const onDown = (e: MouseEvent) => {
-      const target = e.target as HTMLElement
-      if (!target.closest('[data-editable-cell]')) setSelected(null)
-    }
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
-  }, [selected])
 
   const togglePnl = () => {
     setPnlHidden(h => {
@@ -118,6 +106,21 @@ export function TradeTable() {
     const snoozeUntil = raw ? parseInt(raw, 10) : 0
     if (snoozeUntil && Date.now() < snoozeUntil) { performDelete(id); return }
     setDeleteTarget(id)
+  }
+
+  const requestGroupDelete = (group: TradeGroup) => {
+    if (group.count === 1) { requestDelete(group.primary.id); return }
+    setGroupDeleteTarget(group)
+  }
+
+  const performGroupDelete = async () => {
+    if (!groupDeleteTarget) return
+    const ids = groupDeleteTarget.trades.map(t => t.id)
+    setGroupDeleteTarget(null)
+    try {
+      await Promise.all(ids.map(id => deleteTrade(id)))
+      toast.success(`${ids.length} trade deleted.`)
+    } catch { toast.error('Delete failed.') }
   }
 
   const openWizardAt = (trade: TradeWithRelations, step: number) => {
@@ -196,18 +199,8 @@ export function TradeTable() {
   const isEditing = (tradeId: string, field: EditField) =>
     editing?.id === tradeId && editing.field === field
 
-  const isSelected = (tradeId: string, field: EditField) =>
-    selected?.id === tradeId && selected.field === field && !isEditing(tradeId, field)
-
-  const handleCellClick = (trade: TradeWithRelations, field: EditField) => {
-    if (readOnly) return
-    if (isEditing(trade.id, field)) return
-    setSelected({ id: trade.id, field })
-  }
-
   const handleCellDoubleClick = (trade: TradeWithRelations, field: EditField) => {
     if (readOnly) return
-    setSelected(null)
     startEdit(trade, field)
   }
 
@@ -233,12 +226,10 @@ export function TradeTable() {
   }
 
   const cellBase =
-    'px-3 cursor-pointer hover:bg-gray-100/60 dark:hover:bg-white/8 transition-colors relative'
-  const selectionRing =
-    'ring-2 ring-inset ring-blue-400/50 dark:ring-blue-300/50 bg-blue-50/30 dark:bg-blue-400/5'
+    'px-3 cursor-pointer hover:bg-gray-100/60 dark:hover:bg-white/[0.04] transition-colors relative'
 
-  const cellCls = (tradeId: string, field: EditField, extra = '') =>
-    `${cellBase} ${isSelected(tradeId, field) ? selectionRing : ''} ${extra}`
+  const cellCls = (_tradeId: string, _field: EditField, extra = '') =>
+    `${cellBase} ${extra}`
 
   const thCls =
     'px-3 py-4 text-xs font-semibold text-gray-500 dark:text-[#9ca3af] text-center'
@@ -247,11 +238,17 @@ export function TradeTable() {
     <>
       {/* Mobile card view */}
       <div className="md:hidden space-y-2.5">
-        {trades.map(trade => {
+        {groups.map(group => {
+          const trade = group.primary
           const entryRaw = trade.entry_time_et ?? null
+          const isGrouped = group.count > 1
+          const displayPnl = isGrouped ? group.totalPnl : trade.pnl_usd
+          const displayOutcome = isGrouped
+            ? (displayPnl != null ? deriveOutcome(displayPnl) : null)
+            : trade.outcome
           return (
             <div
-              key={trade.id}
+              key={group.id}
               onClick={() => { if (!readOnly) openWizardAt(trade, 1) }}
               className={`rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-3.5 space-y-2.5 transition-transform ${
                 readOnly ? '' : 'active:scale-[0.99] cursor-pointer'
@@ -261,16 +258,24 @@ export function TradeTable() {
               <div className="flex items-center justify-between gap-2">
                 <div className="flex items-center gap-2 min-w-0">
                   <PairBadge symbol={trade.symbol} />
-                  <OutcomeBadge outcome={trade.outcome} />
+                  {isGrouped && (
+                    <span
+                      className="inline-flex items-center rounded-md bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-gray-600 dark:text-[#9ca3af]"
+                      title={`${group.count} işlem birleştirildi`}
+                    >
+                      ×{group.count}
+                    </span>
+                  )}
+                  <OutcomeBadge outcome={displayOutcome} />
                 </div>
                 <div className="font-mono text-sm font-semibold shrink-0">
-                  {trade.pnl_usd === null ? (
+                  {displayPnl === null ? (
                     <span className="text-gray-300 dark:text-white/20">—</span>
                   ) : pnlHidden ? (
                     <span className="text-gray-400 dark:text-[#6b7280]">***</span>
                   ) : (
-                    <span className={trade.pnl_usd >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
-                      {trade.pnl_usd >= 0 ? '+' : ''}${trade.pnl_usd.toFixed(2)}
+                    <span className={displayPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+                      {displayPnl >= 0 ? '+' : ''}${displayPnl.toFixed(2)}
                     </span>
                   )}
                 </div>
@@ -340,7 +345,7 @@ export function TradeTable() {
                         <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        onClick={() => requestDelete(trade.id)}
+                        onClick={() => requestGroupDelete(group)}
                         className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-500 dark:hover:text-red-400 transition-colors"
                         aria-label="Delete"
                       >
@@ -409,10 +414,19 @@ export function TradeTable() {
               </tr>
             </thead>
             <tbody className="bg-white dark:bg-[#1a1a1a]">
-              {trades.map(trade => {
+              {groups.map(group => {
+                const trade = group.primary
                 const entryRaw = trade.entry_time_et ?? null
+                const isGrouped = group.count > 1
+                const displayPnl = isGrouped ? group.totalPnl : trade.pnl_usd
+                const displayOutcome = isGrouped
+                  ? (displayPnl != null ? deriveOutcome(displayPnl) : null)
+                  : trade.outcome
+                const handleSymbolDouble = () => { if (!isGrouped) handleCellDoubleClick(trade, 'symbol') }
+                const handleOutcomeDouble = () => { if (!isGrouped) handleCellDoubleClick(trade, 'outcome') }
+                const handlePnlDouble = () => { if (!isGrouped && !pnlHidden) handleCellDoubleClick(trade, 'pnl_usd') }
                 return (
-                  <tr key={trade.id} className="group border-b border-gray-100 dark:border-white/8 last:border-0 h-[100px] align-middle">
+                  <tr key={group.id} className="group border-b border-gray-100 dark:border-white/8 last:border-0 h-[100px] align-middle">
                     <td className="p-0 align-middle">
                       <button
                         onClick={() => setDetailTrade(trade)}
@@ -427,10 +441,9 @@ export function TradeTable() {
                       <td
                         data-editable-cell
                         className={cellCls(trade.id, 'symbol', 'text-center')}
-                        onClick={() => handleCellClick(trade, 'symbol')}
-                        onDoubleClick={() => handleCellDoubleClick(trade, 'symbol')}
+                        onDoubleClick={handleSymbolDouble}
                       >
-                        {isEditing(trade.id, 'symbol') ? (
+                        {isEditing(trade.id, 'symbol') && !isGrouped ? (
                           <SelectEditor
                             value={draft}
                             onChange={setDraft}
@@ -440,7 +453,17 @@ export function TradeTable() {
                             options={[{ label: '—', value: '' }, ...symbolOptions.map(s => ({ label: s.code, value: s.code }))]}
                           />
                         ) : (
-                          <PairBadge symbol={trade.symbol} />
+                          <span className="inline-flex items-center gap-1.5">
+                            <PairBadge symbol={trade.symbol} />
+                            {isGrouped && (
+                              <span
+                                className="inline-flex items-center rounded-md bg-gray-100 dark:bg-white/10 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-gray-600 dark:text-[#9ca3af]"
+                                title={`${group.count} işlem birleştirildi`}
+                              >
+                                ×{group.count}
+                              </span>
+                            )}
+                          </span>
                         )}
                       </td>
                     )}
@@ -449,10 +472,9 @@ export function TradeTable() {
                       <td
                         data-editable-cell
                         className={cellCls(trade.id, 'outcome', 'text-center')}
-                        onClick={() => handleCellClick(trade, 'outcome')}
-                        onDoubleClick={() => handleCellDoubleClick(trade, 'outcome')}
+                        onDoubleClick={handleOutcomeDouble}
                       >
-                        {isEditing(trade.id, 'outcome') ? (
+                        {isEditing(trade.id, 'outcome') && !isGrouped ? (
                           <SelectEditor
                             value={draft}
                             onChange={setDraft}
@@ -462,7 +484,7 @@ export function TradeTable() {
                             options={[{ label: '—', value: '' }, ...OUTCOMES.map(o => ({ label: OUTCOME_LABEL[o], value: o }))]}
                           />
                         ) : (
-                          <OutcomeBadge outcome={trade.outcome} />
+                          <OutcomeBadge outcome={displayOutcome} />
                         )}
                       </td>
                     )}
@@ -475,10 +497,9 @@ export function TradeTable() {
                             ? 'px-3 text-center font-mono text-sm relative'
                             : cellCls(trade.id, 'pnl_usd', 'text-center font-mono text-sm')
                         }
-                        onClick={() => { if (!pnlHidden) handleCellClick(trade, 'pnl_usd') }}
-                        onDoubleClick={() => { if (!pnlHidden) handleCellDoubleClick(trade, 'pnl_usd') }}
+                        onDoubleClick={handlePnlDouble}
                       >
-                        {isEditing(trade.id, 'pnl_usd') ? (
+                        {isEditing(trade.id, 'pnl_usd') && !isGrouped ? (
                           <TextEditor
                             type="number"
                             value={draft}
@@ -487,13 +508,13 @@ export function TradeTable() {
                             onCancel={() => setEditing(null)}
                             saving={false}
                           />
-                        ) : trade.pnl_usd === null ? (
+                        ) : displayPnl === null ? (
                           <span className="text-gray-300 dark:text-white/20">—</span>
                         ) : pnlHidden ? (
                           <span className="text-gray-400 dark:text-[#6b7280]">***</span>
                         ) : (
-                          <span className={trade.pnl_usd >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
-                            {trade.pnl_usd >= 0 ? '+' : ''}${trade.pnl_usd.toFixed(2)}
+                          <span className={displayPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}>
+                            {displayPnl >= 0 ? '+' : ''}${displayPnl.toFixed(2)}
                           </span>
                         )}
                       </td>
@@ -503,7 +524,6 @@ export function TradeTable() {
                       <td
                         data-editable-cell
                         className={cellCls(trade.id, 'date', 'text-center text-gray-900 dark:text-white text-sm')}
-                        onClick={() => handleCellClick(trade, 'date')}
                         onDoubleClick={() => handleCellDoubleClick(trade, 'date')}
                       >
                         {isEditing(trade.id, 'date') ? (
@@ -525,7 +545,6 @@ export function TradeTable() {
                       <td
                         data-editable-cell
                         className={cellCls(trade.id, 'session', 'text-center')}
-                        onClick={() => handleCellClick(trade, 'session')}
                         onDoubleClick={() => handleCellDoubleClick(trade, 'session')}
                       >
                         {isEditing(trade.id, 'session') ? (
@@ -547,7 +566,6 @@ export function TradeTable() {
                       <td
                         data-editable-cell
                         className={cellCls(trade.id, 'time', 'text-center text-gray-900 dark:text-white font-mono text-sm')}
-                        onClick={() => handleCellClick(trade, 'time')}
                         onDoubleClick={() => handleCellDoubleClick(trade, 'time')}
                       >
                         {isEditing(trade.id, 'time') ? (
@@ -582,7 +600,6 @@ export function TradeTable() {
                             ? 'px-3 text-center relative'
                             : cellCls(trade.id, 'notes', 'text-center')
                         }
-                        onClick={() => { if (!notesHidden) handleCellClick(trade, 'notes') }}
                         onDoubleClick={() => { if (!notesHidden) handleCellDoubleClick(trade, 'notes') }}
                       >
                         {isEditing(trade.id, 'notes') ? (
@@ -610,7 +627,6 @@ export function TradeTable() {
                       <td
                         data-editable-cell
                         className={cellCls(trade.id, 'chart_link', 'text-center')}
-                        onClick={() => { if (!trade.chart_link) handleCellClick(trade, 'chart_link') }}
                         onDoubleClick={() => { if (!trade.chart_link) handleCellDoubleClick(trade, 'chart_link') }}
                       >
                         {isEditing(trade.id, 'chart_link') ? (
@@ -657,9 +673,9 @@ export function TradeTable() {
                               <Pencil className="h-4 w-4" />
                             </button>
                             <button
-                              onClick={() => requestDelete(trade.id)}
+                              onClick={() => requestGroupDelete(group)}
                               className="rounded-md p-1.5 text-gray-400 hover:bg-red-50 dark:hover:bg-red-500/20 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                              title="Delete"
+                              title={isGrouped ? `Delete ${group.count} trades` : 'Delete'}
                             >
                               <Trash2 className="h-3.5 w-3.5" />
                             </button>
@@ -688,6 +704,33 @@ export function TradeTable() {
       )}
 
       <DeleteTradeDialog open={!!deleteTarget} onConfirm={handleDelete} onCancel={() => setDeleteTarget(null)} />
+
+      {groupDeleteTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="w-full max-w-sm rounded-xl border border-gray-200 dark:border-white/10 bg-white dark:bg-[#1a1a1a] p-6 space-y-4 shadow-xl">
+            <p className="text-gray-900 dark:text-white text-sm font-semibold">
+              {groupDeleteTarget.count} işlem silinsin mi?
+            </p>
+            <p className="text-xs text-gray-500 dark:text-[#9ca3af]">
+              Bu satır birden fazla işlemin birleştirilmiş halidir. Onaylarsan grupta yer alan tüm işlemler silinecek.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <button
+                onClick={() => setGroupDeleteTarget(null)}
+                className="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 dark:text-[#9ca3af] dark:hover:text-white"
+              >
+                Vazgeç
+              </button>
+              <button
+                onClick={performGroupDelete}
+                className="px-4 py-2 text-sm bg-red-500 text-white rounded-md hover:bg-red-600"
+              >
+                Sil
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {nextPromptOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
