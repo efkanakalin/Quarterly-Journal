@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase'
 import type { TradovateAccount } from './types'
 
+
 const WORKER_URL = (import.meta.env.VITE_TRADOVATE_WORKER_URL as string | undefined)?.replace(/\/$/, '')
 
 /**
