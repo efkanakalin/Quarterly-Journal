@@ -12,6 +12,7 @@ import { useS } from '@/lib/i18n'
 import { ConfirmationChips } from '@/components/journal/ConfirmationChips'
 import { DailyReportPDF } from '@/components/journal/DailyReportPDF'
 import { exportNodeToPdf } from '@/lib/pdf/exportDailyReport'
+import { mergeIntoLogicalTrades } from '@/lib/trades/mergeGroupedTrades'
 import {
   Dialog,
   DialogContent,
@@ -61,7 +62,10 @@ function groupByDay(trades: TradeWithRelations[], locale: typeof tr): DayGroup[]
 
   return Object.entries(map)
     .map(([date, rows]) => {
-      const sorted = [...rows].sort((a, b) =>
+      // Scaling-in partial'ları tek logical trade'e indir; tüm metrikler bunun
+      // üzerinden hesaplansın ki kullanıcı 3 partial'ı 3 trade olarak görmesin.
+      const merged = mergeIntoLogicalTrades(rows)
+      const sorted = [...merged].sort((a, b) =>
         new Date(a.entry_time_et ?? 0).getTime() - new Date(b.entry_time_et ?? 0).getTime()
       )
       const netPnl   = sorted.reduce((s, t) => s + (t.pnl_usd ?? 0), 0)
