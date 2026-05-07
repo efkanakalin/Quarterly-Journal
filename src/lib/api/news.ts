@@ -1,5 +1,6 @@
 import type { CalendarEvent, EconRelease, Impact, NewsItem } from '@/types/news'
 import { matchSymbols, scoreSentiment } from '@/lib/news/sentiment'
+import { isImportantNews } from '@/lib/news/importance'
 
 const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL  as string
 const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY as string
@@ -40,6 +41,7 @@ export async function fetchNews(since?: string): Promise<NewsItem[]> {
     ...r,
     sentiment: scoreSentiment(r.title),
     symbols:   matchSymbols(r.title),
+    important: isImportantNews(r.title),
   }))
 }
 

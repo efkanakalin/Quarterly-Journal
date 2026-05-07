@@ -9,12 +9,15 @@ interface Props {
 }
 
 export function NewsItem({ item, highlight, flash }: Props) {
-  const borderCls =
-    item.sentiment === 'positive'
-      ? 'border-l-emerald-500/70'
+  // Önemli haberler için kalın kırmızı sol çizgi sentiment rengini bastırır.
+  // Sentiment ayrımı önemli haberde gereksiz: "important" zaten yüksek etki demek.
+  const borderCls = item.important
+    ? 'border-l-[3px] border-l-red-500 dark:border-l-red-400'
+    : item.sentiment === 'positive'
+      ? 'border-l-2 border-l-emerald-500/70'
       : item.sentiment === 'negative'
-        ? 'border-l-rose-500/70'
-        : 'border-l-transparent'
+        ? 'border-l-2 border-l-rose-500/70'
+        : 'border-l-2 border-l-transparent'
 
   const flashCls = flash
     ? '[animation:qt-news-flash_3.5s_ease-out_forwards]'
@@ -24,7 +27,7 @@ export function NewsItem({ item, highlight, flash }: Props) {
 
   return (
     <article
-      className={`relative flex gap-3 border-l-2 px-4 py-3 transition-colors ${borderCls} ${flashCls} hover:bg-gray-50 dark:hover:bg-white/[0.03]`}
+      className={`relative flex gap-3 px-4 py-3 transition-colors ${borderCls} ${flashCls} hover:bg-gray-50 dark:hover:bg-white/[0.03]`}
     >
       <time
         dateTime={item.publishedAt}
@@ -33,7 +36,11 @@ export function NewsItem({ item, highlight, flash }: Props) {
         {fmtClock(item.publishedAt)}
       </time>
       <div className="min-w-0 flex-1">
-        <p className="text-sm leading-relaxed text-gray-900 dark:text-white">
+        <p
+          className={`text-sm leading-relaxed text-gray-900 dark:text-white ${
+            item.important ? 'font-semibold' : ''
+          }`}
+        >
           {item.link ? (
             <a
               href={item.link}
@@ -46,6 +53,11 @@ export function NewsItem({ item, highlight, flash }: Props) {
           ) : item.title}
         </p>
         <div className="mt-1 flex flex-wrap items-center gap-1.5">
+          {item.important && (
+            <span className="rounded-sm bg-red-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-red-600 dark:bg-red-400/15 dark:text-red-300">
+              High
+            </span>
+          )}
           <span className="text-[10px] font-medium uppercase tracking-wider text-gray-400 dark:text-[#6b7280]">
             {item.source}
           </span>
