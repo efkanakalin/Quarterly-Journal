@@ -11,6 +11,7 @@ export interface NewsItem {
   publishedAt: string         // ISO
   sentiment:  Sentiment
   symbols:    SymbolFilter[]  // matched filters (excluding 'all')
+  important:  boolean         // başlıktan türetilmiş yüksek-etki sinyali
 }
 
 export type Impact = 'high' | 'medium' | 'low' | 'holiday'
