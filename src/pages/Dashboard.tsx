@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useDashboardStore } from '@/stores/useDashboardStore'
 import { filterByDateRange, calcStats, calcDrawdown, calcCumulativePnl } from '@/lib/stats'
+import { mergeIntoLogicalTrades } from '@/lib/trades/mergeGroupedTrades'
 import { DateRangePicker } from '@/components/dashboard/DateRangePicker'
 import { CsvUpload } from '@/components/journal/CsvUpload'
 import { SummaryCards } from '@/components/dashboard/SummaryCards'
@@ -54,7 +55,12 @@ export function Dashboard() {
 
   const greeting = S.greeting[greetingKey(new Date().getHours())]
 
-  const filtered   = filterByDateRange(trades, dateRange)
+  // Scaling-in partial'ları tek logical trade olarak işle — tüm alt component'ler
+  // (cards, charts, breakdowns) bu birleştirilmiş listeyi alır.
+  const filtered   = useMemo(
+    () => mergeIntoLogicalTrades(filterByDateRange(trades, dateRange)),
+    [trades, dateRange],
+  )
   const stats      = calcStats(filtered)
   const drawdown   = calcDrawdown(filtered)
   const cumulative = calcCumulativePnl(filtered)
