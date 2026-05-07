@@ -13,6 +13,7 @@ import { TradeWizard } from './wizard/TradeWizard'
 import { supabase } from '@/lib/supabase'
 import { deriveOutcome } from '@/lib/derivations/outcome'
 import { groupNearbyTrades, type TradeGroup } from '@/lib/trades/groupNearbyTrades'
+import { mergeGroupTrades } from '@/lib/trades/mergeGroupedTrades'
 import { useTradesStore } from '@/stores/useTradesStore'
 import { useIsReadOnly } from '@/stores/useViewerStore'
 import { useS } from '@/lib/i18n'
@@ -240,6 +241,7 @@ export function TradeTable() {
       <div className="md:hidden space-y-2.5">
         {groups.map(group => {
           const trade = group.primary
+          const merged = group.count > 1 ? mergeGroupTrades(group) : trade
           const entryRaw = trade.entry_time_et ?? null
           const isGrouped = group.count > 1
           const displayPnl = isGrouped ? group.totalPnl : trade.pnl_usd
@@ -327,7 +329,7 @@ export function TradeTable() {
                 )}
                 <div className="flex items-center gap-1.5" onClick={e => e.stopPropagation()}>
                   <button
-                    onClick={() => setDetailTrade(trade)}
+                    onClick={() => setDetailTrade(merged)}
                     aria-label={S.journal.openSummary}
                     title={S.journal.openSummary}
                     className="rounded-md p-1.5 text-gray-500 hover:bg-gray-100 hover:text-gray-900 dark:text-[#9ca3af] dark:hover:bg-white/10 dark:hover:text-white transition-colors"
@@ -416,6 +418,7 @@ export function TradeTable() {
             <tbody className="bg-white dark:bg-[#1a1a1a]">
               {groups.map(group => {
                 const trade = group.primary
+                const merged = group.count > 1 ? mergeGroupTrades(group) : trade
                 const entryRaw = trade.entry_time_et ?? null
                 const isGrouped = group.count > 1
                 const displayPnl = isGrouped ? group.totalPnl : trade.pnl_usd
@@ -429,7 +432,7 @@ export function TradeTable() {
                   <tr key={group.id} className="group border-b border-gray-100 dark:border-white/8 last:border-0 h-[100px] align-middle">
                     <td className="p-0 align-middle">
                       <button
-                        onClick={() => setDetailTrade(trade)}
+                        onClick={() => setDetailTrade(merged)}
                         aria-label={S.journal.openSummary}
                         title={S.journal.openSummary}
                         className="mx-auto flex h-7 w-7 items-center justify-center rounded-md text-gray-400 transition-all hover:bg-gray-100 hover:text-gray-700 dark:text-[#6b7280] dark:hover:bg-white/10 dark:hover:text-white"
