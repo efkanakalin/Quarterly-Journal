@@ -85,6 +85,9 @@ export const DailyReportPDF = forwardRef<HTMLDivElement, { data: DailyReportData
           <KpiCell label="Volume"   value={String(data.volume)} />
         </div>
 
+        {/* Performance metrics */}
+        <PerformanceBlock trades={data.trades} />
+
         {/* Equity curve */}
         {data.curve.length > 1 && (
           <div className="px-10 pt-6 pb-3 border-b border-slate-200">
@@ -114,6 +117,9 @@ export const DailyReportPDF = forwardRef<HTMLDivElement, { data: DailyReportData
             </div>
           </div>
         )}
+
+        {/* Per-pair breakdown */}
+        <SymbolBreakdown trades={data.trades} />
 
         {/* Trade log */}
         <div className="px-10 pt-6 pb-2">
@@ -199,11 +205,136 @@ function KpiHero({ label, value, tone }: { label: string; value: string; tone: '
   )
 }
 
-function KpiCell({ label, value }: { label: string; value: string }) {
+function KpiCell({ label, value, tone = 'neutral' }: { label: string; value: string; tone?: 'pos' | 'neg' | 'neutral' }) {
+  const color =
+    tone === 'pos' ? 'text-emerald-600'
+    : tone === 'neg' ? 'text-rose-600'
+    : 'text-slate-900'
   return (
     <div className="px-6 py-3 text-center">
       <p className="text-[9px] font-semibold uppercase tracking-widest text-slate-400">{label}</p>
-      <p className="mt-1 text-sm font-mono font-semibold text-slate-900">{value}</p>
+      <p className={`mt-1 text-sm font-mono font-semibold ${color}`}>{value}</p>
+    </div>
+  )
+}
+
+function fmtDurationShort(sec: number): string {
+  if (!sec || sec < 0) return '—'
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  if (m === 0) return `${s}s`
+  const h = Math.floor(m / 60)
+  if (h === 0) return `${m}m ${s}s`
+  return `${h}h ${m % 60}m`
+}
+
+function PerformanceBlock({ trades }: { trades: TradeWithRelations[] }) {
+  const wins   = trades.filter(t => (t.pnl_usd ?? 0) > 0)
+  const losses = trades.filter(t => (t.pnl_usd ?? 0) < 0)
+
+  const avgWin  = wins.length   ? wins.reduce((s, t) => s + (t.pnl_usd ?? 0), 0)   / wins.length   : 0
+  const avgLoss = losses.length ? losses.reduce((s, t) => s + (t.pnl_usd ?? 0), 0) / losses.length : 0
+
+  const pnls    = trades.map(t => t.pnl_usd ?? 0)
+  const best    = pnls.length ? Math.max(...pnls) : 0
+  const worst   = pnls.length ? Math.min(...pnls) : 0
+
+  // Streaks: walk chronologically (entry asc)
+  const chrono = [...trades].sort((a, b) =>
+    new Date(a.entry_time_et ?? 0).getTime() - new Date(b.entry_time_et ?? 0).getTime()
+  )
+  let curWin = 0, maxWin = 0, curLoss = 0, maxLoss = 0
+  for (const t of chrono) {
+    const pnl = t.pnl_usd ?? 0
+    if (pnl > 0) { curWin++; maxWin = Math.max(maxWin, curWin); curLoss = 0 }
+    else if (pnl < 0) { curLoss++; maxLoss = Math.max(maxLoss, curLoss); curWin = 0 }
+    else { curWin = 0; curLoss = 0 }
+  }
+
+  const holdSecs = trades.map(t => t.duration_sec ?? 0).filter(n => n > 0)
+  const avgHold = holdSecs.length ? Math.round(holdSecs.reduce((a, b) => a + b, 0) / holdSecs.length) : 0
+
+  const fmtUsd = (n: number) => `${n >= 0 ? '+' : '−'}$${Math.abs(n).toFixed(2)}`
+
+  return (
+    <>
+      <div className="grid grid-cols-4 divide-x divide-slate-100 border-b border-slate-200">
+        <KpiCell label="Avg Win"  value={wins.length   ? fmtUsd(avgWin)  : '—'} tone={wins.length   ? 'pos' : 'neutral'} />
+        <KpiCell label="Avg Loss" value={losses.length ? fmtUsd(avgLoss) : '—'} tone={losses.length ? 'neg' : 'neutral'} />
+        <KpiCell label="Best"     value={pnls.length   ? fmtUsd(best)    : '—'} tone={best  > 0 ? 'pos' : best  < 0 ? 'neg' : 'neutral'} />
+        <KpiCell label="Worst"    value={pnls.length   ? fmtUsd(worst)   : '—'} tone={worst > 0 ? 'pos' : worst < 0 ? 'neg' : 'neutral'} />
+      </div>
+      <div className="grid grid-cols-3 divide-x divide-slate-100 border-b border-slate-200">
+        <KpiCell label="Win Streak"  value={String(maxWin)} />
+        <KpiCell label="Loss Streak" value={String(maxLoss)} />
+        <KpiCell label="Avg Hold"    value={fmtDurationShort(avgHold)} />
+      </div>
+    </>
+  )
+}
+
+interface SymbolStat {
+  symbol: string
+  count: number
+  wins:   number
+  losses: number
+  pnl:    number
+}
+
+function SymbolBreakdown({ trades }: { trades: TradeWithRelations[] }) {
+  const byKey = new Map<string, SymbolStat>()
+  for (const t of trades) {
+    const sym = t.symbol ?? '—'
+    const cur = byKey.get(sym) ?? { symbol: sym, count: 0, wins: 0, losses: 0, pnl: 0 }
+    cur.count++
+    cur.pnl += t.pnl_usd ?? 0
+    if ((t.pnl_usd ?? 0) > 0) cur.wins++
+    else if ((t.pnl_usd ?? 0) < 0) cur.losses++
+    byKey.set(sym, cur)
+  }
+  const rows = [...byKey.values()].sort((a, b) => b.pnl - a.pnl)
+  if (rows.length < 2) return null
+
+  return (
+    <div className="px-10 pt-6 pb-3 border-b border-slate-200">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.25em] text-slate-400 mb-2">
+        By Pair
+      </p>
+      <table className="w-full text-[11px]" style={{ tableLayout: 'fixed' }}>
+        <colgroup>
+          <col style={{ width: '30%' }} />
+          <col style={{ width: '20%' }} />
+          <col style={{ width: '25%' }} />
+          <col style={{ width: '25%' }} />
+        </colgroup>
+        <thead>
+          <tr className="bg-slate-50 border-y border-slate-200">
+            <Th>Pair</Th>
+            <Th align="center">Trades</Th>
+            <Th align="center">Win Rate</Th>
+            <Th align="right">Net P&L</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map(r => {
+            const rated = r.wins + r.losses
+            const wr = rated === 0 ? null : (r.wins / rated) * 100
+            const tone = r.pnl > 0 ? 'text-emerald-600' : r.pnl < 0 ? 'text-rose-600' : 'text-slate-500'
+            return (
+              <tr key={r.symbol} className="border-b border-slate-100 last:border-0">
+                <td className="px-3 py-1.5 text-slate-900 font-medium">{r.symbol}</td>
+                <td className="px-3 py-1.5 text-center font-mono text-slate-700">{r.count}</td>
+                <td className="px-3 py-1.5 text-center font-mono text-slate-700">
+                  {wr == null ? '—' : `${wr.toFixed(0)}%`}
+                </td>
+                <td className={`px-3 py-1.5 text-right font-mono font-semibold ${tone}`}>
+                  {r.pnl >= 0 ? '+' : '−'}${Math.abs(r.pnl).toFixed(2)}
+                </td>
+              </tr>
+            )
+          })}
+        </tbody>
+      </table>
     </div>
   )
 }
