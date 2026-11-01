@@ -77,4 +77,4 @@ CREATE POLICY "broker_conn_delete_own"
 -- Notlar:
 -- - is_admin() public.is_admin() olarak tanımlı (006)
 -- - trigger SECURITY DEFINER → public.is_admin() çağrısı RLS bypass ile çalışır
--- - role escalation kapatıldı; mevcut admin (turtletrader / efkanakalin1@gmail.com) etkilenmez
+-- - role escalation kapatıldı; mevcut admin (the account set in 006_admin_role.sql) etkilenmez

@@ -36,7 +36,7 @@ const FAQS = [
   },
   {
     q: 'Where is my data stored? Is it secure?',
-    a: 'All trades live in Supabase, encrypted at rest and protected by row-level security — only you can read your own rows. Not even we have access to your data.',
+    a: 'By default everything stays in your own browser — no account, no server, no API key. You can download a backup file at any time. If you self-host with your own Supabase project, trades sync to your database instead, protected by row-level security.',
   },
   {
     q: 'What does the QT Score mean?',
@@ -48,7 +48,7 @@ const FAQS = [
   },
   {
     q: 'Is it free?',
-    a: 'Completely. The core journal, dashboard, news feed and all analytics are free with no usage limits. There are no plans to put the core behind a paywall.',
+    a: 'Completely, and open source. The journal, dashboard and every analytic run in your browser with no limits, no sign-up and no API keys.',
   },
 ]
 

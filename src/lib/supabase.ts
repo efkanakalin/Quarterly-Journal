@@ -1,16 +1,15 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { localClient } from './localClient'
 
 /**
- * Env değişkenleri yoksa modül seviyesinde EXCEPTION fırlatmıyoruz —
- * bu, build başarılı olup deploy edildikten sonra env eksikse
- * tarayıcıyı sessiz beyaz ekrana götürürdü. Bunun yerine bayrağı
- * `MISSING_SUPABASE_ENV` olarak set edip ana giriş noktasında (main.tsx)
- * kullanıcı dostu bir hata sayfası gösteriyoruz.
+ * Supabase is optional. Without VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY the
+ * app runs in local mode: every trade stays in this browser's localStorage and
+ * no account, API key or server is needed.
  */
 const supabaseUrl  = import.meta.env.VITE_SUPABASE_URL as string | undefined
 const supabaseKey  = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined
 
-export const MISSING_SUPABASE_ENV = !supabaseUrl || !supabaseKey
+export const LOCAL_MODE = !supabaseUrl || !supabaseKey
 
 /**
  * Remember me storage adapter:
@@ -34,7 +33,6 @@ const rememberAwareStorage = {
   },
   setItem: (key: string, value: string): void => {
     if (typeof window === 'undefined') return
-    // Önce diğer storage'tan temizle ki çakışma olmasın
     if (isRemembering()) {
       window.sessionStorage.removeItem(key)
       window.localStorage.setItem(key, value)
@@ -50,10 +48,8 @@ const rememberAwareStorage = {
   },
 }
 
-// Eksikse fake client kur — hiç çağrılmasa da uygulama mount olabilsin.
-// main.tsx zaten bu durumda app'i mount etmek yerine error page basacak.
-export const supabase = MISSING_SUPABASE_ENV
-  ? createClient('https://placeholder.supabase.co', 'placeholder-anon-key')
+export const supabase: SupabaseClient = LOCAL_MODE
+  ? (localClient as unknown as SupabaseClient)
   : createClient(supabaseUrl!, supabaseKey!, {
       auth: {
         storage:          rememberAwareStorage,

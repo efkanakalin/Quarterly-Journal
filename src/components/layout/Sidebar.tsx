@@ -10,6 +10,7 @@ import { useLangStore } from '@/stores/useLangStore'
 import { useNewsStore } from '@/stores/useNewsStore'
 import { UnreadBadge } from '@/components/news/UnreadBadge'
 import { useS } from '@/lib/i18n'
+import { LOCAL_MODE } from '@/lib/supabase'
 
 interface SidebarProps {
   mobileOpen?: boolean
@@ -50,8 +51,8 @@ export function Sidebar({ mobileOpen = false, onMobileClose, desktopCollapsed = 
     { to: '/dashboard',   icon: BarChart2,  label: S.nav.dashboard },
     { to: '/journal',     icon: BookOpen,   label: S.nav.journal },
     { to: '/daily-stats', icon: TrendingUp, label: S.nav.dailyStats },
-    { to: '/news',        icon: Newspaper,  label: S.nav.news, badge: unreadNews },
-    { to: '/blog',        icon: FileText,   label: S.nav.blog },
+    ...(LOCAL_MODE ? [] : [{ to: '/news', icon: Newspaper, label: S.nav.news, badge: unreadNews }] as const),
+    ...(LOCAL_MODE ? [] : [{ to: '/blog', icon: FileText, label: S.nav.blog }] as const),
     ...(role === 'admin'
       ? [{ to: '/admin', icon: ShieldCheck, label: S.nav.admin }]
       : []),

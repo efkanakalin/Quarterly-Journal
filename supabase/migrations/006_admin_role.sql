@@ -1,8 +1,7 @@
 -- ============================================================
 -- 006: Admin role + read-only journal access
 --
--- Tek admin: efkanakalin1@gmail.com (tek ben). Odin hocam henüz kayıtlı
--- değil; o kayıt olduğunda manuel UPDATE ile admin yapılacak.
+-- Single admin: set the e-mail below to your own account before running.
 --
 -- Admin sadece OKUYABİLİR — INSERT/UPDATE/DELETE diğer kullanıcıların
 -- verisinde KAPALI. Broker token kolonları (broker_connections) admin'e
@@ -22,7 +21,7 @@ ALTER TABLE profiles
 -- auth.users'tan email ile id bul, profile'ı admin yap.
 UPDATE profiles
    SET role = 'admin'
- WHERE id = (SELECT id FROM auth.users WHERE email = 'efkanakalin1@gmail.com');
+ WHERE id = (SELECT id FROM auth.users WHERE email = 'admin@example.com');
 
 -- ── is_admin() helper ─────────────────────────────────────
 -- SECURITY DEFINER: profiles RLS recursion'ını atlatır; STABLE: aynı

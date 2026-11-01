@@ -1,6 +1,6 @@
 import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
-import { supabase } from '@/lib/supabase'
+import { supabase, LOCAL_MODE } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { AuthGuard } from '@/components/shared/AuthGuard'
 import { AppLayout } from '@/components/layout/AppLayout'
@@ -58,7 +58,7 @@ function App() {
         <Route path="/brokers"     element={<Brokers />} />
         <Route path="/daily-stats" element={<DailyStats />} />
         <Route path="/scoreboard"  element={<ScoreBoard />} />
-        <Route path="/news"        element={<News />} />
+        <Route path="/news"        element={LOCAL_MODE ? <Navigate to="/dashboard" replace /> : <News />} />
         <Route path="/profile"     element={<Profile />} />
         <Route path="/admin"       element={<AdminUsers />} />
         <Route path="/blog"             element={<Blog />} />

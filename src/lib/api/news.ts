@@ -1,9 +1,10 @@
 import type { CalendarEvent, EconRelease, Impact, NewsItem } from '@/types/news'
 import { matchSymbols, scoreSentiment } from '@/lib/news/sentiment'
 import { isImportantNews } from '@/lib/news/importance'
+import { LOCAL_MODE } from '@/lib/supabase'
 
-const SUPABASE_URL  = import.meta.env.VITE_SUPABASE_URL  as string
-const SUPABASE_ANON = import.meta.env.VITE_SUPABASE_ANON_KEY as string
+const SUPABASE_URL  = (import.meta.env.VITE_SUPABASE_URL ?? '') as string
+const SUPABASE_ANON = (import.meta.env.VITE_SUPABASE_ANON_KEY ?? '') as string
 
 const fnBase = () => `${SUPABASE_URL.replace(/\/$/, '')}/functions/v1`
 
@@ -30,13 +31,16 @@ async function getJson<T>(path: string): Promise<T> {
 }
 
 // ---- News ----
+/** Needs the optional `news` edge function (the RSS source blocks browser CORS); empty in local mode. */
 type RawNews = {
   id: string; title: string; link: string | null;
   source: string; publishedAt: string
 }
+
 export async function fetchNews(since?: string): Promise<NewsItem[]> {
+  if (LOCAL_MODE) return []
   const q = since ? `?since=${encodeURIComponent(since)}` : ''
-  const { items = [] } = await getJson<{ items: RawNews[] }>(`/news${q}`)
+  const items = (await getJson<{ items?: RawNews[] }>(`/news${q}`)).items ?? []
   return items.map(r => ({
     ...r,
     sentiment: scoreSentiment(r.title),
@@ -46,16 +50,20 @@ export async function fetchNews(since?: string): Promise<NewsItem[]> {
 }
 
 // ---- Calendar ----
+/** Needs the optional `calendar` edge function; empty in local mode. */
 export async function fetchCalendar(
   impact: Impact[] = ['high', 'medium'],
 ): Promise<CalendarEvent[]> {
+  if (LOCAL_MODE) return []
   const q = impact.length ? `?impact=${impact.join(',')}` : ''
   const { events = [] } = await getJson<{ events: CalendarEvent[] }>(`/calendar${q}`)
   return events
 }
 
 // ---- Economic releases (Finnhub) ----
+/** Needs the optional `economic-data` edge function; empty in local mode. */
 export async function fetchEconReleases(): Promise<EconRelease[]> {
+  if (LOCAL_MODE) return []
   const { releases = [] } = await getJson<{ releases: EconRelease[] }>(
     '/economic-data?impact=high,medium,low',
   )

@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { supabase } from '@/lib/supabase'
+import { supabase, LOCAL_MODE } from '@/lib/supabase'
 
 type AuthMode = 'signin' | 'signup' | 'reset'
 
@@ -28,6 +28,11 @@ export function Auth() {
   useEffect(() => {
     if (!loadingAuth && user) navigate('/dashboard', { replace: true })
   }, [user, loadingAuth, navigate])
+
+  // Local mode has no accounts: opening /auth starts the journal straight away.
+  useEffect(() => {
+    if (LOCAL_MODE) void signInWithEmail('', '').then(() => navigate('/dashboard', { replace: true }))
+  }, [signInWithEmail, navigate])
 
   // Initial mode from query string ?mode=signin|signup
   const initialMode: AuthMode = (() => {

@@ -3,12 +3,13 @@ import { format } from 'date-fns'
 import { tr, enUS } from 'date-fns/locale'
 import { Link } from 'react-router-dom'
 import { AtSign, Mail, CalendarDays, User as UserIcon, ShieldCheck, Settings, UserCircle2 } from 'lucide-react'
-import { supabase } from '@/lib/supabase'
+import { supabase, LOCAL_MODE } from '@/lib/supabase'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { useLangStore } from '@/stores/useLangStore'
 import { useS } from '@/lib/i18n'
 import { CustomizationSection } from '@/components/profile/CustomizationSection'
 import { MfaSection } from '@/components/profile/MfaSection'
+import { LocalDataSection } from '@/components/profile/LocalDataSection'
 
 interface ProfileData {
   username:     string
@@ -118,7 +119,7 @@ export function Profile() {
             <InfoRow
               icon={<Mail className="h-4 w-4" />}
               label={S.profile.email}
-              value={user?.email ?? '—'}
+              value={LOCAL_MODE ? 'Not needed — local mode' : user?.email ?? '—'}
             />
             <InfoRow
               icon={<CalendarDays className="h-4 w-4" />}
@@ -128,8 +129,7 @@ export function Profile() {
             />
           </div>
 
-          {/* 2FA */}
-          <MfaSection />
+          {LOCAL_MODE ? <LocalDataSection /> : <MfaSection />}
 
           {/* Admin shortcut */}
           {role === 'admin' && (

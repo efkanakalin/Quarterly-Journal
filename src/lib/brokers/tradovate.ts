@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { supabase, LOCAL_MODE } from '@/lib/supabase'
 import type { TradovateAccount } from './types'
 
 
@@ -11,7 +11,7 @@ const WORKER_URL = (import.meta.env.VITE_TRADOVATE_WORKER_URL as string | undefi
  * proxy'liyor.
  */
 export function isTradovateConfigured(): boolean {
-  return Boolean(WORKER_URL)
+  return Boolean(WORKER_URL) && !LOCAL_MODE
 }
 
 function ensureWorker(): string {

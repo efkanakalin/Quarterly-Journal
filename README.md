@@ -1,203 +1,143 @@
-# Quarterly Journal
+<div align="center">
 
-A Quarterly Theory–native trade journal. Unlike generic journals, it models
-every trade around the QT framework: Q/D/W cycle position, session, 90-minute
-micro-quarters, confirmation chain, mistake tagging, and a composite
-**QT Score**. Pairs with a live news & economic-calendar panel so you can
-keep context on macro events while reviewing your tape.
+<img src="public/qt-wordmark.png" alt="Quarterly Journal" height="96" />
 
-## Features
+### Free, open-source trading journal for futures day traders
 
-- **Journal** — inline-edit trade table, double-click-to-edit cells, per-cell
-  selection ring, PnL / Notes hide toggles.
-- **Dashboard** — cumulative PnL, drawdown, session heatmap, weekly bars,
-  mistake frequency, confirmation effectiveness, radar-shaped QT Score.
-- **Daily Stats** — per-day grouped view with intraday cumulative chart,
-  winner/loser tallies, and a per-day journaling note (localStorage).
-- **CSV import** — Tradovate Performance.csv → normalized trades, with Europe
-  /Istanbul → America/New_York conversion including DST.
-- **Broker auto-sync** — Brokers page (`/brokers`) connects a Tradovate
-  account via OAuth and pulls new fills incrementally. All Tradovate
-  traffic goes through a tiny Cloudflare Worker (`cloudflare-worker/`)
-  that verifies the user's Supabase JWT before proxying — Tradovate's
-  API does not allow browser CORS, and `client_secret` never reaches
-  the client. MT4/5, Binance, IBKR are stubbed as Coming Soon.
-- **News panel** (`/news`) — three zones:
-  - *Live Feed* (Financial Juice RSS, 30-second poll, sentiment-bordered
-    headlines, virtualized list of last 50)
-  - *Economic Calendar* (ForexFactory weekly JSON, 15-minute cache,
-    day-by-day navigator, impact colours, countdown badge on the next
-    high-impact event)
-  - *Economic Data* (Finnhub calendar, 5-minute cache, last 10 released
-    US high/medium events with actual vs forecast vs previous & beat/miss
-    colouring)
-- **Alarms** — synthesized tones via Web Audio; configurable lead-time for
-  high-impact events; desktop notifications; preferences persisted locally.
-- **i18n** — English + Turkish toggle, every user-visible string keyed.
-- **Themes** — class-based dark/light, persisted.
+**Quarterly Theory–native trade journal · Tradovate CSV import · QT Score · runs 100% in your browser — no account, no API key**
 
-## Stack
+![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-6-3178c6?logo=typescript&logoColor=white)
+![Vite](https://img.shields.io/badge/Vite-8-646cff?logo=vite&logoColor=white)
+![Tailwind](https://img.shields.io/badge/Tailwind-4-38bdf8?logo=tailwindcss&logoColor=white)
+![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
 
-| Layer       | Tech                                        |
-|-------------|---------------------------------------------|
-| Frontend    | React 19 + Vite 8 + TypeScript 6            |
-| Styling     | Tailwind CSS v4, @base-ui/react primitives  |
-| State       | Zustand (with `persist` middleware)         |
-| Routing     | React Router v7                             |
-| Charts      | Recharts                                    |
-| Virtualize  | @tanstack/react-virtual                     |
-| CSV         | PapaParse                                   |
-| Dates       | date-fns + date-fns-tz                      |
-| Backend     | Supabase (Postgres + RLS + Auth + Edge Fns) |
-| Deploy      | Cloudflare Pages / Netlify (SPA)            |
+</div>
 
-## Local setup
+![Quarterly Journal dashboard](docs/dashboard.png)
+
+**Quarterly Journal** is a trade journal built for futures traders (NQ, ES, MNQ, MES, YM, RTY, GC, CL…)
+who follow **Quarterly Theory** and **ICT** concepts. Generic trading journals only store entry, exit and P&L.
+Quarterly Journal models every trade around the framework you actually trade — session, quarter,
+90-minute micro-quarter, confirmation chain and mistakes — and turns it into statistics that show
+where your edge really is.
+
+Clone it, run it, and start journaling in under a minute. **There is nothing to sign up for and no API
+key to configure**: your trades are stored in your own browser, and you can export a backup file at any time.
+
+---
+
+## ✨ Features
+
+### 📒 Trade journal
+- Spreadsheet-style journal with inline, double-click-to-edit cells
+- Step-by-step **trade wizard**: confirmations per timeframe, chart link, R-multiple, mistakes, notes
+- 60+ confirmation types — QT primitives (SSMT, PSP, PRC, SD, PO3, MMXM), ICT concepts (BOS, CHoCH, OB,
+  FVG, MSS, CISD), indicators, volume tools and classic patterns — fully customisable
+- Automatic session (Asia / London / NY AM / NY PM), session quarter, 90-minute micro-quarter,
+  week, month and year quarter for every trade
+- List and calendar views, hide P&L / notes for screenshots
+
+### 📊 Analytics dashboard
+- P&L, profit factor, win rate, day win %, average win / loss
+- **QT Score**: a radar chart that grades win %, profit factor, consistency, recovery factor and avg win/loss
+- Cumulative P&L, drawdown curve, daily / weekly net P&L bars
+- Session performance and **Session × Quarter heatmap**, so you can see exactly which quarter pays you
+- Mistake frequency and entry (confirmation) effectiveness
+- Monthly P&L calendar, best / worst trade
+
+### 📅 Daily stats
+- Per-day breakdown with intraday equity curve, winners / losers, volume, profit factor
+- Per-day journaling note and **one-click PDF daily report**
+
+### ⚡ Import & sync
+- **Tradovate Performance.csv import** with duplicate detection (re-importing the same file is safe)
+- Time-zone aware: timestamps converted to New York time with DST handled correctly
+- Manual trade entry for any broker
+- Optional Tradovate auto-sync through a small Cloudflare Worker (self-hosted mode)
+
+### 🎨 Everything else
+- Light & dark theme, English & Turkish UI
+- Backup / restore your whole journal as a single JSON file
+- Optional live news feed, economic calendar and economic-data panel with alarms (self-hosted mode)
+
+| Journal | Daily stats |
+|---|---|
+| ![Journal](docs/journal.png) | ![Daily stats](docs/daily-stats.png) |
+
+---
+
+## 🚀 Quick start (no API keys)
 
 ```bash
-git clone <repo>
-cd quarterly-journal
+git clone https://github.com/efkanakalin/Quarterly-Journal.git
+cd Quarterly-Journal
 npm install
-cp .env.example .env
-# fill in VITE_SUPABASE_URL + VITE_SUPABASE_ANON_KEY
-npm run dev          # http://localhost:5173
+npm run dev        # → http://localhost:5173
 ```
 
-### Supabase setup (one-time)
+Open the app, click **Get Started**, pick a username and you are in.
+Want to see it full of data straight away? Go to **Journal → Import CSV** and choose
+[`examples/sample-performance.csv`](examples/sample-performance.csv).
 
-1. **Project:** create a Supabase project, copy URL & anon key into `.env`.
-2. **Schema:** open the SQL editor, run `supabase/migrations/*.sql` in order.
-3. **Auth:** Authentication → Providers → enable Google; add the OAuth
-   credentials (create them in Google Cloud Console, redirect URI
-   `https://<project-ref>.supabase.co/auth/v1/callback`).
-4. **Edge functions** (for the News panel):
+### Importing your own trades from Tradovate
+Tradovate → *Account Settings* → *Reports* → **Performance** tab → choose a date range → *Download CSV* →
+Quarterly Journal → **Journal → Import CSV**.
 
-   ```bash
-   supabase login
-   supabase functions deploy news           --project-ref <ref> --no-verify-jwt
-   supabase functions deploy economic-data  --project-ref <ref> --no-verify-jwt
-   supabase functions deploy calendar       --project-ref <ref> --no-verify-jwt
-   supabase secrets set FINNHUB_API_KEY=... --project-ref <ref>
-   ```
+### Where is my data?
+In **local mode** (the default) every trade lives in your browser's `localStorage` and nothing is sent
+anywhere. Use **My Profile → Your data → Download backup** to keep a copy or to move the journal to
+another browser or computer, and **Restore from file** to load it back.
 
-   The `--no-verify-jwt` flag is intentional: these three functions are
-   read-only public-data proxies and don't need user auth.
+### Deploying
+`npm run build` produces a static site in `dist/`. Host it for free on Cloudflare Pages, Netlify,
+Vercel or GitHub Pages (SPA config for Netlify, Vercel and Cloudflare is included).
 
-### Tradovate auto-sync (optional)
+---
 
-Brokers page'in Tradovate bağlantısını çalıştırmak için Cloudflare Worker
-proxy'yi deploy etmek gerekir — Tradovate browser CORS'u kapalı tutar.
-Akış manuel-token: kullanıcı Tradovate'ten kendi access token'ını alıp UI'ya
-yapıştırır; OAuth client kaydı gerekmez.
+## ☁️ Optional: self-hosted cloud mode
 
-1. **Worker deploy** — `cloudflare-worker/README.md` adımlarını izleyin
-   (sadece `wrangler secret put SUPABASE_JWT_SECRET`).
-2. **Frontend `.env`** — worker URL'sini ekleyin:
+Local mode covers the whole journal and all analytics. If you want **multi-device sync, accounts,
+the live news panel or Tradovate auto-sync**, you can connect **your own** free Supabase project.
+None of this is required.
 
-   ```
-   VITE_TRADOVATE_WORKER_URL=https://qt-journal-tradovate-proxy.<acct>.workers.dev
-   ```
+1. Create a project at [supabase.com](https://supabase.com) and run the SQL files in
+   `supabase/migrations/` in order.
+2. `cp .env.example .env` and fill in `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY`
+   (the public anon key; never put a service-role key in a `VITE_` variable).
+3. *(News panel)* deploy the edge functions in `supabase/functions/` and set your own
+   `FINNHUB_API_KEY` as a Supabase secret.
+4. *(Tradovate auto-sync)* deploy the worker in `cloudflare-worker/` and set
+   `VITE_TRADOVATE_WORKER_URL`.
 
-3. **Migration** — `supabase/migrations/005_broker_connections.sql`
-   uygulanmış olmalı; tablo `broker_connections`'tır ve RLS user-scoped.
+As soon as the two Supabase variables are present the app switches from local mode to cloud mode
+automatically.
 
-### CSV import
+---
 
-Tradovate → Account Settings → Reports → **Performance** tab → pick a date
-range → Download CSV → in Quarterly Journal's Journal page, click "Import CSV".
-Timestamps arrive in Europe/Istanbul and are converted to America/New_York
-with DST handled correctly.
+## 🧱 Tech stack
 
-## Environment variables
+| Layer | Tech |
+|---|---|
+| Frontend | React 19, TypeScript, Vite |
+| Styling | Tailwind CSS v4, Base UI primitives, Lucide icons |
+| State | Zustand |
+| Charts | Recharts |
+| CSV / dates | PapaParse, date-fns, date-fns-tz |
+| PDF | jsPDF, html-to-image |
+| Storage | Browser `localStorage` (default) · Supabase Postgres + RLS (optional) |
 
-Client `.env` (only two — never put server secrets here, anything prefixed
-`VITE_` is exposed to the browser):
+## 🤝 Contributing
 
-```
-VITE_SUPABASE_URL=https://<project-ref>.supabase.co
-VITE_SUPABASE_ANON_KEY=<publishable or jwt anon key>
-```
+Issues and pull requests are welcome. New broker CSV formats (NinjaTrader, Rithmic, TopstepX,
+MetaTrader…) are especially appreciated; parsers live in `src/lib/csv/`.
 
-Supabase secrets (read by edge functions, never shipped to the browser):
+## 📄 License
 
-```
-FINNHUB_API_KEY=...        # required for /functions/v1/economic-data
-FRED_API_KEY=...           # optional legacy fallback
-```
+[MIT](LICENSE): free for personal and commercial use.
 
-Set with `supabase secrets set KEY=VALUE --project-ref <ref>`.
+---
 
-## Folder structure
-
-```
-quarterly-journal/
-├── public/                  # Static assets (logo, favicon, _redirects)
-├── src/
-│   ├── components/
-│   │   ├── dashboard/       # Dashboard widgets (charts, cards, heatmap)
-│   │   ├── journal/         # Trade table, wizard, CSV upload, badges
-│   │   │   └── wizard/      # 4-step modal for completing CSV trades
-│   │   ├── layout/          # AppLayout, Sidebar
-│   │   ├── news/            # Live feed, calendar, econ data, alarms
-│   │   ├── shared/          # CalendarGrid, AuthGuard, DayTradesModal
-│   │   └── ui/              # Generic primitives (dialog, select, button…)
-│   ├── lib/
-│   │   ├── api/             # Client wrappers for edge functions
-│   │   ├── constants/       # Symbols, sessions, palettes, confirmations
-│   │   ├── csv/             # Papaparse adapter + CSV fingerprint check
-│   │   ├── derivations/     # Pure fns: outcome, session, quarter, …
-│   │   ├── i18n/            # en.ts, tr.ts + useS() hook
-│   │   ├── metrics/         # qtScore + config
-│   │   ├── news/            # keywords, sentiment, formatting helpers
-│   │   ├── formatET.ts      # ET timestamp formatter
-│   │   ├── stats.ts         # calcStats / drawdown / cumulative / per-day
-│   │   ├── supabase.ts      # Supabase client
-│   │   └── utils.ts         # cn() and small helpers
-│   ├── pages/               # Route-level components
-│   ├── stores/              # Zustand slices (auth, lang, theme, trades,
-│   │                        # dashboard, news, alarm)
-│   ├── types/               # Shared TypeScript types
-│   ├── App.tsx              # <Routes> + auth bootstrap
-│   ├── main.tsx             # ReactDOM entry
-│   └── index.css            # Tailwind + keyframes
-├── supabase/
-│   ├── functions/
-│   │   ├── _shared/cors.ts  # CORS helper shared by all functions
-│   │   ├── news/            # Financial Juice RSS proxy
-│   │   ├── economic-data/   # Finnhub calendar → released events
-│   │   └── calendar/        # ForexFactory weekly → normalized events
-│   └── migrations/          # SQL applied via Supabase dashboard
-├── NEWS_PANEL.md            # Deep-dive on the news panel
-├── .env.example
-└── vite.config.ts
-```
-
-## Scripts
-
-| Command          | What it does                                      |
-|------------------|---------------------------------------------------|
-| `npm run dev`    | Start Vite dev server on :5173 with HMR           |
-| `npm run build`  | `tsc -b` + `vite build` → `dist/`                 |
-| `npm run preview`| Serve the built bundle locally                    |
-| `npm run lint`   | ESLint over `src/`                                |
-
-## Deploy
-
-Any static-SPA host works. Two options:
-
-- **Cloudflare Pages** — connect GitHub repo, build cmd `npm run build`,
-  output dir `dist`. Add the two `VITE_*` env vars.
-- **Netlify** — same build/output; `public/_redirects` already ships the
-  SPA fallback.
-
-Supabase edge functions are deployed separately via the Supabase CLI
-(see the `supabase functions deploy …` commands above).
-
-## Further reading
-
-- `NEWS_PANEL.md` — polling intervals, keyword table locations, how to add
-  a new symbol filter or news source, and tweaks for the forecast/actual
-  comparison logic.
-
-## License
-
-MIT — free and open source.
+<sub>Keywords: trading journal, trade journal, futures trading journal, day trading journal,
+Tradovate journal, Quarterly Theory, ICT, NQ / ES / MNQ / MES, trade tracker, trading statistics,
+open source trading journal, free trading journal.</sub>
